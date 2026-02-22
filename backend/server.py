@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -6,10 +6,12 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List
+from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
 
+from agent import LanguageTutorAgent
+from tools import SCENARIOS
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -19,54 +21,306 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Create the main app without a prefix
-app = FastAPI()
+# LLM key
+EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 
-# Create a router with the /api prefix
+app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# --- Pydantic Models ---
 
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
-    
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+class ConversationCreate(BaseModel):
+    title: Optional[str] = None
+    scenario: Optional[str] = None
 
-class StatusCheckCreate(BaseModel):
-    client_name: str
+class ConversationResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    title: str
+    scenario: Optional[str] = None
+    created_at: str
+    updated_at: str
+    message_count: int = 0
 
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
+class MessageCreate(BaseModel):
+    content: str
+    scenario_context: Optional[str] = None
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
-    
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
-    
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
+class MessageResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    conversation_id: str
+    role: str
+    content: str
+    tools_used: List[str] = []
+    created_at: str
 
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
-    
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
-    
-    return status_checks
+class VocabularyCreate(BaseModel):
+    word: str
+    definition: str
+    example: Optional[str] = None
+    context: Optional[str] = None
 
-# Include the router in the main app
+class VocabularyResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    word: str
+    definition: str
+    example: Optional[str] = None
+    context: Optional[str] = None
+    created_at: str
+
+class ProgressResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    total_conversations: int = 0
+    total_messages: int = 0
+    vocabulary_count: int = 0
+    scenarios_practiced: List[str] = []
+    tools_usage: dict = {}
+    streak_days: int = 0
+    recent_activity: List[dict] = []
+
+
+# --- Conversations ---
+
+@api_router.post("/conversations", response_model=ConversationResponse)
+async def create_conversation(data: ConversationCreate):
+    now = datetime.now(timezone.utc).isoformat()
+    conv = {
+        "id": str(uuid.uuid4()),
+        "title": data.title or "New Conversation",
+        "scenario": data.scenario,
+        "created_at": now,
+        "updated_at": now,
+        "message_count": 0
+    }
+    await db.conversations.insert_one(conv)
+    conv.pop("_id", None)
+    return conv
+
+@api_router.get("/conversations", response_model=List[ConversationResponse])
+async def list_conversations():
+    convs = await db.conversations.find({}, {"_id": 0}).sort("updated_at", -1).to_list(100)
+    return convs
+
+@api_router.get("/conversations/{conv_id}", response_model=ConversationResponse)
+async def get_conversation(conv_id: str):
+    conv = await db.conversations.find_one({"id": conv_id}, {"_id": 0})
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return conv
+
+@api_router.delete("/conversations/{conv_id}")
+async def delete_conversation(conv_id: str):
+    await db.conversations.delete_one({"id": conv_id})
+    await db.messages.delete_many({"conversation_id": conv_id})
+    return {"status": "deleted"}
+
+@api_router.get("/conversations/{conv_id}/messages", response_model=List[MessageResponse])
+async def get_messages(conv_id: str):
+    messages = await db.messages.find(
+        {"conversation_id": conv_id}, {"_id": 0}
+    ).sort("created_at", 1).to_list(500)
+    return messages
+
+
+# --- Send Message (Agent Interaction) ---
+
+@api_router.post("/conversations/{conv_id}/messages", response_model=List[MessageResponse])
+async def send_message(conv_id: str, data: MessageCreate):
+    conv = await db.conversations.find_one({"id": conv_id}, {"_id": 0})
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    now = datetime.now(timezone.utc).isoformat()
+
+    # Save user message
+    user_msg = {
+        "id": str(uuid.uuid4()),
+        "conversation_id": conv_id,
+        "role": "user",
+        "content": data.content,
+        "tools_used": [],
+        "created_at": now
+    }
+    await db.messages.insert_one(user_msg)
+
+    # Get conversation history
+    history = await db.messages.find(
+        {"conversation_id": conv_id}, {"_id": 0}
+    ).sort("created_at", 1).to_list(50)
+
+    history_for_agent = [
+        {"role": m["role"], "content": m["content"]}
+        for m in history
+    ]
+
+    # Process through agent
+    agent = LanguageTutorAgent(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=f"lingua_{conv_id}"
+    )
+
+    result = await agent.process_message(
+        user_text=data.content,
+        conversation_history=history_for_agent,
+        scenario_context=data.scenario_context or conv.get("scenario")
+    )
+
+    # Save AI response
+    ai_msg = {
+        "id": str(uuid.uuid4()),
+        "conversation_id": conv_id,
+        "role": "assistant",
+        "content": result["response"],
+        "tools_used": result.get("tools_used", []),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.messages.insert_one(ai_msg)
+
+    # Update conversation
+    update_title = conv.get("title", "New Conversation")
+    if update_title == "New Conversation" and len(data.content) > 3:
+        update_title = data.content[:50] + ("..." if len(data.content) > 50 else "")
+
+    await db.conversations.update_one(
+        {"id": conv_id},
+        {"$set": {
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "title": update_title
+        },
+        "$inc": {"message_count": 2}}
+    )
+
+    # Track progress
+    await _track_activity(data.content, result.get("tools_used", []), conv.get("scenario"))
+
+    user_msg.pop("_id", None)
+    ai_msg.pop("_id", None)
+    return [user_msg, ai_msg]
+
+
+# --- Vocabulary ---
+
+@api_router.post("/vocabulary", response_model=VocabularyResponse)
+async def save_vocabulary(data: VocabularyCreate):
+    now = datetime.now(timezone.utc).isoformat()
+    vocab = {
+        "id": str(uuid.uuid4()),
+        "word": data.word,
+        "definition": data.definition,
+        "example": data.example,
+        "context": data.context,
+        "created_at": now
+    }
+    await db.vocabulary.insert_one(vocab)
+    vocab.pop("_id", None)
+    return vocab
+
+@api_router.get("/vocabulary", response_model=List[VocabularyResponse])
+async def list_vocabulary():
+    vocab = await db.vocabulary.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    return vocab
+
+@api_router.delete("/vocabulary/{vocab_id}")
+async def delete_vocabulary(vocab_id: str):
+    await db.vocabulary.delete_one({"id": vocab_id})
+    return {"status": "deleted"}
+
+
+# --- Scenarios ---
+
+@api_router.get("/scenarios")
+async def get_scenarios():
+    return [
+        {"id": key, **{k: v for k, v in val.items() if k != "starter_prompts"}, "prompts": val["starter_prompts"]}
+        for key, val in SCENARIOS.items()
+    ]
+
+
+# --- Progress ---
+
+@api_router.get("/progress", response_model=ProgressResponse)
+async def get_progress():
+    total_convs = await db.conversations.count_documents({})
+    total_msgs = await db.messages.count_documents({})
+    vocab_count = await db.vocabulary.count_documents({})
+
+    # Get scenarios practiced
+    scenario_convs = await db.conversations.find(
+        {"scenario": {"$ne": None}}, {"_id": 0, "scenario": 1}
+    ).to_list(100)
+    scenarios = list(set(c["scenario"] for c in scenario_convs if c.get("scenario")))
+
+    # Get tools usage stats
+    pipeline = [
+        {"$unwind": "$tools_used"},
+        {"$group": {"_id": "$tools_used", "count": {"$sum": 1}}}
+    ]
+    tools_agg = await db.messages.aggregate(pipeline).to_list(20)
+    tools_usage = {t["_id"]: t["count"] for t in tools_agg}
+
+    # Calculate streak
+    activity_pipeline = [
+        {"$group": {"_id": {"$substr": ["$created_at", 0, 10]}}},
+        {"$sort": {"_id": -1}},
+        {"$limit": 30}
+    ]
+    activity_days = await db.messages.aggregate(activity_pipeline).to_list(30)
+    streak = _calculate_streak([d["_id"] for d in activity_days])
+
+    # Recent activity
+    recent = await db.messages.find(
+        {"role": "user"}, {"_id": 0, "content": 1, "created_at": 1}
+    ).sort("created_at", -1).limit(5).to_list(5)
+
+    return {
+        "total_conversations": total_convs,
+        "total_messages": total_msgs,
+        "vocabulary_count": vocab_count,
+        "scenarios_practiced": scenarios,
+        "tools_usage": tools_usage,
+        "streak_days": streak,
+        "recent_activity": recent
+    }
+
+
+async def _track_activity(user_text: str, tools_used: list, scenario: str = None):
+    """Track user activity for progress."""
+    await db.activity.insert_one({
+        "id": str(uuid.uuid4()),
+        "text_length": len(user_text),
+        "tools_used": tools_used,
+        "scenario": scenario,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+
+
+def _calculate_streak(date_strings: list) -> int:
+    """Calculate consecutive days of activity."""
+    if not date_strings:
+        return 0
+    from datetime import timedelta
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    dates = sorted(set(date_strings), reverse=True)
+
+    if dates[0] != today:
+        yesterday = (datetime.now(timezone.utc) - timedelta(days=1)).strftime("%Y-%m-%d")
+        if dates[0] != yesterday:
+            return 0
+
+    streak = 1
+    for i in range(1, len(dates)):
+        prev = datetime.strptime(dates[i-1], "%Y-%m-%d")
+        curr = datetime.strptime(dates[i], "%Y-%m-%d")
+        if (prev - curr).days == 1:
+            streak += 1
+        else:
+            break
+    return streak
+
+
+# Include router and middleware
 app.include_router(api_router)
 
 app.add_middleware(
@@ -77,7 +331,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
