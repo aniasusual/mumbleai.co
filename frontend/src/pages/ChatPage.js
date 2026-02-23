@@ -225,7 +225,8 @@ export default function ChatPage() {
       const conv = conversations.find(c => c.id === conversationId);
       if (conv) {
         setCurrentConv(conv);
-        if (conv.language) setSelectedLang(conv.language);
+        if (conv.native_language) setNativeLang(conv.native_language);
+        if (conv.target_language) setTargetLang(conv.target_language);
       }
     }
   }, [conversationId, conversations]);
