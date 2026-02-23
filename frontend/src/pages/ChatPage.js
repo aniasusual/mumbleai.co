@@ -34,6 +34,7 @@ export default function ChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [curriculum, setCurriculum] = useState(null);
   const [toolEvents, setToolEvents] = useState([]);
+  const [streamingText, setStreamingText] = useState("");
 
   // Reference data
   const [scenarios, setScenarios] = useState([]);
