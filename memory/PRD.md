@@ -1,19 +1,22 @@
 # LinguaFlow - AI Voice Language Tutor PRD
 
 ## Problem Statement
-Voice conversation agent for language learning. 99 languages. Proper agent architecture with LLM-native tool calling + subagents. No SDK. Voice-in, voice-out.
+Voice conversation agent for language learning. 99 languages. Dual language system: native language for explanations, target language for practice. Custom agent with tool-calling + subagents. No SDK.
 
-## Agent Architecture (Custom — No SDK)
-```
-Main Tutor Agent (GPT-5.2, agent loop with tool calling)
-  ├── grammar_check → Grammar Subagent (own loop + tools: identify_errors, suggest_correction)
-  ├── vocabulary_lookup → Vocabulary Subagent (own loop + tools: define_word, find_examples)
-  ├── pronunciation_guide → Pronunciation Subagent (own loop + tools: phonetic_breakdown)
-  ├── evaluate_response → Evaluation Subagent (own loop + tools: score_response)
-  └── start_scenario → Direct tool (returns scenario setup)
-```
+## Dual Language Model
+- **Native Language** ("I speak"): User's fluent language. Used for explanations, grammar rules, corrections, tips.
+- **Target Language** ("I want to learn"): Language being practiced. Used for exercises, conversation, role-play.
+- Example: English speaker learning French → tutor explains in English, practice material in French with English translations.
 
-Agent loop: user msg → LLM → tool_calls → execute (spawns subagent loops) → feed results → LLM → repeat until done
+## Agent Architecture (Custom)
+```
+Main Tutor Agent (GPT-5.2, agent loop, native+target aware)
+  ├── grammar_check → Grammar Subagent (own loop + tools)
+  ├── vocabulary_lookup → Vocabulary Subagent (own loop + tools)
+  ├── pronunciation_guide → Pronunciation Subagent (own loop + tools)
+  ├── evaluate_response → Evaluation Subagent (own loop + tools)
+  └── start_scenario → Direct tool
+```
 
 ## Tech Stack
 - Backend: FastAPI + MongoDB + litellm (GPT-5.2 via Emergent proxy)
@@ -22,16 +25,16 @@ Agent loop: user msg → LLM → tool_calls → execute (spawns subagent loops) 
 - Frontend: React + Tailwind + Shadcn/UI + MediaRecorder API
 
 ## Implemented (Feb 2026)
+- [x] Dual language system (native + target)
 - [x] Proper agent loop with LLM-native tool calling
-- [x] 4 subagents (grammar, vocabulary, pronunciation, evaluation)
-- [x] 99 language support with searchable picker
+- [x] 4 subagents with own loops
+- [x] 99 language support
 - [x] Voice-in, voice-out conversation
 - [x] 8 role-play scenarios
 - [x] Progress dashboard, vocabulary notebook
-- [x] Language-adaptive system prompts
 
 ## Backlog
-- P1: Pronunciation scoring via Whisper mismatch detection
-- P2: Spaced repetition for vocabulary
-- P2: Structured lesson plans per language level
-- P3: Gamification, daily challenges, streaks
+- P1: Pronunciation scoring via Whisper mismatch
+- P2: Spaced repetition vocabulary
+- P2: Structured lesson plans per language
+- P3: Daily challenges, gamification
