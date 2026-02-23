@@ -43,8 +43,8 @@ class FirstLessonOnboardingTester:
                     response = requests.post(url, data=data, files=files, timeout=30)
                 else:
                     response = requests.post(url, json=data, headers=headers, timeout=30)
-            elif method == 'DELETE':
-                response = requests.delete(url, headers=headers, timeout=10)
+            elif method == 'PATCH':
+                response = requests.patch(url, json=data, headers=headers, timeout=10)
             else:
                 print(f"❌ Unsupported method: {method}")
                 return False, {}
