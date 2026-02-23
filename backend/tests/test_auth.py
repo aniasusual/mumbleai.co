@@ -270,9 +270,10 @@ class TestUserDataIsolation:
     
     def test_user_sees_only_own_conversations(self):
         """Each user should only see their own conversations"""
-        # Create two separate users
-        user1_email = unique_email()
-        user2_email = unique_email()
+        # Create two separate users with distinct emails
+        user1_email = f"test-user1-{int(time.time() * 1000)}@test.com"
+        time.sleep(0.01)  # Ensure different timestamp
+        user2_email = f"test-user2-{int(time.time() * 1000)}@test.com"
         
         # Signup user 1
         resp1 = requests.post(f"{BASE_URL}/api/auth/signup", json={
