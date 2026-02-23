@@ -251,6 +251,11 @@ export default function ChatPage() {
     try {
       const res = await listConversations();
       setConversations(res.data);
+      // Refresh current conversation data (e.g., proficiency_level updates)
+      if (conversationId) {
+        const updated = res.data.find(c => c.id === conversationId);
+        if (updated) setCurrentConv(updated);
+      }
     } catch (e) {
       console.error("Failed to load conversations", e);
     }
