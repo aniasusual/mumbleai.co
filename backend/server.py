@@ -390,7 +390,7 @@ async def send_voice_message(
     }
     await db.messages.insert_one(user_msg)
 
-    # Step 2: Process through agent
+    # Step 2: Process through the correct agent based on phase
     history = await db.messages.find(
         {"conversation_id": conv_id}, {"_id": 0}
     ).sort("created_at", 1).to_list(50)
@@ -400,17 +400,29 @@ async def send_voice_message(
         for m in history
     ]
 
-    agent = LanguageTutorAgent(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=f"lingua_{conv_id}",
-        native_language=native_lang,
-        target_language=target_lang,
-        proficiency_level=conv.get("proficiency_level"),
-        conversation_id=conv_id,
-        db=db,
-        phase=conv.get("phase", "learning"),
-        curriculum=await db.curricula.find_one({"conversation_id": conv_id}, {"_id": 0}) if conv.get("phase") == "learning" else None
-    )
+    voice_phase = conv.get("phase", "learning")
+    if voice_phase == "planning":
+        agent = CurriculumPlannerAgent(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"lingua_planner_{conv_id}",
+            native_language=native_lang,
+            target_language=target_lang,
+            proficiency_level=conv.get("proficiency_level"),
+            conversation_id=conv_id,
+            db=db
+        )
+    else:
+        agent = LanguageTutorAgent(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"lingua_{conv_id}",
+            native_language=native_lang,
+            target_language=target_lang,
+            proficiency_level=conv.get("proficiency_level"),
+            conversation_id=conv_id,
+            db=db,
+            phase=voice_phase,
+            curriculum=await db.curricula.find_one({"conversation_id": conv_id}, {"_id": 0}) if voice_phase == "learning" else None
+        )
 
     result = await agent.process_message(
         user_text=user_text.strip(),
