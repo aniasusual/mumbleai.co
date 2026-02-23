@@ -1,15 +1,22 @@
-# Mumble AI — Product Requirements Document
+# mumble — Product Requirements Document
 
 ## Problem Statement
-Build a conversational agent, "Mumble AI," that acts as a personal language tutor with voice-first interaction, 50+ language support, and a proper LLM tool-calling architecture built from scratch (no high-level agent SDKs).
+Build a conversational agent, "mumble," that acts as a personal language tutor with voice-first interaction, 50+ language support, and a proper LLM tool-calling architecture built from scratch.
 
 ## Core Architecture
 - **Backend**: FastAPI + MongoDB (motor) — modular service-oriented architecture
-- **Frontend**: React + TailwindCSS + Shadcn/UI + Framer Motion — component-based structure
-- **Agent**: Custom parent/subagent model. `LanguageTutorAgent` delegates to `CurriculumPlannerAgent` based on conversation phase. Four LLM-powered subagents available as tools.
-- **Real-time UI**: Server-Sent Events (SSE) stream agent activity AND text response tokens
+- **Frontend**: React + TailwindCSS + Shadcn/UI + Framer Motion
+- **Agent**: Custom parent/subagent model. `LanguageTutorAgent` + `CurriculumPlannerAgent` + 4 tool subagents
+- **Real-time UI**: SSE streaming (tool events + text tokens)
 - **Voice**: OpenAI Whisper (STT) + OpenAI TTS via emergentintegrations
 - **LLM**: OpenAI GPT-5.2 via Emergent LLM Key
+
+## Branding
+- **Name**: mumble (lowercase)
+- **Logo**: Waveform SVG forming letter M (5 bars at varying heights: WaveformLogo component)
+- **Font**: Sora (headings) + DM Sans (body) + JetBrains Mono (code/phonetics)
+- **Landing theme**: Dark (#060A06) with emerald-400/500 accents
+- **App theme**: Light (#F0F4F8 sidebar, white cards, #2F5233 primary)
 
 ## Completed Features
 - [x] Voice-first interaction (STT + TTS)
@@ -29,24 +36,10 @@ Build a conversational agent, "Mumble AI," that acts as a personal language tuto
 - [x] Streaming Text Response (text_delta SSE events)
 - [x] Karaoke Word Highlight + Waveform during TTS playback
 - [x] Markdown Rendering (react-markdown + remark-gfm)
-- [x] App renamed: LinguaFlow -> Mumble AI
-- [x] **Dark Minimalistic Landing Page** — Complete redesign with Framer Motion animations, bento grid features, karaoke demo card, curriculum preview, scroll-triggered reveals, emerald-on-dark theme. — Implemented 2026-02-23
+- [x] Dark Minimalistic Landing Page (Framer Motion)
+- [x] **Waveform M Logo + mumble branding** — SVG waveform logo, Sora font, lowercase "mumble" across all pages — Implemented 2026-02-23
 
 ## Backlog
 - **P1**: Progress Journal — auto-generate weekly learning summaries
 - **P2**: Gamification — daily streaks, points, leaderboards
 - **P2**: Real-time Pronunciation Feedback — compare spoken vs target
-
-## Key Endpoints
-- `POST /api/conversations` — create conversation
-- `POST /api/conversations/{id}/messages/stream` — SSE streaming
-- `POST /api/conversations/{id}/voice-message` — voice input
-- `GET /api/conversations/{id}/messages` — message history
-- `POST /api/tts` — text-to-speech
-
-## Landing Page Design
-- Theme: Dark (#060A06) with emerald-400/500 accents
-- Font: Playfair Display headings + DM Sans body
-- Animations: Framer Motion (fadeUp, fadeIn, scaleIn) with useInView scroll triggers
-- Sections: Hero (with karaoke demo), Features bento, Tools grid, How it works (4 steps), Scenarios, Curriculum preview, CTA, Footer
-- All navigation functional: /chat, /dashboard, /vocabulary
