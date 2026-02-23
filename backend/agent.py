@@ -493,7 +493,7 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
         level = arguments.get("level", "beginner")
         reasoning = arguments.get("reasoning", "")
         # Save to DB if available
-        if db and conversation_id:
+        if db is not None and conversation_id:
             await db.conversations.update_one(
                 {"id": conversation_id},
                 {"$set": {"proficiency_level": level}}
