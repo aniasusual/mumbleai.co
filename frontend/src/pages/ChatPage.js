@@ -549,7 +549,60 @@ export default function ChatPage() {
           </button>
         </div>
 
-        <div className="px-3 pb-3">
+        <div className="px-3 pb-2">
+          {/* Language Picker */}
+          <div className="relative mb-2">
+            <button
+              onClick={() => setShowLangPicker(!showLangPicker)}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-white/60 hover:bg-white border border-gray-200 text-sm transition-colors duration-150"
+              data-testid="language-picker-btn"
+            >
+              <Globe className="w-4 h-4 text-[#2F5233]" />
+              <span className="flex-1 text-left text-gray-700 truncate">
+                {languages.popular.concat(languages.others).find(l => l.code === selectedLang)?.name || "English"}
+              </span>
+              <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform duration-150 ${showLangPicker ? "rotate-180" : ""}`} />
+            </button>
+
+            {showLangPicker && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-gray-200 shadow-lg z-50 max-h-72 overflow-hidden" data-testid="language-picker-dropdown">
+                <div className="p-2 border-b border-gray-100">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                    <input
+                      type="text"
+                      value={langSearch}
+                      onChange={(e) => setLangSearch(e.target.value)}
+                      placeholder="Search language..."
+                      className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-gray-100 bg-gray-50 focus:outline-none focus:border-[#2F5233]"
+                      autoFocus
+                      data-testid="language-search-input"
+                    />
+                  </div>
+                </div>
+                <div className="overflow-y-auto max-h-56">
+                  {[...languages.popular, ...languages.others]
+                    .filter(l => !langSearch || l.name.toLowerCase().includes(langSearch.toLowerCase()) || l.native.toLowerCase().includes(langSearch.toLowerCase()))
+                    .map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => { setSelectedLang(lang.code); setShowLangPicker(false); setLangSearch(""); }}
+                        className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-[#2F5233]/5 transition-colors duration-100 ${
+                          selectedLang === lang.code ? "bg-[#2F5233]/10 text-[#2F5233] font-medium" : "text-gray-700"
+                        }`}
+                        data-testid={`lang-option-${lang.code}`}
+                      >
+                        <span className="flex-1 text-left">{lang.name}</span>
+                        <span className="text-xs text-gray-400">{lang.native}</span>
+                        {selectedLang === lang.code && <Check className="w-3.5 h-3.5 text-[#2F5233]" />}
+                      </button>
+                    ))
+                  }
+                </div>
+              </div>
+            )}
+          </div>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
