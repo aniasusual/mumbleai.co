@@ -262,31 +262,40 @@ class LinguaFlowAPITester:
         return success
 
     def test_voice_message_api(self):
-        """Test POST /api/conversations/{id}/voice-message - voice message with multipart form"""
+        """Test POST /api/conversations/{id}/voice-message - voice message with REAL audio file"""
         if not self.created_conversation_id:
             print("❌ Skipping voice message test - no conversation created")
             return False
             
-        # Create a minimal test audio file (empty WebM file header)
-        # This is just for API testing - real audio would be much larger
-        test_audio_data = b'\x1a\x45\xdf\xa3\x9f\x42\x86\x81\x01\x42\xf7\x81\x01\x42\xf2\x81\x04\x42\xf3\x81\x08\x42\x82\x84webm\x42\x87\x81\x02\x42\x85\x81\x02'
+        # Use the REAL test audio file at /tmp/test_voice.mp3
+        test_audio_file = '/tmp/test_voice.mp3'
+        
+        try:
+            with open(test_audio_file, 'rb') as audio_file:
+                test_audio_data = audio_file.read()
+            print(f"   ✓ Loaded real audio file: {len(test_audio_data)} bytes")
+        except FileNotFoundError:
+            print(f"❌ Test audio file not found at {test_audio_file}")
+            self.tests_run += 1
+            return False
         
         url = f"{self.api_url}/conversations/{self.created_conversation_id}/voice-message"
         
         self.tests_run += 1
-        print(f"\n🔍 Testing Voice Message API...")
+        print(f"\n🔍 Testing Voice Message API with REAL audio...")
         print(f"   URL: {url}")
+        print(f"   Audio file: {test_audio_file} ({len(test_audio_data)} bytes)")
         
         try:
-            # Create multipart form data
+            # Create multipart form data with real MP3 audio
             files = {
-                'audio': ('test.webm', test_audio_data, 'audio/webm')
+                'audio': ('test_voice.mp3', test_audio_data, 'audio/mp3')
             }
             data = {
                 'scenario_context': None
             }
             
-            response = requests.post(url, files=files, data=data, timeout=30)  # Longer timeout for AI processing
+            response = requests.post(url, files=files, data=data, timeout=60)  # Longer timeout for AI processing
             
             success = response.status_code == 200
             if success:
