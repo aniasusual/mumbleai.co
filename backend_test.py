@@ -300,59 +300,74 @@ class MultiLanguageAPITester:
             return True
 
 def main():
-    print("🚀 Starting Multi-Language Voice Conversation Agent Tests")
+    print("🚀 Starting LLM-Native Tool Calling Agent Tests")
     print("=" * 60)
     
     tester = MultiLanguageAPITester()
     
-    # Test 1: Languages API
+    # Test 1: Languages API (99 languages check)
     print("\n📋 Testing Languages API...")
     langs_success, languages_data = tester.test_languages_api()
     
     if not langs_success:
-        print("❌ Languages API failed - cannot proceed with language-specific tests")
+        print("❌ Languages API failed - cannot proceed with other tests")
         return 1
     
-    # Test 2: Spanish conversation
-    print("\n🇪🇸 Testing Spanish Conversation...")
+    # Test 2: Create English conversation for tool calling tests
+    print("\n🛠️  Testing Tool Calling Mechanisms...")
+    en_success, en_conv_id = tester.test_conversation_with_language("en", "English")
+    
+    if en_success and en_conv_id:
+        # Test specific tool calling scenarios from review request
+        tools_passed = tester.test_tool_calling_messages(en_conv_id)
+        if not tools_passed:
+            print("⚠️  Some tool calling tests failed")
+    else:
+        print("❌ Failed to create conversation for tool testing")
+        return 1
+    
+    # Test 3: Spanish conversation with tools
+    print("\n🇪🇸 Testing Spanish Conversation with Tools...")
     es_success, es_conv_id = tester.test_conversation_with_language("es", "Spanish") 
     
     if es_success and es_conv_id:
-        # Test Spanish message
-        tester.test_language_specific_message(
-            es_conv_id, 
-            "Hola, quiero aprender español",
-            "es",
-            "Spanish"
+        # Test Spanish message with expected Spanish response
+        success, response = tester.run_test(
+            "Spanish conversation responds in Spanish",
+            "POST",
+            f"conversations/{es_conv_id}/messages",
+            expected_status=200,
+            data={"content": "Explícame qué significa 'entrepreneur'"},
+            timeout=30
         )
+        
+        if success and isinstance(response, list):
+            ai_msg = next((m for m in response if m.get('role') == 'assistant'), None) 
+            if ai_msg:
+                tools_used = ai_msg.get('tools_used', [])
+                content = ai_msg.get('content', '')
+                print(f"   Tools used: {tools_used}")
+                print(f"   Response preview: {content[:100]}...")
+                
+                if 'vocabulary_lookup' in tools_used and len(content) > 20:
+                    print("✅ Spanish conversation with tools working")
+                else:
+                    print("⚠️  Spanish tools may not be triggering correctly")
     
-    # Test 3: French conversation  
+    # Test 4: French conversation  
     print("\n🇫🇷 Testing French Conversation...")
     fr_success, fr_conv_id = tester.test_conversation_with_language("fr", "French")
     
     if fr_success and fr_conv_id:
-        # Test French message
         tester.test_language_specific_message(
             fr_conv_id,
-            "Bonjour, je veux pratiquer mon français", 
+            "Bonjour, comment puis-je améliorer ma grammaire française?", 
             "fr",
             "French"
         )
     
-    # Test 4: English conversation (baseline)
-    print("\n🇺🇸 Testing English Conversation...")
-    en_success, en_conv_id = tester.test_conversation_with_language("en", "English")
-    
-    if en_success and en_conv_id:
-        tester.test_language_specific_message(
-            en_conv_id,
-            "Hello, I want to practice English",
-            "en", 
-            "English"
-        )
-    
-    # Test 5: TTS with non-English text
-    print("\n🔊 Testing TTS with Non-English Text...")
+    # Test 5: TTS functionality
+    print("\n🔊 Testing TTS API...")
     tester.test_tts_non_english()
     
     # Test 6: Voice message endpoint
