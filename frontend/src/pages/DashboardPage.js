@@ -88,7 +88,7 @@ export default function DashboardPage() {
               </button>
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-[#2F5233] flex items-center justify-center">
-                  <span className="text-white text-xs font-bold" style={{ fontFamily: 'Playfair Display, serif' }}>L</span>
+                  <span className="text-white text-xs font-bold" style={{ fontFamily: 'Playfair Display, serif' }}>M</span>
                 </div>
                 <span className="font-semibold" style={{ fontFamily: 'Playfair Display, serif' }}>Dashboard</span>
               </div>

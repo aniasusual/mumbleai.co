@@ -6,7 +6,7 @@ import { ToolActivityLive } from "./ToolActivity";
 const StreamingBubble = ({ text }) => (
   <div className="flex items-start gap-3 px-5 py-2 animate-slide-up" data-testid="streaming-bubble">
     <div className="w-8 h-8 rounded-full bg-[#F0F4F8] flex items-center justify-center flex-shrink-0 mt-1">
-      <span className="text-xs font-bold text-[#2F5233]" style={{ fontFamily: 'Playfair Display, serif' }}>L</span>
+      <span className="text-xs font-bold text-[#2F5233]" style={{ fontFamily: 'Playfair Display, serif' }}>M</span>
     </div>
     <div className="chat-bubble-ai px-5 py-3 max-w-[75%]">
       <div className="chat-content text-sm leading-relaxed">
