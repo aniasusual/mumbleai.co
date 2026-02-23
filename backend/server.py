@@ -48,6 +48,7 @@ class ConversationResponse(BaseModel):
     native_language: str = "en"
     target_language: str = "en"
     proficiency_level: Optional[str] = None
+    phase: str = "learning"
     created_at: str
     updated_at: str
     message_count: int = 0
@@ -105,6 +106,7 @@ async def create_conversation(data: ConversationCreate):
         "native_language": native,
         "target_language": target,
         "proficiency_level": None,
+        "phase": "assessment" if native != target and not data.scenario else "learning",
         "created_at": now,
         "updated_at": now,
         "message_count": 0
