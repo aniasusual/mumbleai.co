@@ -31,7 +31,9 @@ class FirstLessonOnboardingTester:
         url = f"{self.api_url}/{endpoint}"
         headers = {'Content-Type': 'application/json'} if not files else {}
         
-        self.tests_run += 1
+            else:
+                print(f"❌ Unsupported method: {method}")
+                return False, {}
         print(f"\n🔍 Testing {name}...")
         print(f"   → {method} {url}")
         
