@@ -17,6 +17,7 @@ export const clearAllConversations = () => api.delete("/conversations/all");
 export const setProficiency = (id, level) => api.patch(`/conversations/${id}/proficiency`, { level });
 export const getMessages = (id) => api.get(`/conversations/${id}/messages`);
 export const sendMessage = (id, data) => api.post(`/conversations/${id}/messages`, data);
+export const getCurriculum = (id) => api.get(`/conversations/${id}/curriculum`);
 
 // Voice message - sends audio blob, returns transcribed text + AI response + TTS audio
 export const sendVoiceMessage = (id, audioBlob, scenarioContext) => {
