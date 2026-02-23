@@ -6,13 +6,14 @@ import asyncio
 from datetime import datetime, timezone
 from typing import List
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from starlette.responses import StreamingResponse
 
 from config import db, EMERGENT_LLM_KEY
 from models import ConversationCreate, ConversationResponse, MessageCreate, MessageResponse
 from agents.tutor import LanguageTutorAgent
 from services.agent_factory import create_agent_for_conversation
+from auth import get_current_user
 from languages import SUPPORTED_LANGUAGES, get_language_name
 
 router = APIRouter()
