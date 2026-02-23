@@ -84,7 +84,7 @@ Have a short conversation with the user to understand their needs, then build a 
                     "proficiency_level": self.proficiency_level or "beginner",
                     "timeline": timeline,
                     "goal": goal,
-                    "lessons": [{**l, "status": "not_started"} for l in lessons],
+                    "lessons": [{**lesson, "status": "not_started"} for lesson in lessons],
                     "current_lesson": 0,
                     "status": "active",
                     "created_at": datetime.now(timezone.utc).isoformat()
