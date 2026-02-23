@@ -2,7 +2,7 @@
  * ChatPage — orchestrator component.
  * Manages state and delegates rendering to focused child components.
  */
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -11,7 +11,7 @@ import { ChatHeader } from "@/components/chat/ChatHeader";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
-import { playAudioBase64 } from "@/lib/audio";
+import { playAudioBase64, playAudioWithKaraoke } from "@/lib/audio";
 import {
   createConversation, listConversations, getMessages, sendMessage,
   sendMessageStream, sendVoiceMessage, deleteConversation, clearAllConversations,
