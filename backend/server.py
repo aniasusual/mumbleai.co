@@ -211,11 +211,15 @@ async def send_message(conv_id: str, data: MessageCreate):
     # Process through agent
     native_lang = conv.get("native_language", "en")
     target_lang = conv.get("target_language", "en")
+    proficiency = conv.get("proficiency_level")
     agent = LanguageTutorAgent(
         api_key=EMERGENT_LLM_KEY,
         session_id=f"lingua_{conv_id}",
         native_language=native_lang,
-        target_language=target_lang
+        target_language=target_lang,
+        proficiency_level=proficiency,
+        conversation_id=conv_id,
+        db=db
     )
 
     result = await agent.process_message(
