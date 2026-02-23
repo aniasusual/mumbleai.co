@@ -425,6 +425,14 @@ async def get_scenarios():
     ]
 
 
+# --- Languages ---
+
+@api_router.get("/languages")
+async def get_languages():
+    popular, others = get_all_languages_sorted()
+    return {"popular": popular, "others": others}
+
+
 # --- Progress ---
 
 @api_router.get("/progress", response_model=ProgressResponse)
