@@ -35,6 +35,7 @@ export default function ChatPage() {
   const [curriculum, setCurriculum] = useState(null);
   const [toolEvents, setToolEvents] = useState([]);
   const [streamingText, setStreamingText] = useState("");
+  const [speakingState, setSpeakingState] = useState(null); // { messageId, wordIndex }
 
   // Reference data
   const [scenarios, setScenarios] = useState([]);
