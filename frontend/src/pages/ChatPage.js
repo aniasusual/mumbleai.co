@@ -197,9 +197,10 @@ export default function ChatPage() {
   const [processingVoice, setProcessingVoice] = useState(false);
   const [inputMode, setInputMode] = useState("voice"); // "voice" or "text"
   const [languages, setLanguages] = useState({ popular: [], others: [] });
-  const [selectedLang, setSelectedLang] = useState("en");
+  const [nativeLang, setNativeLang] = useState("en");
+  const [targetLang, setTargetLang] = useState("en");
   const [langSearch, setLangSearch] = useState("");
-  const [showLangPicker, setShowLangPicker] = useState(false);
+  const [showLangPicker, setShowLangPicker] = useState(null); // null, "native", or "target"
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
