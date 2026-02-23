@@ -29,6 +29,7 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - [x] **Advanced Dark Landing Page v2** — Word-by-word text reveals, language orbit (18 languages), 3D tilt tool icons, animated chat demo, parallax scenario scroll, scroll progress bar, alternating feature rows with gradient accent lines, hero parallax with scale/fade. — Implemented 2026-02-23
 - [x] **Landing Page v3 — Warm Gold Redesign** — Replaced rainbow/violet theme with refined warm-gold (#c8a97e) on near-black (#0a0a0a). Minimal navbar (no gradient button), unified monochrome orbit, simplified feature icons, clean CTA. Smooth animations retained. — Tested & verified 2026-02-23
 - [x] **Hero Greeting Scroll** — Replaced rotating language orbit with dual-column greeting scroll (20 languages in Latin + non-Latin scripts, scrolling in opposite directions with fade masks). — Verified 2026-02-23
+- [x] **JWT Authentication** — Full email/password auth with signup/login/logout. Backend: PyJWT + bcrypt, user-scoped data (conversations, vocabulary, progress). Frontend: React context (useAuth), ProtectedRoute wrapper, AuthPage with Login/Signup tabs. Google login placeholder. — Tested & verified 2026-02-23
 
 ## Backlog
 - **P1**: Progress Journal — auto-generate weekly learning summaries
