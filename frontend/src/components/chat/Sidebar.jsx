@@ -10,6 +10,7 @@ import {
   Briefcase, Plane, UtensilsCrossed, Phone, Users, ShoppingBag, Stethoscope
 } from "lucide-react";
 import { LanguagePicker } from "./LanguagePicker";
+import { WaveformLogo } from "@/components/WaveformLogo";
 
 const ICON_MAP = { Briefcase, Plane, UtensilsCrossed, MessageCircle, Phone, Users, ShoppingBag, Stethoscope };
 
@@ -30,10 +31,8 @@ export const Sidebar = ({
         {/* Logo */}
         <div className="p-4 flex items-center justify-between">
           <button onClick={() => navigate("/")} className="flex items-center gap-2" data-testid="sidebar-logo">
-            <div className="w-7 h-7 rounded-lg bg-[#2F5233] flex items-center justify-center">
-              <span className="text-white text-xs font-bold" style={{ fontFamily: 'Playfair Display, serif' }}>M</span>
-            </div>
-            <span className="font-semibold text-sm" style={{ fontFamily: 'Playfair Display, serif' }}>Mumble AI</span>
+            <WaveformLogo size={28} className="text-[#2F5233]" />
+            <span className="font-medium text-sm text-gray-800" style={{ fontFamily: 'Sora, sans-serif' }}>mumble</span>
           </button>
           <button onClick={onCloseSidebar} className="lg:hidden p-1" data-testid="close-sidebar-btn">
             <X className="w-5 h-5 text-gray-500" />
