@@ -889,10 +889,242 @@ def _build_curriculum_context(curriculum: dict) -> str:
     return ctx
 
 
+class CurriculumPlannerAgent:
+    """
+    Curriculum Planner subagent — a separate agent with its own tools and loop.
+    Runs during the "planning" phase. Has HITL: asks the user about goals,
+    timeline, preferences, then builds a curriculum together.
+    When the user confirms, calls save_curriculum and control returns to the main tutor.
+    """
+
+    # The planner's own tool set — completely separate from the main agent's tools
+    TOOLS = [
+        {
+            "type": "function",
+            "function": {
+                "name": "save_curriculum",
+                "description": "Save the finalized curriculum/learning plan after the user has agreed to it. Call this ONLY after the user confirms they're happy with the plan.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "timeline": {
+                            "type": "string",
+                            "description": "The learning timeline, e.g. '4 weeks, 1 hour/day' or '2 months, 3 sessions/week'"
+                        },
+                        "goal": {
+                            "type": "string",
+                            "description": "The user's learning goal, e.g. 'Travel to Japan' or 'Pass B2 exam'"
+                        },
+                        "lessons": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "lesson_number": {"type": "integer"},
+                                    "title": {"type": "string"},
+                                    "topics": {
+                                        "type": "array",
+                                        "items": {"type": "string"}
+                                    },
+                                    "objective": {"type": "string"}
+                                },
+                                "required": ["lesson_number", "title", "topics", "objective"]
+                            },
+                            "description": "Ordered list of lessons in the curriculum"
+                        }
+                    },
+                    "required": ["timeline", "goal", "lessons"]
+                }
+            }
+        }
+    ]
+
+    def __init__(self, api_key: str, session_id: str, native_language: str, target_language: str, proficiency_level: str = None, conversation_id: str = None, db=None):
+        self.api_key = api_key
+        self.session_id = session_id
+        self.native_language = native_language
+        self.target_language = target_language
+        self.native_name = get_language_name(native_language)
+        self.target_name = get_language_name(target_language)
+        self.proficiency_level = proficiency_level
+        self.conversation_id = conversation_id
+        self.db = db
+        self.system_prompt = self._build_system_prompt()
+
+    def _build_system_prompt(self) -> str:
+        level = self.proficiency_level or "unknown"
+        return f"""You are the LinguaFlow Curriculum Planner — a friendly learning coach who helps create personalized study plans.
+
+## Language
+- Write EVERYTHING in **{self.native_name}** (the user's native language).
+- The user is learning: **{self.target_name}**
+- Their current level: **{level}**
+
+## Your job
+Have a short conversation with the user to understand their needs, then build a curriculum together. You need to find out:
+1. Their learning GOAL (travel, work, exams, hobby, etc.)
+2. Their TIMELINE (how long they want to take, how often they can practice)
+3. Any SPECIFIC topics they care about (e.g. business vocabulary, casual conversation, grammar focus)
+
+## CRITICAL: One question at a time
+- Ask ONE question per message. Wait for the answer before asking the next.
+- After gathering enough info (2-3 questions), propose a curriculum plan.
+- Present the plan clearly with numbered lessons.
+- Ask the user if they want to change anything.
+- Only call `save_curriculum` when the user confirms they're happy with the plan.
+
+## Tone
+- Casual, warm, encouraging — like a friend helping you plan a study schedule.
+- Keep messages short. No walls of text.
+- Use {self.native_name} throughout.
+
+## Flow
+1. Ask about their goal → wait
+2. Ask about their timeline → wait
+3. (Optional) Ask about preferences → wait
+4. Propose a curriculum with ~5-10 lessons tailored to their level ({level}), goal, and timeline
+5. Let the user tweak it
+6. Call `save_curriculum` when confirmed
+
+## Tool
+- `save_curriculum`: Call this to save the finalized plan. Only call it when the user says they're happy with it."""
+
+    async def _execute_planner_tool(self, tool_name: str, arguments: dict) -> str:
+        """Execute the planner's own tools."""
+        if tool_name == "save_curriculum":
+            timeline = arguments.get("timeline", "")
+            goal = arguments.get("goal", "")
+            lessons = arguments.get("lessons", [])
+            if self.db is not None and self.conversation_id:
+                from datetime import datetime, timezone
+                import uuid as _uuid
+                curriculum_doc = {
+                    "id": str(_uuid.uuid4()),
+                    "conversation_id": self.conversation_id,
+                    "proficiency_level": self.proficiency_level or "beginner",
+                    "timeline": timeline,
+                    "goal": goal,
+                    "lessons": [{**l, "status": "not_started"} for l in lessons],
+                    "current_lesson": 0,
+                    "status": "active",
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                }
+                if curriculum_doc["lessons"]:
+                    curriculum_doc["lessons"][0]["status"] = "in_progress"
+                await self.db.curricula.insert_one(curriculum_doc)
+                # Transition back to main tutor
+                await self.db.conversations.update_one(
+                    {"id": self.conversation_id},
+                    {"$set": {"phase": "learning"}}
+                )
+            first_lesson = lessons[0] if lessons else {}
+            return json.dumps({
+                "status": "curriculum_saved",
+                "total_lessons": len(lessons),
+                "instruction": f"Curriculum saved! Now transition to teaching. Tell the user the plan is set and you're about to start Lesson 1: {first_lesson.get('title', '')}. Keep it brief and excited."
+            })
+        return f"Unknown planner tool: {tool_name}"
+
+    async def process_message(self, user_text: str, conversation_history: list, **kwargs) -> dict:
+        """
+        The planner's own agent loop — same pattern as the main agent but with
+        the planner's system prompt and tools.
+        """
+        messages = []
+        for msg in conversation_history[-10:]:
+            messages.append({
+                "role": msg.get("role", "user"),
+                "content": msg.get("content", "")
+            })
+        messages.append({"role": "user", "content": user_text})
+
+        tools_used = []
+        max_iterations = 4
+
+        try:
+            for iteration in range(max_iterations):
+                response = await llm_call(
+                    api_key=self.api_key,
+                    messages=messages,
+                    system=self.system_prompt,
+                    tools=self.TOOLS,
+                    max_tokens=2000
+                )
+
+                msg = response.choices[0].message
+                finish_reason = response.choices[0].finish_reason
+
+                assistant_msg = {"role": "assistant", "content": msg.content or ""}
+                if msg.tool_calls:
+                    assistant_msg["tool_calls"] = _serialize_tool_calls(msg.tool_calls)
+                messages.append(assistant_msg)
+
+                if finish_reason != "tool_calls" or not msg.tool_calls:
+                    return {
+                        "response": msg.content or "Let's keep planning your curriculum!",
+                        "tools_used": tools_used,
+                        "type": "planning"
+                    }
+
+                # Execute the planner's tools
+                for tc in msg.tool_calls:
+                    tool_name = tc.function.name
+                    try:
+                        arguments = json.loads(tc.function.arguments)
+                    except json.JSONDecodeError:
+                        arguments = {}
+
+                    logger.info(f"[Planner Agent] calling tool: {tool_name}({arguments})")
+                    tools_used.append(tool_name)
+
+                    result = await self._execute_planner_tool(tool_name, arguments)
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": tc.id,
+                        "content": result
+                    })
+
+            return {
+                "response": msg.content or "Let me finalize your study plan.",
+                "tools_used": tools_used,
+                "type": "planning"
+            }
+
+        except Exception as e:
+            logger.error(f"Planner agent error: {e}", exc_info=True)
+            return {
+                "response": "I had a hiccup planning. Could you repeat what you'd like?",
+                "tools_used": tools_used,
+                "type": "error"
+            }
+
+    async def generate_welcome(self, **kwargs) -> str:
+        """Generate the planner's opening question in the user's native language."""
+        prompt = (
+            f"You are starting the curriculum planning conversation. The user's {self.target_name} level is {self.proficiency_level or 'unknown'}.\n"
+            f"Write a SHORT opening (1-2 sentences) in {self.native_name} introducing yourself as the learning plan designer. "
+            f"Then ask ONE question: what is their goal for learning {self.target_name}?"
+        )
+        try:
+            response = await llm_call(
+                api_key=self.api_key,
+                messages=[{"role": "user", "content": prompt}],
+                system=self.system_prompt,
+                tools=None,
+                max_tokens=200
+            )
+            return response.choices[0].message.content or f"Let's plan your {self.target_name} learning journey! What's your main goal?"
+        except Exception as e:
+            logger.error(f"Planner welcome failed: {e}")
+            return f"Let's plan your {self.target_name} learning journey! What's your main goal?"
+
+
 class LanguageTutorAgent:
     """
     Main tutor agent with a proper tool-calling loop.
     No SDK — just an LLM call → tool execution → feed results back → repeat.
+    The main agent can call subagents (grammar, vocabulary, pronunciation, evaluation)
+    and can hand off to the Curriculum Planner agent via the plan_curriculum tool.
     """
 
     def __init__(self, api_key: str, session_id: str, native_language: str = "en", target_language: str = "en", proficiency_level: str = None, conversation_id: str = None, db=None, phase: str = "learning", curriculum: dict = None):
@@ -908,17 +1140,13 @@ class LanguageTutorAgent:
         self.phase = phase
         self.curriculum = curriculum
 
-        # Build prompt based on phase
-        if phase == "planning":
-            self.system_prompt = build_curriculum_planner_prompt(native_language, target_language, proficiency_level)
-            self.tools = PLANNING_TOOLS
-        else:
-            self.system_prompt = build_tutor_system_prompt(native_language, target_language)
-            if proficiency_level:
-                self.system_prompt += f"\n\n## User's Proficiency: {proficiency_level.upper()}\nAdapt all content to {proficiency_level} level."
-            if curriculum and curriculum.get("lessons"):
-                self.system_prompt += _build_curriculum_context(curriculum)
-            self.tools = MAIN_AGENT_TOOLS
+        # Main agent always uses the tutor prompt and tools
+        self.system_prompt = build_tutor_system_prompt(native_language, target_language)
+        if proficiency_level:
+            self.system_prompt += f"\n\n## User's Proficiency: {proficiency_level.upper()}\nAdapt all content to {proficiency_level} level."
+        if curriculum and curriculum.get("lessons"):
+            self.system_prompt += _build_curriculum_context(curriculum)
+        self.tools = MAIN_AGENT_TOOLS
 
     async def process_message(
         self,
