@@ -104,7 +104,7 @@ Have a short conversation with the user to understand their needs, then build a 
             })
         return f"Unknown planner tool: {tool_name}"
 
-    async def process_message(self, user_text: str, conversation_history: list, **kwargs) -> dict:
+    async def process_message(self, user_text: str, conversation_history: list, on_event=None, **kwargs) -> dict:
         """The planner's own agent loop."""
         messages = [
             {"role": m.get("role", "user"), "content": m.get("content", "")}
@@ -113,10 +113,14 @@ Have a short conversation with the user to understand their needs, then build a 
         messages.append({"role": "user", "content": user_text})
 
         tools_used = []
+        tool_activity = []
         max_iterations = 4
 
         try:
             for iteration in range(max_iterations):
+                if on_event:
+                    await on_event({"type": "thinking"})
+
                 response = await llm_call(
                     api_key=self.api_key, messages=messages,
                     system=self.system_prompt, tools=self.tools, max_tokens=2000
@@ -134,6 +138,7 @@ Have a short conversation with the user to understand their needs, then build a 
                     return {
                         "response": msg.content or "Let's keep planning your curriculum!",
                         "tools_used": tools_used,
+                        "tool_activity": tool_activity,
                         "type": "planning"
                     }
 
