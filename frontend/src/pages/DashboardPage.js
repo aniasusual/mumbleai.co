@@ -16,6 +16,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { getProgress } from "@/lib/api";
+import { WaveformLogo } from "@/components/WaveformLogo";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
