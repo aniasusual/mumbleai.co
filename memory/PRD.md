@@ -27,7 +27,8 @@ Build a conversational agent, "LinguaFlow," that acts as a personal language tut
 - [x] Frontend refactor (ChatPage orchestrator + 7 child components + custom hook)
 - [x] Live Tool & Subagent Activity UI (SSE streaming, real-time spinners, collapsible summary)
 - [x] Streaming Text Response — Agent text appears token-by-token via SSE text_delta events
-- [x] **Karaoke Word Highlight + Waveform** — Word-by-word highlighting during TTS playback (current word highlighted, upcoming dimmed, spoken normal). Animated waveform bars + stop button during playback. Works on manual play, auto-speak after message send, and voice messages. — Implemented 2026-02-23
+- [x] Karaoke Word Highlight + Waveform — Word-by-word highlighting during TTS playback
+- [x] **Markdown Rendering** — AI messages render markdown (bold, lists, code, headings, blockquotes, tables) via react-markdown + remark-gfm. User messages stay plain text. StreamingBubble also renders markdown live. Karaoke mode falls back to plain text. — Implemented 2026-02-23
 
 ## Backlog
 - **P1**: Progress Journal — auto-generate weekly learning summaries
@@ -43,18 +44,16 @@ Build a conversational agent, "LinguaFlow," that acts as a personal language tut
 
 ## SSE Event Types
 - `thinking` — agent is making an LLM call
-- `tool_start` — tool execution begins
-- `substep` — sub-step within a tool
-- `tool_end` — tool execution done
+- `tool_start` / `substep` / `tool_end` — tool execution lifecycle
 - `text_delta` — token chunk of the agent's text response
 - `done` — final event with user_message + ai_message payloads
 
-## Karaoke System
-- `playAudioWithKaraoke()` in `/app/frontend/src/lib/audio.js` — calculates word timings from audio duration weighted by character length
-- `speakingState: { messageId, wordIndex }` in ChatPage — tracks which message and word is active
-- CSS classes: `karaoke-word-current` (green bg), `karaoke-word-spoken` (normal), `karaoke-word-upcoming` (dimmed)
-- `AudioWaveform` component — 5 animated bars during playback
-- Stop button replaces play button during active playback
+## Key Frontend Components
+- `MarkdownContent` — Shared react-markdown renderer with custom styled components (bold in green, lists, code blocks, blockquotes, tables)
+- `KaraokeText` — Word-by-word highlight during TTS playback
+- `AudioWaveform` — Animated 5-bar waveform during playback
+- `StreamingBubble` — Renders streaming markdown with blinking cursor
+- `ToolActivityLive` / `ToolActivitySummary` — Real-time and post-hoc tool usage display
 
 ## DB Collections
 - `conversations`: id, title, scenario, native_language, target_language, proficiency_level, phase, message_count
