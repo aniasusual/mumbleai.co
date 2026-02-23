@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { LanguagePicker } from "./LanguagePicker";
 import { WaveformLogo } from "@/components/WaveformLogo";
-import { useAuth } from "@/hooks/useAuth";
 
 const ICON_MAP = { Briefcase, Plane, UtensilsCrossed, MessageCircle, Phone, Users, ShoppingBag, Stethoscope };
 
