@@ -3,11 +3,18 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Loader2, Volume2, Square } from "lucide-react";
 import { ToolActivitySummary } from "./ToolActivity";
+import { WaveformLogoSmall } from "@/components/WaveformLogo";
+
+const AiAvatar = () => (
+  <div className="w-8 h-8 rounded-full bg-[#F0F4F8] flex items-center justify-center flex-shrink-0 mt-1">
+    <WaveformLogoSmall size={18} className="text-[#2F5233]" />
+  </div>
+);
 
 const TypingIndicator = () => (
   <div className="flex items-center gap-3 px-5 py-4 animate-slide-up">
     <div className="w-8 h-8 rounded-full bg-[#F0F4F8] flex items-center justify-center flex-shrink-0">
-      <span className="text-xs font-bold text-[#2F5233]" style={{ fontFamily: 'Playfair Display, serif' }}>M</span>
+      <WaveformLogoSmall size={18} className="text-[#2F5233]" />
     </div>
     <div className="chat-bubble-ai px-4 py-3">
       <div className="flex gap-1.5">
