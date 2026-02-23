@@ -6,11 +6,12 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  MessageCircle, Plus, Trash2, BookOpen, BarChart3, ChevronDown, X,
+  MessageCircle, Plus, Trash2, BookOpen, BarChart3, ChevronDown, X, LogOut,
   Briefcase, Plane, UtensilsCrossed, Phone, Users, ShoppingBag, Stethoscope
 } from "lucide-react";
 import { LanguagePicker } from "./LanguagePicker";
 import { WaveformLogo } from "@/components/WaveformLogo";
+import { useAuth } from "@/hooks/useAuth";
 
 const ICON_MAP = { Briefcase, Plane, UtensilsCrossed, MessageCircle, Phone, Users, ShoppingBag, Stethoscope };
 
