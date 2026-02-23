@@ -129,6 +129,13 @@ export const Sidebar = ({
           <button onClick={() => navigate("/vocabulary")} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-600 hover:text-[#2F5233] hover:bg-white/60 rounded-lg transition-colors duration-150" data-testid="sidebar-vocabulary-link">
             <BookOpen className="w-4 h-4" /> Vocabulary
           </button>
+          <Separator className="my-1" />
+          <div className="flex items-center justify-between px-3 py-1.5">
+            <span className="text-xs text-gray-500 truncate max-w-[140px]" data-testid="sidebar-user-email">{user?.email}</span>
+            <button onClick={handleLogout} className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition-colors duration-150" data-testid="sidebar-logout-btn">
+              <LogOut className="w-3.5 h-3.5" /> Logout
+            </button>
+          </div>
         </div>
       </aside>
 
