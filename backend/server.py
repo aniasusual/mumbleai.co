@@ -238,14 +238,14 @@ async def send_voice_message(
                 file=f,
                 model="whisper-1",
                 language="en",
-                response_format="verbose_json",
+                response_format="json",
                 temperature=0.0
             )
         user_text = transcript_response.text
     except Exception as e:
         logger.error(f"Whisper transcription failed: {e}")
         os.unlink(tmp_path)
-        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
+        raise HTTPException(status_code=400, detail="Could not process audio. Please make sure you're speaking clearly and try again.")
     finally:
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
