@@ -147,7 +147,7 @@ export default function ChatPage() {
     if (!convId) return;
 
     const userText = input.trim();
-    setInput(""); setSending(true); setToolEvents([]);
+    setInput(""); setSending(true); setToolEvents([]); setStreamingText("");
     const tempId = `temp-${Date.now()}`;
     setMessages(prev => [...prev, { id: tempId, role: "user", content: userText, tools_used: [], created_at: new Date().toISOString() }]);
 
@@ -155,10 +155,16 @@ export default function ChatPage() {
       const result = await sendMessageStream(
         convId,
         { content: userText, scenario_context: currentConv?.scenario },
-        (event) => setToolEvents(prev => [...prev, event])
+        (event) => {
+          if (event.type === "text_delta") {
+            setStreamingText(prev => prev + event.content);
+          } else {
+            setToolEvents(prev => [...prev, event]);
+          }
+        }
       );
       setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
-      setToolEvents([]);
+      setToolEvents([]); setStreamingText("");
       refreshConversations();
       const aiMsg = result.ai_message;
       if (aiMsg) {
