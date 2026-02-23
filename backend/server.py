@@ -165,9 +165,11 @@ async def send_message(conv_id: str, data: MessageCreate):
     ]
 
     # Process through agent
+    target_lang = conv.get("language", "en")
     agent = LanguageTutorAgent(
         api_key=EMERGENT_LLM_KEY,
-        session_id=f"lingua_{conv_id}"
+        session_id=f"lingua_{conv_id}",
+        target_language=target_lang
     )
 
     result = await agent.process_message(
