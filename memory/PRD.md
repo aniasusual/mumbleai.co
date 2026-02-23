@@ -35,8 +35,29 @@ backend/
 └── services/
     └── agent_factory.py   # Creates correct agent based on phase (DRY)
 ```
-- `/app/frontend/src/pages/ChatPage.js` - Main chat UI
-- `/app/frontend/src/lib/api.js` - API helpers
+```
+frontend/src/
+├── pages/
+│   ├── ChatPage.js         # Orchestrator — state, hooks, layout (240 lines)
+│   ├── DashboardPage.js    # Progress/stats dashboard
+│   ├── LandingPage.js      # Landing page
+│   └── VocabularyPage.js   # Vocabulary management
+├── components/chat/
+│   ├── Sidebar.jsx          # Lang pickers, new chat, conversation list
+│   ├── ChatHeader.jsx       # Title, badges (proficiency/curriculum/phase)
+│   ├── MessageList.jsx      # Messages, empty state, typing indicator
+│   ├── ChatInput.jsx        # Voice recording + text input
+│   ├── ChatBubble.jsx       # Single message bubble with TTS play
+│   └── LanguagePicker.jsx   # Reusable language dropdown (DRY)
+├── hooks/
+│   ├── useVoiceRecorder.js  # Microphone recording logic
+│   └── use-toast.js         # Toast hook
+├── lib/
+│   ├── api.js               # API call helpers
+│   ├── audio.js             # Base64 audio playback utility
+│   └── utils.js             # Shared utilities
+└── App.js                   # Router
+```
 
 ## Completed Features
 - [x] MVP: Full-stack app (React/FastAPI/MongoDB)
