@@ -268,6 +268,7 @@ export default function ChatPage() {
         conversations={conversations} conversationId={conversationId}
         scenarios={scenarios} languages={languages}
         nativeLang={nativeLang} targetLang={targetLang} sidebarOpen={sidebarOpen}
+        userEmail={user?.email} onLogout={logout}
         onSetNativeLang={setNativeLang} onSetTargetLang={setTargetLang}
         onNewConversation={handleNewConversation} onDeleteConv={handleDeleteConv}
         onClearAll={handleClearAll} onCloseSidebar={() => setSidebarOpen(false)}
