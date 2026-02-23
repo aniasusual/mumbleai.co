@@ -835,6 +835,17 @@ export default function ChatPage() {
                   {currentConv.proficiency_level}
                 </Badge>
               )}
+              {currentConv?.phase === "planning" && (
+                <Badge className="text-[10px] border-0 bg-purple-100 text-purple-700" data-testid="phase-planning-badge">
+                  planning curriculum
+                </Badge>
+              )}
+              {curriculum && curriculum.lessons && (
+                <Badge variant="outline" className="text-[10px] border-[#2F5233]/20 text-[#2F5233]" data-testid="curriculum-progress-badge">
+                  Lesson {(curriculum.current_lesson || 0) + 1}/{curriculum.lessons.length}
+                  {curriculum.lessons[curriculum.current_lesson]?.title && `: ${curriculum.lessons[curriculum.current_lesson].title}`}
+                </Badge>
+              )}
             </div>
           </div>
           {/* Input mode toggle */}
