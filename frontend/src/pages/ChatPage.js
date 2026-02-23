@@ -308,7 +308,7 @@ export default function ChatPage() {
   const ensureConversation = async () => {
     if (conversationId) return conversationId;
     try {
-      const res = await createConversation({ title: null, language: selectedLang });
+      const res = await createConversation({ title: null, native_language: nativeLang, target_language: targetLang });
       setConversations(prev => [res.data, ...prev]);
       setCurrentConv(res.data);
       navigate(`/chat/${res.data.id}`, { replace: true });
