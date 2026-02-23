@@ -16,6 +16,20 @@ export const deleteConversation = (id) => api.delete(`/conversations/${id}`);
 export const getMessages = (id) => api.get(`/conversations/${id}/messages`);
 export const sendMessage = (id, data) => api.post(`/conversations/${id}/messages`, data);
 
+// Voice message - sends audio blob, returns transcribed text + AI response + TTS audio
+export const sendVoiceMessage = (id, audioBlob, scenarioContext) => {
+  const formData = new FormData();
+  formData.append("audio", audioBlob, "recording.webm");
+  if (scenarioContext) formData.append("scenario_context", scenarioContext);
+  return api.post(`/conversations/${id}/voice-message`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+    timeout: 60000,
+  });
+};
+
+// Text-to-Speech
+export const textToSpeech = (text) => api.post("/tts", { text });
+
 // Vocabulary
 export const listVocabulary = () => api.get("/vocabulary");
 export const saveVocabulary = (data) => api.post("/vocabulary", data);
