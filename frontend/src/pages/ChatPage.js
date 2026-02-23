@@ -146,15 +146,20 @@ export default function ChatPage() {
     if (!convId) return;
 
     const userText = input.trim();
-    setInput(""); setSending(true);
+    setInput(""); setSending(true); setToolEvents([]);
     const tempId = `temp-${Date.now()}`;
     setMessages(prev => [...prev, { id: tempId, role: "user", content: userText, tools_used: [], created_at: new Date().toISOString() }]);
 
     try {
-      const res = await sendMessage(convId, { content: userText, scenario_context: currentConv?.scenario });
-      setMessages(prev => [...prev.filter(m => m.id !== tempId), ...res.data]);
+      const result = await sendMessageStream(
+        convId,
+        { content: userText, scenario_context: currentConv?.scenario },
+        (event) => setToolEvents(prev => [...prev, event])
+      );
+      setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
+      setToolEvents([]);
       refreshConversations();
-      const aiMsg = res.data.find(m => m.role === "assistant");
+      const aiMsg = result.ai_message;
       if (aiMsg) {
         try {
           const ttsRes = await textToSpeech(aiMsg.content);
@@ -165,6 +170,7 @@ export default function ChatPage() {
       toast.error("Failed to send message.");
       setMessages(prev => prev.filter(m => m.id !== tempId));
       setInput(userText);
+      setToolEvents([]);
     } finally { setSending(false); inputRef.current?.focus(); }
   };
 
