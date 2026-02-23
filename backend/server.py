@@ -14,7 +14,7 @@ import uuid
 from datetime import datetime, timezone
 
 from emergentintegrations.llm.openai import OpenAISpeechToText, OpenAITextToSpeech
-from agent import LanguageTutorAgent
+from agent import LanguageTutorAgent, CurriculumPlannerAgent
 from tools import SCENARIOS
 from languages import SUPPORTED_LANGUAGES, get_all_languages_sorted, get_language_name
 
