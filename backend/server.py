@@ -257,28 +257,37 @@ async def send_message(conv_id: str, data: MessageCreate):
         for m in history
     ]
 
-    # Process through agent
+    # Process through the correct agent based on phase
     native_lang = conv.get("native_language", "en")
     target_lang = conv.get("target_language", "en")
     proficiency = conv.get("proficiency_level")
     phase = conv.get("phase", "learning")
 
-    # Load curriculum if in learning phase
-    curriculum = None
-    if phase == "learning":
-        curriculum = await db.curricula.find_one({"conversation_id": conv_id}, {"_id": 0})
-
-    agent = LanguageTutorAgent(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=f"lingua_{conv_id}",
-        native_language=native_lang,
-        target_language=target_lang,
-        proficiency_level=proficiency,
-        conversation_id=conv_id,
-        db=db,
-        phase=phase,
-        curriculum=curriculum
-    )
+    if phase == "planning":
+        # Route to the Curriculum Planner subagent
+        agent = CurriculumPlannerAgent(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"lingua_planner_{conv_id}",
+            native_language=native_lang,
+            target_language=target_lang,
+            proficiency_level=proficiency,
+            conversation_id=conv_id,
+            db=db
+        )
+    else:
+        # Route to the main Tutor agent
+        curriculum = await db.curricula.find_one({"conversation_id": conv_id}, {"_id": 0}) if phase == "learning" else None
+        agent = LanguageTutorAgent(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"lingua_{conv_id}",
+            native_language=native_lang,
+            target_language=target_lang,
+            proficiency_level=proficiency,
+            conversation_id=conv_id,
+            db=db,
+            phase=phase,
+            curriculum=curriculum
+        )
 
     result = await agent.process_message(
         user_text=data.content,
