@@ -532,6 +532,20 @@ export default function ChatPage() {
     }
   };
 
+  const handleClearAll = async () => {
+    if (!window.confirm("Delete all conversations? This cannot be undone.")) return;
+    try {
+      await clearAllConversations();
+      setConversations([]);
+      setCurrentConv(null);
+      setMessages([]);
+      navigate("/chat");
+      toast.success("All conversations deleted");
+    } catch (e) {
+      toast.error("Failed to clear conversations");
+    }
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
