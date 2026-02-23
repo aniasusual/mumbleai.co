@@ -208,6 +208,7 @@ export default function ChatPage() {
   const [targetLang, setTargetLang] = useState("en");
   const [langSearch, setLangSearch] = useState("");
   const [showLangPicker, setShowLangPicker] = useState(null); // null, "native", or "target"
+  const [curriculum, setCurriculum] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
