@@ -49,7 +49,8 @@ import {
   clearAllConversations,
   getScenarios,
   getLanguages,
-  textToSpeech
+  textToSpeech,
+  getCurriculum
 } from "@/lib/api";
 
 const ICON_MAP = {
