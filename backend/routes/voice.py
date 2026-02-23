@@ -8,13 +8,14 @@ import tempfile
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from fastapi.responses import JSONResponse
 
 from config import db, EMERGENT_LLM_KEY
 from emergentintegrations.llm.openai import OpenAISpeechToText, OpenAITextToSpeech
 from services.agent_factory import create_agent_for_conversation
 from routes.conversations import _track_activity
+from auth import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -39,9 +40,10 @@ async def generate_tts(text: str) -> Optional[str]:
 async def send_voice_message(
     conv_id: str,
     audio: UploadFile = File(...),
-    scenario_context: Optional[str] = Form(None)
+    scenario_context: Optional[str] = Form(None),
+    user: dict = Depends(get_current_user),
 ):
-    conv = await db.conversations.find_one({"id": conv_id}, {"_id": 0})
+    conv = await db.conversations.find_one({"id": conv_id, "user_id": user["id"]}, {"_id": 0})
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
@@ -152,7 +154,7 @@ async def send_voice_message(
 
 
 @router.post("/tts")
-async def text_to_speech(data: dict):
+async def text_to_speech(data: dict, user: dict = Depends(get_current_user)):
     text = data.get("text", "")
     if not text:
         raise HTTPException(status_code=400, detail="Text is required")
