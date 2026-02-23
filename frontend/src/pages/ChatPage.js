@@ -222,7 +222,10 @@ export default function ChatPage() {
     if (conversationId) {
       loadMessages(conversationId);
       const conv = conversations.find(c => c.id === conversationId);
-      if (conv) setCurrentConv(conv);
+      if (conv) {
+        setCurrentConv(conv);
+        if (conv.language) setSelectedLang(conv.language);
+      }
     }
   }, [conversationId, conversations]);
 
