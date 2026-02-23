@@ -212,10 +212,42 @@ export default function ChatPage() {
     }
   };
 
-  const handlePlayMessage = async (text) => {
+  // --- Audio Playback with Karaoke ---
+  const stopAudio = useCallback(() => {
+    if (audioControllerRef.current) {
+      audioControllerRef.current.stop();
+      audioControllerRef.current = null;
+    }
+    setSpeakingState(null);
+  }, []);
+
+  const playWithKaraoke = useCallback((audioBase64, messageId, text) => {
+    // Stop any currently playing audio
+    stopAudio();
+
+    const words = text.split(/\s+/).filter(w => w.length > 0);
+    setSpeakingState({ messageId, wordIndex: 0 });
+
+    const controller = playAudioWithKaraoke(
+      audioBase64,
+      words,
+      (wordIndex) => setSpeakingState(prev => prev ? { ...prev, wordIndex } : null),
+      () => { setSpeakingState(null); audioControllerRef.current = null; }
+    );
+    audioControllerRef.current = controller;
+  }, [stopAudio]);
+
+  const handlePlayMessage = async (messageId, text) => {
+    // If already speaking this message, stop
+    if (speakingState?.messageId === messageId) {
+      stopAudio();
+      return;
+    }
     try {
       const res = await textToSpeech(text);
-      if (res.data.audio_base64) await playAudioBase64(res.data.audio_base64);
+      if (res.data.audio_base64) {
+        playWithKaraoke(res.data.audio_base64, messageId, text);
+      }
     } catch (e) { toast.error("Could not play audio"); }
   };
 
