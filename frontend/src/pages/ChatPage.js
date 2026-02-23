@@ -170,6 +170,7 @@ export default function ChatPage() {
       );
       setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
       setToolEvents([]); setStreamingText("");
+      setSending(false);
       refreshConversations();
       const aiMsg = result.ai_message;
       if (aiMsg) {
