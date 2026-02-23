@@ -644,6 +644,125 @@ If the conversation starts with an assessment question (like "How would you intr
 - Always end with exactly ONE simple prompt or question."""
 
 
+# ──────────────────────────────────────────────────
+# Curriculum Planning Tools & Prompt
+# ──────────────────────────────────────────────────
+
+PLANNING_TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "save_curriculum",
+            "description": "Save the finalized curriculum/learning plan after the user has agreed to it. Call this ONLY after the user confirms they're happy with the plan.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "timeline": {
+                        "type": "string",
+                        "description": "The learning timeline, e.g. '4 weeks, 1 hour/day' or '2 months, 3 sessions/week'"
+                    },
+                    "goal": {
+                        "type": "string",
+                        "description": "The user's learning goal, e.g. 'Travel to Japan' or 'Pass B2 exam'"
+                    },
+                    "lessons": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "lesson_number": {"type": "integer"},
+                                "title": {"type": "string"},
+                                "topics": {
+                                    "type": "array",
+                                    "items": {"type": "string"}
+                                },
+                                "objective": {"type": "string"}
+                            },
+                            "required": ["lesson_number", "title", "topics", "objective"]
+                        },
+                        "description": "Ordered list of lessons in the curriculum"
+                    }
+                },
+                "required": ["timeline", "goal", "lessons"]
+            }
+        }
+    }
+]
+
+
+def build_curriculum_planner_prompt(native_language: str, target_language: str, proficiency_level: str = None) -> str:
+    native_name = get_language_name(native_language)
+    target_name = get_language_name(target_language)
+    level = proficiency_level or "unknown"
+
+    return f"""You are the LinguaFlow Curriculum Planner — a friendly learning coach who helps create personalized study plans.
+
+## Language
+- Write EVERYTHING in **{native_name}** (the user's native language).
+- The user is learning: **{target_name}**
+- Their current level: **{level}**
+
+## Your job
+Have a short conversation with the user to understand their needs, then build a curriculum together. You need to find out:
+1. Their learning GOAL (travel, work, exams, hobby, etc.)
+2. Their TIMELINE (how long they want to take, how often they can practice)
+3. Any SPECIFIC topics they care about (e.g. business vocabulary, casual conversation, grammar focus)
+
+## CRITICAL: One question at a time
+- Ask ONE question per message. Wait for the answer before asking the next.
+- After gathering enough info (2-3 questions), propose a curriculum plan.
+- Present the plan clearly with numbered lessons.
+- Ask the user if they want to change anything.
+- Only call `save_curriculum` when the user confirms they're happy with the plan.
+
+## Tone
+- Casual, warm, encouraging — like a friend helping you plan a study schedule.
+- Keep messages short. No walls of text.
+- Use {native_name} throughout.
+
+## Flow
+1. Ask about their goal → wait
+2. Ask about their timeline → wait
+3. (Optional) Ask about preferences → wait
+4. Propose a curriculum with ~5-10 lessons tailored to their level ({level}), goal, and timeline
+5. Let the user tweak it
+6. Call `save_curriculum` when confirmed
+
+## Tool
+- `save_curriculum`: Call this to save the finalized plan. Only call it when the user says they're happy with it."""
+
+
+def _build_curriculum_context(curriculum: dict) -> str:
+    """Add curriculum context to the tutor's system prompt."""
+    lessons = curriculum.get("lessons", [])
+    current = curriculum.get("current_lesson", 0)
+    goal = curriculum.get("goal", "")
+    timeline = curriculum.get("timeline", "")
+
+    if not lessons:
+        return ""
+
+    current_lesson = lessons[current] if current < len(lessons) else lessons[-1]
+    total = len(lessons)
+    progress = f"{current + 1}/{total}"
+
+    ctx = f"\n\n## Active Curriculum"
+    ctx += f"\n- Goal: {goal}"
+    ctx += f"\n- Timeline: {timeline}"
+    ctx += f"\n- Progress: Lesson {progress}"
+    ctx += f"\n\n## Current Lesson: {current_lesson.get('title', '')}"
+    ctx += f"\n- Objective: {current_lesson.get('objective', '')}"
+    ctx += f"\n- Topics to cover: {', '.join(current_lesson.get('topics', []))}"
+    ctx += f"\n\nFocus this conversation on the current lesson's topics. When the user has practiced enough on these topics, call `advance_lesson` to move to the next one."
+
+    # Show what's coming next
+    if current + 1 < total:
+        next_lesson = lessons[current + 1]
+        ctx += f"\n\n## Next up: Lesson {current + 2} — {next_lesson.get('title', '')}"
+
+    return ctx
+
+
 class LanguageTutorAgent:
     """
     Main tutor agent with a proper tool-calling loop.
