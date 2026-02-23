@@ -160,14 +160,11 @@ def _build_welcome_message(native: str, target: str, native_name: str, target_na
             f"Hey! I'm excited to help you with {target_name}.\n\n"
             f"First things first — let me figure out where you're at so I can match your level. "
             f"Nothing formal, just a quick vibe check.\n\n"
-            f"**Try this:** How would you introduce yourself in {target_name}? "
-            f"Just your name, where you're from, and something you enjoy. No pressure, just give it a shot!"
+            f"**Try this:** How would you introduce yourself in {target_name}? Just give it a shot!"
         )
 
     return (
-        f"Hey! I'm your {target_name} practice buddy. What do you feel like working on today?\n\n"
-        f"We could chat freely, practice grammar, learn new vocabulary, or jump into a role-play scenario. "
-        f"Totally up to you — what sounds good?"
+        f"Hey! I'm your {target_name} practice buddy. What do you feel like working on today?"
     )
 
 
