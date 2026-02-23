@@ -291,14 +291,15 @@ export default function ChatPage() {
       const res = await createConversation({
         title: scenario ? `${scenario} Practice` : null,
         scenario,
-        language: selectedLang
+        native_language: nativeLang,
+        target_language: targetLang
       });
       setConversations(prev => [res.data, ...prev]);
       setCurrentConv(res.data);
       setMessages([]);
       navigate(`/chat/${res.data.id}`);
       setSidebarOpen(false);
-      setShowLangPicker(false);
+      setShowLangPicker(null);
     } catch (e) {
       toast.error("Failed to create conversation");
     }
