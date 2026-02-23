@@ -172,7 +172,9 @@ export default function ChatPage() {
       if (aiMsg) {
         try {
           const ttsRes = await textToSpeech(aiMsg.content);
-          if (ttsRes.data.audio_base64) await playAudioBase64(ttsRes.data.audio_base64);
+          if (ttsRes.data.audio_base64) {
+            playWithKaraoke(ttsRes.data.audio_base64, aiMsg.id, aiMsg.content);
+          }
         } catch (e) { console.error("TTS failed", e); }
       }
     } catch (e) {
