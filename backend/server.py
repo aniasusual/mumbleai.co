@@ -112,11 +112,17 @@ async def create_conversation(data: ConversationCreate):
     await db.conversations.insert_one(conv)
     conv.pop("_id", None)
 
-    # Always generate an opening message from the agent
-    target_name = get_language_name(target)
-    native_name = get_language_name(native)
-    welcome_content = _build_welcome_message(native, target, native_name, target_name, data.scenario)
-    title = _build_conv_title(native, target, target_name, data.scenario)
+    # Always have the agent initiate the conversation in the user's native language
+    agent = LanguageTutorAgent(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=f"lingua_{conv['id']}",
+        native_language=native,
+        target_language=target,
+        conversation_id=conv["id"],
+        db=db
+    )
+    welcome_content = await agent.generate_welcome(scenario=data.scenario)
+    title = _build_conv_title(native, target, get_language_name(target), data.scenario)
 
     welcome_msg = {
         "id": str(uuid.uuid4()),
