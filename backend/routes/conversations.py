@@ -52,13 +52,14 @@ async def _track_activity(user_text: str, tools_used: list, scenario: str = None
 # --- Conversation CRUD ---
 
 @router.post("/conversations", response_model=ConversationResponse)
-async def create_conversation(data: ConversationCreate):
+async def create_conversation(data: ConversationCreate, user: dict = Depends(get_current_user)):
     now = datetime.now(timezone.utc).isoformat()
     native = data.native_language if data.native_language in SUPPORTED_LANGUAGES else "en"
     target = data.target_language if data.target_language in SUPPORTED_LANGUAGES else "en"
 
     conv = {
         "id": str(uuid.uuid4()),
+        "user_id": user["id"],
         "title": data.title or "New Conversation",
         "scenario": data.scenario,
         "native_language": native,
@@ -103,38 +104,38 @@ async def create_conversation(data: ConversationCreate):
 
 
 @router.get("/conversations", response_model=List[ConversationResponse])
-async def list_conversations():
-    return await db.conversations.find({}, {"_id": 0}).sort("updated_at", -1).to_list(100)
+async def list_conversations(user: dict = Depends(get_current_user)):
+    return await db.conversations.find({"user_id": user["id"]}, {"_id": 0}).sort("updated_at", -1).to_list(100)
 
 
 @router.get("/conversations/{conv_id}", response_model=ConversationResponse)
-async def get_conversation(conv_id: str):
-    conv = await db.conversations.find_one({"id": conv_id}, {"_id": 0})
+async def get_conversation(conv_id: str, user: dict = Depends(get_current_user)):
+    conv = await db.conversations.find_one({"id": conv_id, "user_id": user["id"]}, {"_id": 0})
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
     return conv
 
 
 @router.delete("/conversations/all")
-async def delete_all_conversations():
-    conv_ids = await db.conversations.distinct("id")
+async def delete_all_conversations(user: dict = Depends(get_current_user)):
+    conv_ids = await db.conversations.distinct("id", {"user_id": user["id"]})
     if conv_ids:
         await db.messages.delete_many({"conversation_id": {"$in": conv_ids}})
         await db.curricula.delete_many({"conversation_id": {"$in": conv_ids}})
-    await db.conversations.delete_many({})
+    await db.conversations.delete_many({"user_id": user["id"]})
     return {"status": "deleted", "count": len(conv_ids)}
 
 
 @router.delete("/conversations/{conv_id}")
-async def delete_conversation(conv_id: str):
-    await db.conversations.delete_one({"id": conv_id})
+async def delete_conversation(conv_id: str, user: dict = Depends(get_current_user)):
+    await db.conversations.delete_one({"id": conv_id, "user_id": user["id"]})
     await db.messages.delete_many({"conversation_id": conv_id})
     await db.curricula.delete_many({"conversation_id": conv_id})
     return {"status": "deleted"}
 
 
 @router.patch("/conversations/{conv_id}/proficiency")
-async def set_proficiency(conv_id: str, data: dict):
+async def set_proficiency(conv_id: str, data: dict, user: dict = Depends(get_current_user)):
     level = data.get("level", "beginner")
     if level not in ("beginner", "intermediate", "advanced"):
         level = "beginner"
@@ -146,7 +147,7 @@ async def set_proficiency(conv_id: str, data: dict):
 
 
 @router.get("/conversations/{conv_id}/curriculum")
-async def get_curriculum(conv_id: str):
+async def get_curriculum(conv_id: str, user: dict = Depends(get_current_user)):
     curr = await db.curricula.find_one({"conversation_id": conv_id}, {"_id": 0})
     if not curr:
         raise HTTPException(status_code=404, detail="No curriculum found")
@@ -156,15 +157,15 @@ async def get_curriculum(conv_id: str):
 # --- Messages ---
 
 @router.get("/conversations/{conv_id}/messages", response_model=List[MessageResponse])
-async def get_messages(conv_id: str):
+async def get_messages(conv_id: str, user: dict = Depends(get_current_user)):
     return await db.messages.find(
         {"conversation_id": conv_id}, {"_id": 0}
     ).sort("created_at", 1).to_list(500)
 
 
 @router.post("/conversations/{conv_id}/messages", response_model=List[MessageResponse])
-async def send_message(conv_id: str, data: MessageCreate):
-    conv = await db.conversations.find_one({"id": conv_id}, {"_id": 0})
+async def send_message(conv_id: str, data: MessageCreate, user: dict = Depends(get_current_user)):
+    conv = await db.conversations.find_one({"id": conv_id, "user_id": user["id"]}, {"_id": 0})
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
@@ -224,9 +225,9 @@ async def send_message(conv_id: str, data: MessageCreate):
 
 
 @router.post("/conversations/{conv_id}/messages/stream")
-async def send_message_stream(conv_id: str, data: MessageCreate):
+async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = Depends(get_current_user)):
     """SSE streaming endpoint — sends tool activity events in real-time, then the final messages."""
-    conv = await db.conversations.find_one({"id": conv_id}, {"_id": 0})
+    conv = await db.conversations.find_one({"id": conv_id, "user_id": user["id"]}, {"_id": 0})
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
