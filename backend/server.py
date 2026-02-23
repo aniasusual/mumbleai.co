@@ -140,6 +140,17 @@ async def create_conversation(data: ConversationCreate):
 
     return conv
 
+@api_router.patch("/conversations/{conv_id}/proficiency")
+async def set_proficiency(conv_id: str, data: dict):
+    level = data.get("level", "beginner")
+    if level not in ("beginner", "intermediate", "advanced"):
+        level = "beginner"
+    await db.conversations.update_one(
+        {"id": conv_id},
+        {"$set": {"proficiency_level": level}}
+    )
+    return {"status": "updated", "proficiency_level": level}
+
 @api_router.get("/conversations", response_model=List[ConversationResponse])
 async def list_conversations():
     convs = await db.conversations.find({}, {"_id": 0}).sort("updated_at", -1).to_list(100)
