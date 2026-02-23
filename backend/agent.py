@@ -1,113 +1,570 @@
 """
-Custom AI Agent for LinguaFlow - Built from scratch, no agent SDK.
-Uses OpenAI GPT-5.2 function calling for tool routing.
-Supports 50+ languages.
+Custom Agent Framework for LinguaFlow — built from scratch, no SDK.
+Uses GPT-5.2 native tool calling via litellm + Emergent proxy.
+
+Architecture:
+  Main Tutor Agent
+    ├── tool: grammar_check → runs Grammar Subagent (own loop + tools)
+    ├── tool: vocabulary_lookup → runs Vocabulary Subagent (own loop + tools)
+    ├── tool: pronunciation_guide → runs Pronunciation Subagent (own loop + tools)
+    ├── tool: evaluate_response → runs Evaluation Subagent (own loop + tools)
+    ├── tool: start_scenario → direct tool (returns scenario setup)
+    └── tool: save_vocabulary → direct tool (saves word to DB)
 """
 
+import json
 import logging
 from typing import Optional
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+import litellm
 
-from tools import execute_tool
 from languages import get_language_name
 
 logger = logging.getLogger(__name__)
 
+PROXY_URL = "https://integrations.emergentagent.com/llm"
+MODEL = "gpt-5.2"
 
-def build_system_prompt(target_language: str = "en") -> str:
+
+# ──────────────────────────────────────────────────
+# Tool Definitions (JSON schemas for the LLM)
+# ──────────────────────────────────────────────────
+
+MAIN_AGENT_TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "grammar_check",
+            "description": "Analyze the user's text for grammar errors and provide detailed corrections with explanations. Use this when the user's message has grammar issues or they ask for grammar help.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "text": {
+                        "type": "string",
+                        "description": "The text to check for grammar errors"
+                    },
+                    "target_language": {
+                        "type": "string",
+                        "description": "The language the text is written in"
+                    }
+                },
+                "required": ["text"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "vocabulary_lookup",
+            "description": "Look up a word or phrase — provide definition, synonyms, antonyms, example sentences, and usage notes. Use when the user asks about a word's meaning or wants vocabulary help.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "word": {
+                        "type": "string",
+                        "description": "The word or phrase to look up"
+                    },
+                    "target_language": {
+                        "type": "string",
+                        "description": "The language of the word"
+                    },
+                    "context": {
+                        "type": "string",
+                        "description": "Sentence or context where the word was used"
+                    }
+                },
+                "required": ["word"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "pronunciation_guide",
+            "description": "Provide detailed pronunciation guidance for a word — IPA transcription, syllable breakdown, stress patterns, common mistakes, mouth position tips. Use when the user asks how to pronounce something.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "word": {
+                        "type": "string",
+                        "description": "The word to provide pronunciation guidance for"
+                    },
+                    "target_language": {
+                        "type": "string",
+                        "description": "The language of the word"
+                    }
+                },
+                "required": ["word"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "evaluate_response",
+            "description": "Evaluate the user's response for fluency, grammar, vocabulary, and naturalness. Give a score and specific feedback. Use when you want to assess the user's language skills after they speak.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "user_text": {
+                        "type": "string",
+                        "description": "The user's text to evaluate"
+                    },
+                    "conversation_context": {
+                        "type": "string",
+                        "description": "The context of what the user was responding to"
+                    },
+                    "target_language": {
+                        "type": "string",
+                        "description": "The language being practiced"
+                    }
+                },
+                "required": ["user_text"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "start_scenario",
+            "description": "Start a role-play conversation scenario. Returns the scenario setup and your opening line. Use when the user wants to practice a real-world situation.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "scenario_type": {
+                        "type": "string",
+                        "enum": ["job_interview", "restaurant", "travel", "small_talk", "business_meeting", "phone_call", "shopping", "doctor_visit"],
+                        "description": "Type of scenario"
+                    },
+                    "difficulty": {
+                        "type": "string",
+                        "enum": ["beginner", "intermediate", "advanced"],
+                        "description": "Difficulty level"
+                    }
+                },
+                "required": ["scenario_type"]
+            }
+        }
+    }
+]
+
+
+# ──────────────────────────────────────────────────
+# LLM Call Helper
+# ──────────────────────────────────────────────────
+
+async def llm_call(api_key: str, messages: list, system: str = None, tools: list = None, max_tokens: int = 1500):
+    """Make a single LLM call via the Emergent proxy. Returns the raw response."""
+    full_messages = []
+    if system:
+        full_messages.append({"role": "system", "content": system})
+    full_messages.extend(messages)
+
+    params = {
+        "model": MODEL,
+        "api_key": api_key,
+        "api_base": PROXY_URL,
+        "custom_llm_provider": "openai",
+        "messages": full_messages,
+        "max_tokens": max_tokens,
+    }
+    if tools:
+        params["tools"] = tools
+
+    return await litellm.acompletion(**params)
+
+
+# ──────────────────────────────────────────────────
+# Subagents — each is a specialized agent loop
+# ──────────────────────────────────────────────────
+
+async def run_grammar_subagent(api_key: str, text: str, target_language: str = "English") -> str:
+    """Grammar checker subagent with its own tools and loop."""
+
+    subagent_tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "identify_errors",
+                "description": "Identify all grammar errors in the text systematically",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "text": {"type": "string"},
+                        "language": {"type": "string"}
+                    },
+                    "required": ["text"]
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "suggest_correction",
+                "description": "Suggest a corrected version of a phrase with explanation",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "original": {"type": "string", "description": "Original incorrect phrase"},
+                        "corrected": {"type": "string", "description": "Corrected version"},
+                        "rule": {"type": "string", "description": "Grammar rule explanation"}
+                    },
+                    "required": ["original", "corrected", "rule"]
+                }
+            }
+        }
+    ]
+
+    system = f"""You are a grammar analysis specialist for {target_language}. 
+Analyze the given text for grammar errors. Use your tools to systematically identify errors, 
+then provide corrections with clear rule explanations. 
+Be thorough but concise. Format your response clearly with original → corrected pairs."""
+
+    messages = [{"role": "user", "content": f"Check this {target_language} text for grammar: \"{text}\""}]
+
+    for _ in range(5):  # max 5 iterations
+        response = await llm_call(api_key, messages, system=system, tools=subagent_tools)
+        msg = response.choices[0].message
+        messages.append({"role": "assistant", "content": msg.content, "tool_calls": _serialize_tool_calls(msg.tool_calls)})
+
+        if response.choices[0].finish_reason != "tool_calls" or not msg.tool_calls:
+            return msg.content or "No grammar issues found."
+
+        # Execute subagent tools (these are "virtual" — the LLM uses them to structure its analysis)
+        for tc in msg.tool_calls:
+            args = json.loads(tc.function.arguments)
+            if tc.function.name == "identify_errors":
+                result = f"Analyzing '{args.get('text', text)}' in {args.get('language', target_language)}: proceed with error identification."
+            elif tc.function.name == "suggest_correction":
+                result = f"Correction noted: '{args.get('original','')}' → '{args.get('corrected','')}' (Rule: {args.get('rule','')})"
+            else:
+                result = "Done."
+            messages.append({"role": "tool", "tool_call_id": tc.id, "content": result})
+
+    return messages[-1].get("content", "Grammar check completed.")
+
+
+async def run_vocabulary_subagent(api_key: str, word: str, target_language: str = "English", context: str = "") -> str:
+    """Vocabulary lookup subagent with its own loop."""
+
+    subagent_tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "define_word",
+                "description": "Provide detailed definition including part of speech, register, etymology",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "word": {"type": "string"},
+                        "definitions": {"type": "string", "description": "Comprehensive definitions"},
+                        "part_of_speech": {"type": "string"},
+                        "register": {"type": "string", "description": "formal/informal/neutral"}
+                    },
+                    "required": ["word", "definitions"]
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "find_examples",
+                "description": "Generate example sentences showing the word in different contexts",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "word": {"type": "string"},
+                        "examples": {"type": "string", "description": "3-5 example sentences"}
+                    },
+                    "required": ["word", "examples"]
+                }
+            }
+        }
+    ]
+
+    system = f"""You are a vocabulary specialist for {target_language}. 
+When given a word, provide a rich, helpful breakdown: definitions, synonyms, antonyms, 
+example sentences in context, collocations, and register (formal/informal). 
+If the word is in a language other than English, also provide the English translation."""
+
+    ctx = f" (used in context: '{context}')" if context else ""
+    messages = [{"role": "user", "content": f"Explain the {target_language} word/phrase: \"{word}\"{ctx}"}]
+
+    for _ in range(5):
+        response = await llm_call(api_key, messages, system=system, tools=subagent_tools)
+        msg = response.choices[0].message
+        messages.append({"role": "assistant", "content": msg.content, "tool_calls": _serialize_tool_calls(msg.tool_calls)})
+
+        if response.choices[0].finish_reason != "tool_calls" or not msg.tool_calls:
+            return msg.content or f"Definition of '{word}' not found."
+
+        for tc in msg.tool_calls:
+            args = json.loads(tc.function.arguments)
+            if tc.function.name == "define_word":
+                result = f"Definition structured: {args.get('definitions', '')} [{args.get('part_of_speech', '')}] ({args.get('register', 'neutral')})"
+            elif tc.function.name == "find_examples":
+                result = f"Examples compiled: {args.get('examples', '')}"
+            else:
+                result = "Done."
+            messages.append({"role": "tool", "tool_call_id": tc.id, "content": result})
+
+    return messages[-1].get("content", f"Vocabulary lookup for '{word}' completed.")
+
+
+async def run_pronunciation_subagent(api_key: str, word: str, target_language: str = "English") -> str:
+    """Pronunciation guide subagent."""
+
+    subagent_tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "phonetic_breakdown",
+                "description": "Break down word into phonetic components with IPA",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "word": {"type": "string"},
+                        "ipa": {"type": "string", "description": "IPA transcription"},
+                        "syllables": {"type": "string", "description": "Syllable breakdown with stress"},
+                        "common_mistakes": {"type": "string", "description": "Common pronunciation errors"}
+                    },
+                    "required": ["word", "ipa"]
+                }
+            }
+        }
+    ]
+
+    system = f"""You are a pronunciation coach for {target_language}. 
+Provide detailed pronunciation guidance: IPA transcription, syllable-by-syllable breakdown, 
+stress patterns, rhyming words, and common mistakes. 
+Describe mouth/tongue positions for difficult sounds."""
+
+    messages = [{"role": "user", "content": f"How do I pronounce \"{word}\" in {target_language}?"}]
+
+    for _ in range(5):
+        response = await llm_call(api_key, messages, system=system, tools=subagent_tools)
+        msg = response.choices[0].message
+        messages.append({"role": "assistant", "content": msg.content, "tool_calls": _serialize_tool_calls(msg.tool_calls)})
+
+        if response.choices[0].finish_reason != "tool_calls" or not msg.tool_calls:
+            return msg.content or f"Pronunciation guide for '{word}'."
+
+        for tc in msg.tool_calls:
+            args = json.loads(tc.function.arguments)
+            result = f"Phonetics: IPA={args.get('ipa','')}, Syllables={args.get('syllables','')}, Mistakes={args.get('common_mistakes','')}"
+            messages.append({"role": "tool", "tool_call_id": tc.id, "content": result})
+
+    return messages[-1].get("content", f"Pronunciation guide for '{word}' completed.")
+
+
+async def run_evaluation_subagent(api_key: str, user_text: str, context: str = "", target_language: str = "English") -> str:
+    """Evaluates user's response for fluency, grammar, vocabulary, naturalness."""
+
+    subagent_tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "score_response",
+                "description": "Score the response on multiple criteria",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "grammar_score": {"type": "integer", "description": "1-10"},
+                        "vocabulary_score": {"type": "integer", "description": "1-10"},
+                        "fluency_score": {"type": "integer", "description": "1-10"},
+                        "naturalness_score": {"type": "integer", "description": "1-10"},
+                        "overall_feedback": {"type": "string"}
+                    },
+                    "required": ["grammar_score", "vocabulary_score", "fluency_score", "naturalness_score", "overall_feedback"]
+                }
+            }
+        }
+    ]
+
+    system = f"""You are a language evaluation specialist for {target_language}. 
+Score the user's response on grammar (1-10), vocabulary richness (1-10), 
+fluency (1-10), and naturalness (1-10). Provide specific improvement suggestions."""
+
+    ctx = f"\nConversation context: {context}" if context else ""
+    messages = [{"role": "user", "content": f"Evaluate this {target_language} response: \"{user_text}\"{ctx}"}]
+
+    for _ in range(5):
+        response = await llm_call(api_key, messages, system=system, tools=subagent_tools)
+        msg = response.choices[0].message
+        messages.append({"role": "assistant", "content": msg.content, "tool_calls": _serialize_tool_calls(msg.tool_calls)})
+
+        if response.choices[0].finish_reason != "tool_calls" or not msg.tool_calls:
+            return msg.content or "Evaluation completed."
+
+        for tc in msg.tool_calls:
+            args = json.loads(tc.function.arguments)
+            result = (
+                f"Scores — Grammar: {args.get('grammar_score', 0)}/10, "
+                f"Vocabulary: {args.get('vocabulary_score', 0)}/10, "
+                f"Fluency: {args.get('fluency_score', 0)}/10, "
+                f"Naturalness: {args.get('naturalness_score', 0)}/10. "
+                f"Feedback: {args.get('overall_feedback', '')}"
+            )
+            messages.append({"role": "tool", "tool_call_id": tc.id, "content": result})
+
+    return messages[-1].get("content", "Evaluation completed.")
+
+
+# ──────────────────────────────────────────────────
+# Direct Tools (no subagent needed)
+# ──────────────────────────────────────────────────
+
+SCENARIOS = {
+    "job_interview": {"title": "Job Interview", "description": "Practice answering interview questions professionally"},
+    "restaurant": {"title": "At a Restaurant", "description": "Practice ordering food and dining conversations"},
+    "travel": {"title": "Travel & Directions", "description": "Practice navigating airports, hotels, directions"},
+    "small_talk": {"title": "Small Talk", "description": "Master casual conversation and making friends"},
+    "business_meeting": {"title": "Business Meeting", "description": "Practice professional meeting discussions"},
+    "phone_call": {"title": "Phone Call", "description": "Practice phone conversations and call etiquette"},
+    "shopping": {"title": "Shopping", "description": "Practice buying things, prices, and returns"},
+    "doctor_visit": {"title": "Doctor Visit", "description": "Practice describing symptoms and medical visits"},
+}
+
+
+def start_scenario(scenario_type: str, difficulty: str = "intermediate") -> str:
+    scenario = SCENARIOS.get(scenario_type, SCENARIOS["small_talk"])
+    return json.dumps({
+        "scenario": scenario["title"],
+        "description": scenario["description"],
+        "difficulty": difficulty,
+        "instruction": f"Start role-playing as the other person in '{scenario['title']}'. Adjust to {difficulty} level. After each user response, give brief feedback."
+    })
+
+
+# ──────────────────────────────────────────────────
+# Tool Router — maps tool name → execution
+# ──────────────────────────────────────────────────
+
+async def execute_tool(api_key: str, tool_name: str, arguments: dict) -> str:
+    """Route a tool call to the appropriate handler (subagent or direct tool)."""
+    target_lang = arguments.get("target_language", "English")
+
+    if tool_name == "grammar_check":
+        return await run_grammar_subagent(api_key, arguments["text"], target_lang)
+
+    elif tool_name == "vocabulary_lookup":
+        return await run_vocabulary_subagent(
+            api_key, arguments["word"], target_lang, arguments.get("context", "")
+        )
+
+    elif tool_name == "pronunciation_guide":
+        return await run_pronunciation_subagent(api_key, arguments["word"], target_lang)
+
+    elif tool_name == "evaluate_response":
+        return await run_evaluation_subagent(
+            api_key, arguments["user_text"],
+            arguments.get("conversation_context", ""),
+            target_lang
+        )
+
+    elif tool_name == "start_scenario":
+        return start_scenario(
+            arguments["scenario_type"],
+            arguments.get("difficulty", "intermediate")
+        )
+
+    return f"Unknown tool: {tool_name}"
+
+
+# ──────────────────────────────────────────────────
+# Utility: serialize tool_calls for message history
+# ──────────────────────────────────────────────────
+
+def _serialize_tool_calls(tool_calls):
+    """Convert tool_calls to serializable format for message history."""
+    if not tool_calls:
+        return None
+    return [
+        {
+            "id": tc.id,
+            "type": "function",
+            "function": {
+                "name": tc.function.name,
+                "arguments": tc.function.arguments
+            }
+        }
+        for tc in tool_calls
+    ]
+
+
+# ──────────────────────────────────────────────────
+# Main Agent Loop
+# ──────────────────────────────────────────────────
+
+def build_tutor_system_prompt(target_language: str = "en") -> str:
     lang_name = get_language_name(target_language)
 
     if target_language == "en":
-        return """You are LinguaFlow, a warm, encouraging, and expert English language tutor. Your mission is to help users improve their spoken English through conversation practice, grammar correction, vocabulary building, and real-world scenario practice.
+        return """You are LinguaFlow, a warm and expert English language tutor.
 
-## Your Personality
-- Patient and encouraging - celebrate small wins
-- Adapt to the user's level automatically
-- Use simple explanations with relatable examples
-- Be conversational, not lecturing
-- Inject gentle humor when appropriate
+## Your tools
+- grammar_check: analyze user's text for errors (delegates to grammar specialist)
+- vocabulary_lookup: explain words, synonyms, examples (delegates to vocabulary specialist)
+- pronunciation_guide: IPA, syllable breakdown, mouth tips (delegates to pronunciation coach)
+- evaluate_response: score user's fluency/grammar/vocabulary (delegates to evaluation specialist)
+- start_scenario: begin a role-play situation
 
-## Your Approach
-1. **Conversation Practice**: Engage naturally while noting areas for improvement
-2. **Grammar Correction**: When you spot errors, correct them kindly with explanations
-3. **Vocabulary Building**: Introduce new words naturally in context
-4. **Pronunciation Tips**: Offer phonetic guidance when relevant
-5. **Scenario Practice**: Role-play real-world situations
+## When to use tools
+- Use grammar_check when the user writes something with errors OR asks for grammar help
+- Use vocabulary_lookup when the user asks about a word meaning, synonym, or translation
+- Use pronunciation_guide when the user asks how to pronounce a word
+- Use evaluate_response when you want to give the user a detailed assessment of their speaking
+- Use start_scenario when the user wants to practice a real-world situation
+- You can call multiple tools in one turn if needed
 
-## Tool Usage Guidelines
-- Use `grammar_check` when the user writes something with noticeable errors or asks for grammar help
-- Use `vocabulary_lookup` when the user asks about a word or you want to teach a new word
-- Use `pronunciation_guide` when the user asks how to pronounce something
-- Use `start_scenario` when the user wants to practice a specific situation
-- Use `evaluate_response` during scenario practice to give structured feedback
+## Personality
+- Patient, encouraging, celebrate progress
+- Conversational — not lecturing
+- Adapt to user's level. Beginners get simpler language, advanced get challenges.
+- End each response with a follow-up question or prompt to keep the conversation going.
+- When correcting, show original vs corrected clearly."""
 
-## Response Format
-- Keep responses concise but helpful
-- Use formatting (bold, bullet points) for clarity
-- When correcting, show the original vs corrected version
-- Always end with encouragement or a follow-up question to keep the conversation going
-
-## Important Rules
-- NEVER be condescending about mistakes - they're learning opportunities
-- If the user's English is great, challenge them with advanced vocabulary and complex topics
-- Remember the conversation context and reference earlier topics
-- If the user seems stuck, offer helpful prompts or simplify your language"""
-
-    return f"""You are LinguaFlow, a warm, encouraging, and expert {lang_name} language tutor. Your mission is to help users improve their spoken {lang_name} through conversation practice, grammar correction, vocabulary building, and real-world scenario practice.
+    return f"""You are LinguaFlow, a warm and expert {lang_name} language tutor.
 
 ## Target Language: {lang_name}
-You MUST conduct the conversation primarily in {lang_name}. When teaching, you should:
-- Speak and respond in {lang_name}
-- Provide explanations in both {lang_name} and English when needed for clarity
-- Show the correct {lang_name} form alongside English translations
+Conduct the conversation primarily in {lang_name}. When teaching:
+- Respond in {lang_name} with English translations in parentheses for beginners
 - Use {lang_name} script/characters naturally
+- Teach culturally appropriate expressions
 
-## Your Personality
-- Patient and encouraging - celebrate small wins
-- Adapt to the user's level automatically
-- Use simple explanations with relatable examples
-- Be conversational, not lecturing
-- Inject gentle humor when appropriate
+## Your tools (pass target_language="{lang_name}" when calling them)
+- grammar_check: analyze user's {lang_name} text for errors
+- vocabulary_lookup: explain {lang_name} words with translations
+- pronunciation_guide: {lang_name}-specific pronunciation tips
+- evaluate_response: score user's {lang_name} fluency
+- start_scenario: begin a role-play in {lang_name}
 
-## Your Approach
-1. **Conversation Practice**: Engage in {lang_name}, noting areas for improvement
-2. **Grammar Correction**: Correct {lang_name} grammar mistakes kindly with explanations
-3. **Vocabulary Building**: Introduce new {lang_name} words in context with translations
-4. **Pronunciation Tips**: Offer pronunciation guidance specific to {lang_name} sounds
-5. **Scenario Practice**: Role-play real-world situations in {lang_name}
+## When to use tools
+- Use grammar_check when the user writes something with errors OR asks for grammar help
+- Use vocabulary_lookup when the user asks about a word, translation, or meaning
+- Use pronunciation_guide when the user asks how to pronounce something
+- Use evaluate_response to assess the user's language skills
+- Use start_scenario when the user wants to practice a situation
 
-## Response Format
-- Keep responses concise but helpful
-- Use formatting (bold, bullet points) for clarity
-- When correcting: show original → corrected version with English translation
-- Always end with encouragement or a follow-up question in {lang_name}
-- For beginners, include English translations in parentheses
-
-## Important Rules
-- NEVER be condescending about mistakes - they're learning opportunities
-- Adapt difficulty to the user's level - start simple and gradually increase complexity
-- Remember conversation context and reference earlier topics
-- If the user is struggling, simplify and provide more English support
-- Use culturally appropriate examples and phrases for {lang_name}
-- Teach cultural context alongside language when relevant"""
+## Personality
+- Patient, encouraging, celebrate progress
+- Conversational — adapt to user's level
+- For beginners: more English support, simpler phrases
+- For advanced: challenge with idioms, complex grammar
+- End responses with a follow-up question in {lang_name}"""
 
 
 class LanguageTutorAgent:
-    """Custom agent with tool-calling capabilities for language tutoring."""
+    """
+    Main tutor agent with a proper tool-calling loop.
+    No SDK — just an LLM call → tool execution → feed results back → repeat.
+    """
 
     def __init__(self, api_key: str, session_id: str, target_language: str = "en"):
         self.api_key = api_key
         self.session_id = session_id
         self.target_language = target_language
         self.lang_name = get_language_name(target_language)
-
-        system_prompt = build_system_prompt(target_language)
-        self.chat = LlmChat(
-            api_key=api_key,
-            session_id=session_id,
-            system_message=system_prompt
-        )
-        self.chat.with_model("openai", "gpt-5.2")
+        self.system_prompt = build_tutor_system_prompt(target_language)
 
     async def process_message(
         self,
@@ -116,144 +573,88 @@ class LanguageTutorAgent:
         scenario_context: Optional[str] = None
     ) -> dict:
         """
-        Process a user message through the agent.
-        Returns dict with 'response', 'tools_used', and optional metadata.
+        The agent loop:
+          user message → LLM decides tool calls → execute tools → feed results → repeat until done
         """
-        context_messages = self._build_context(conversation_history, scenario_context)
+        # Build message history
+        messages = []
+        for msg in conversation_history[-10:]:  # last 10 messages for context
+            messages.append({
+                "role": msg.get("role", "user"),
+                "content": msg.get("content", "")
+            })
 
-        full_prompt = user_text
-        if context_messages:
-            full_prompt = f"[Conversation context: {context_messages}]\n\nUser's message: {user_text}"
+        # Compose current user message
+        user_content = user_text
+        if scenario_context:
+            user_content = f"[Active scenario: {scenario_context}]\n{user_text}"
 
-        # Add language context
-        if self.target_language != "en":
-            full_prompt += f"\n[Target language: {self.lang_name} ({self.target_language})]"
+        messages.append({"role": "user", "content": user_content})
 
-        user_msg = UserMessage(text=full_prompt)
+        tools_used = []
+        max_iterations = 6  # safety limit
 
         try:
-            response_text = await self.chat.send_message(user_msg)
-
-            tools_used = []
-            tool_results = self._detect_and_execute_tools(response_text, user_text)
-
-            if tool_results:
-                tools_used = [t["name"] for t in tool_results]
-                tool_context = "\n".join([f"Tool '{t['name']}' result: {t['result']}" for t in tool_results])
-
-                lang_note = ""
-                if self.target_language != "en":
-                    lang_note = f"\nRemember: respond primarily in {self.lang_name} with English translations where helpful."
-
-                followup_msg = UserMessage(
-                    text=f"Based on these tool results, provide your response to the user:\n{tool_context}\n\nOriginal user message: {user_text}{lang_note}"
+            for iteration in range(max_iterations):
+                response = await llm_call(
+                    api_key=self.api_key,
+                    messages=messages,
+                    system=self.system_prompt,
+                    tools=MAIN_AGENT_TOOLS,
+                    max_tokens=2000
                 )
-                response_text = await self.chat.send_message(followup_msg)
 
+                msg = response.choices[0].message
+                finish_reason = response.choices[0].finish_reason
+
+                # Append assistant message to history
+                assistant_msg = {"role": "assistant", "content": msg.content or ""}
+                if msg.tool_calls:
+                    assistant_msg["tool_calls"] = _serialize_tool_calls(msg.tool_calls)
+                messages.append(assistant_msg)
+
+                # If done (no more tool calls), return the text
+                if finish_reason != "tool_calls" or not msg.tool_calls:
+                    final_text = msg.content or "I'm here to help — could you try rephrasing that?"
+                    logger.info(f"Agent completed in {iteration + 1} iteration(s), tools: {tools_used}")
+                    return {
+                        "response": final_text,
+                        "tools_used": tools_used,
+                        "type": "scenario" if scenario_context else "chat"
+                    }
+
+                # Execute each tool call
+                for tc in msg.tool_calls:
+                    tool_name = tc.function.name
+                    try:
+                        arguments = json.loads(tc.function.arguments)
+                    except json.JSONDecodeError:
+                        arguments = {}
+
+                    logger.info(f"[Agent] calling tool: {tool_name}({arguments})")
+                    tools_used.append(tool_name)
+
+                    # Execute tool (may spawn a subagent)
+                    result = await execute_tool(self.api_key, tool_name, arguments)
+
+                    # Feed result back to LLM
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": tc.id,
+                        "content": result or "Tool completed."
+                    })
+
+            # Safety: if we hit max iterations, return last content
             return {
-                "response": response_text,
+                "response": msg.content or "Let me help you with that — could you try again?",
                 "tools_used": tools_used,
-                "type": "scenario" if scenario_context else "chat"
+                "type": "chat"
             }
 
         except Exception as e:
-            logger.error(f"Agent error: {e}")
+            logger.error(f"Agent error: {e}", exc_info=True)
             return {
-                "response": "I'm having a moment - could you try saying that again? Sometimes even tutors need a second!",
-                "tools_used": [],
+                "response": "I had a hiccup processing that. Could you try saying it again?",
+                "tools_used": tools_used,
                 "type": "error"
             }
-
-    def _build_context(self, history: list, scenario_context: Optional[str] = None) -> str:
-        if not history and not scenario_context:
-            return ""
-
-        parts = []
-        if scenario_context:
-            parts.append(f"Active scenario: {scenario_context}")
-
-        recent = history[-6:] if len(history) > 6 else history
-        for msg in recent:
-            role = msg.get("role", "user")
-            text = msg.get("content", "")[:200]
-            parts.append(f"{role}: {text}")
-
-        return " | ".join(parts)
-
-    def _detect_and_execute_tools(self, response: str, user_text: str) -> list:
-        results = []
-        text_lower = user_text.lower()
-
-        # Grammar check triggers (multilingual)
-        grammar_triggers = [
-            "check my grammar", "is this correct", "correct my",
-            "grammar check", "fix my sentence", "is this right",
-            "did i say that correctly", "any mistakes",
-            "correct this", "grammar", "corrige", "corriger",
-            "ist das richtig", "esto correcto"
-        ]
-        if any(phrase in text_lower for phrase in grammar_triggers):
-            result = execute_tool("grammar_check", {"user_text": user_text})
-            results.append({"name": "grammar_check", "result": result})
-
-        # Vocabulary triggers (multilingual)
-        vocab_triggers = [
-            "what does", "meaning of", "define ", "what is the word",
-            "synonym", "antonym", "how do you use the word",
-            "vocabulary", "what means", "translate",
-            "que significa", "was bedeutet", "que veut dire",
-            "what is", "how to say"
-        ]
-        if any(phrase in text_lower for phrase in vocab_triggers):
-            words = user_text.split()
-            target_word = words[-1] if len(words) > 2 else user_text
-            for w in words:
-                if w.lower() not in ["what", "does", "mean", "meaning", "of", "the", "is", "a", "define", "word", "translate", "how", "to", "say"]:
-                    target_word = w
-                    break
-            result = execute_tool("vocabulary_lookup", {"word": target_word, "context": user_text})
-            results.append({"name": "vocabulary_lookup", "result": result})
-
-        # Pronunciation triggers (multilingual)
-        pronunciation_triggers = [
-            "how to pronounce", "pronunciation", "how do you say",
-            "how is it pronounced", "phonetic",
-            "como se pronuncia", "wie spricht man", "comment prononcer"
-        ]
-        if any(phrase in text_lower for phrase in pronunciation_triggers):
-            words = user_text.split()
-            target_word = words[-1]
-            for w in reversed(words):
-                if w.lower() not in ["how", "to", "pronounce", "pronunciation", "do", "you", "say", "is", "it", "pronounced", "the", "word"]:
-                    target_word = w
-                    break
-            result = execute_tool("pronunciation_guide", {"word": target_word})
-            results.append({"name": "pronunciation_guide", "result": result})
-
-        # Scenario triggers (multilingual)
-        scenario_triggers = [
-            "practice", "role play", "scenario", "let's practice",
-            "simulate", "pretend", "practicar", "uben", "pratiquer",
-            "let's do a"
-        ]
-        if any(phrase in text_lower for phrase in scenario_triggers):
-            scenario_type = "small_talk"
-            if "interview" in text_lower or "job" in text_lower or "entrevista" in text_lower:
-                scenario_type = "job_interview"
-            elif "restaurant" in text_lower or "food" in text_lower or "order" in text_lower:
-                scenario_type = "restaurant"
-            elif "travel" in text_lower or "airport" in text_lower or "hotel" in text_lower or "viaje" in text_lower:
-                scenario_type = "travel"
-            elif "business" in text_lower or "meeting" in text_lower:
-                scenario_type = "business_meeting"
-            elif "phone" in text_lower or "call" in text_lower:
-                scenario_type = "phone_call"
-            elif "shop" in text_lower or "buy" in text_lower or "comprar" in text_lower:
-                scenario_type = "shopping"
-            elif "doctor" in text_lower or "health" in text_lower or "medico" in text_lower:
-                scenario_type = "doctor_visit"
-
-            result = execute_tool("start_scenario", {"scenario_type": scenario_type, "difficulty": "intermediate"})
-            results.append({"name": "start_scenario", "result": result})
-
-        return results
