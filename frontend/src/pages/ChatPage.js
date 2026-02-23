@@ -32,11 +32,12 @@ import {
   Menu,
   X,
   Mic,
-  MicOff,
   Volume2,
-  VolumeX,
   Square,
-  Keyboard
+  Keyboard,
+  Globe,
+  Search,
+  Check
 } from "lucide-react";
 import {
   createConversation,
@@ -46,6 +47,7 @@ import {
   sendVoiceMessage,
   deleteConversation,
   getScenarios,
+  getLanguages,
   textToSpeech
 } from "@/lib/api";
 
