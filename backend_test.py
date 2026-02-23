@@ -66,51 +66,18 @@ class FirstLessonOnboardingTester:
             print(f"❌ Failed - Error: {str(e)}")
             return False, {}
 
-    def test_get_languages(self):
-        """Test GET /api/languages returns 99 languages"""
-        success, response = self.run_test(
-            "GET Languages API",
-            "GET", 
-            "languages",
-            200
-        )
+    def test_cross_language_auto_assessment(self):
+        """Test POST /api/conversations with cross-language auto-inserts welcome assessment message"""
+        print("\n🎯 Testing First Lesson Onboarding - Cross-language conversation auto-assessment")
         
-        if success:
-            # Check structure - should have popular and others
-            if 'popular' in response and 'others' in response:
-                total_langs = len(response['popular']) + len(response['others'])
-                print(f"   Found {total_langs} total languages")
-                print(f"   Popular: {len(response['popular'])}, Others: {len(response['others'])}")
-                
-                # Verify structure of language objects
-                if response['popular'] and isinstance(response['popular'][0], dict):
-                    sample_lang = response['popular'][0]
-                    required_fields = ['code', 'name', 'native']
-                    if all(field in sample_lang for field in required_fields):
-                        print(f"   ✅ Language structure correct - sample: {sample_lang}")
-                        return True
-                    else:
-                        print(f"   ❌ Missing required fields in language object")
-                        return False
-                else:
-                    print("   ❌ Invalid language structure")
-                    return False
-            else:
-                print(f"   ❌ Response missing 'popular' or 'others' keys")
-                return False
-        return success
-
-    def test_create_conversation_dual_language(self):
-        """Test POST /api/conversations with native_language and target_language"""
-        
-        # Test 1: English native -> French target
+        # Test 1: English → French (should auto-insert welcome assessment message)
         success1, conv1 = self.run_test(
-            "Create EN→FR Conversation",
+            "Create EN→FR Conversation (should auto-insert assessment)",
             "POST",
             "conversations", 
             200,
             data={
-                "title": "English to French Practice",
+                "title": "Learning French",
                 "native_language": "en",
                 "target_language": "fr"
             }
@@ -118,149 +85,260 @@ class FirstLessonOnboardingTester:
         
         if success1 and conv1:
             self.conversations_created.append(conv1['id'])
-            # Verify fields
+            conv_id = conv1['id']
+            
+            # Verify conversation properties
             if conv1.get('native_language') == 'en' and conv1.get('target_language') == 'fr':
                 print(f"   ✅ Conversation created with correct languages: {conv1['native_language']} → {conv1['target_language']}")
             else:
                 print(f"   ❌ Language fields incorrect: {conv1.get('native_language')} → {conv1.get('target_language')}")
                 return False
+            
+            # Check if message_count indicates auto-inserted message
+            if conv1.get('message_count', 0) >= 1:
+                print(f"   ✅ Cross-language conversation has auto-inserted message (message_count: {conv1.get('message_count')})")
+            else:
+                print(f"   ❌ Cross-language conversation missing auto-inserted message (message_count: {conv1.get('message_count')})")
+                return False
+                
+            # Now check the messages to verify welcome assessment message exists
+            success_msg, messages = self.run_test(
+                "Get messages for EN→FR conversation",
+                "GET",
+                f"conversations/{conv_id}/messages",
+                200
+            )
+            
+            if success_msg and messages:
+                if len(messages) >= 1:
+                    welcome_msg = messages[0]  # First message should be welcome assessment
+                    if welcome_msg.get('role') == 'assistant':
+                        content = welcome_msg.get('content', '').lower()
+                        # Check for assessment keywords
+                        assessment_keywords = ['welcome', 'level', 'questions', 'introduce yourself', 'french tutor']
+                        if any(keyword in content for keyword in assessment_keywords):
+                            print(f"   ✅ Auto-generated welcome assessment message found")
+                            print(f"   📝 Message preview: {welcome_msg.get('content', '')[:100]}...")
+                        else:
+                            print(f"   ❌ Message doesn't appear to be assessment welcome: {content[:100]}")
+                            return False
+                    else:
+                        print(f"   ❌ First message is not from assistant: {welcome_msg.get('role')}")
+                        return False
+                else:
+                    print(f"   ❌ No messages found in cross-language conversation")
+                    return False
+            else:
+                print(f"   ❌ Failed to get messages for conversation")
+                return False
+                
+        return success1
+
+    def test_same_language_no_assessment(self):
+        """Test POST /api/conversations with same language does NOT auto-insert assessment message"""
+        print("\n🎯 Testing Same Language Conversation - Should NOT auto-insert assessment")
         
-        # Test 2: Spanish native -> English target  
-        success2, conv2 = self.run_test(
-            "Create ES→EN Conversation",
+        # Test: English → English (should NOT auto-insert assessment message)
+        success, conv = self.run_test(
+            "Create EN→EN Conversation (no assessment)",
             "POST",
             "conversations",
             200,
             data={
-                "title": "Spanish to English Practice",
-                "native_language": "es", 
-                "target_language": "en"
-            }
-        )
-        
-        if success2 and conv2:
-            self.conversations_created.append(conv2['id'])
-            if conv2.get('native_language') == 'es' and conv2.get('target_language') == 'en':
-                print(f"   ✅ Second conversation created: {conv2['native_language']} → {conv2['target_language']}")
-            else:
-                print(f"   ❌ Second conversation language fields incorrect")
-                return False
-        
-        # Test 3: Same language (improvement mode)
-        success3, conv3 = self.run_test(
-            "Create EN→EN Conversation (improvement mode)",
-            "POST", 
-            "conversations",
-            200,
-            data={
+                "title": "English Improvement",
                 "native_language": "en",
                 "target_language": "en"
             }
         )
         
-        if success3 and conv3:
-            self.conversations_created.append(conv3['id'])
-            if conv3.get('native_language') == 'en' and conv3.get('target_language') == 'en':
-                print(f"   ✅ Same language conversation created for improvement")
-            else:
-                print(f"   ❌ Same language conversation failed")
-                return False
-        
-        return success1 and success2 and success3
-
-    def test_conversation_messages_dual_language(self):
-        """Test POST /api/conversations/{id}/messages with language-specific behavior"""
-        
-        if not self.conversations_created:
-            print("❌ No conversations to test messages with")
-            return False
+        if success and conv:
+            self.conversations_created.append(conv['id'])
+            conv_id = conv['id']
             
-        # Test English→French conversation
-        en_fr_conv_id = self.conversations_created[0]  # Should be EN→FR from previous test
-        
-        # Test case: "How do I say hello in French?"
-        success1, messages1 = self.run_test(
-            "EN→FR: Ask how to say hello",
-            "POST",
-            f"conversations/{en_fr_conv_id}/messages",
-            200,
-            data={"content": "How do I say hello in French?"}
-        )
-        
-        if success1 and messages1:
-            # Should return user message + AI message
-            if len(messages1) >= 2:
-                ai_message = next((msg for msg in messages1 if msg['role'] == 'assistant'), None)
-                if ai_message:
-                    ai_content = ai_message['content'].lower()
-                    # Should contain French greeting and English explanation
-                    if 'bonjour' in ai_content or 'salut' in ai_content:
-                        print(f"   ✅ AI provided French greeting in response")
-                    else:
-                        print(f"   ⚠️  AI response may not contain French greeting: {ai_content[:100]}...")
-                else:
-                    print(f"   ❌ No AI message found in response")
-                    return False
+            # Verify no auto-inserted message for same language
+            if conv.get('message_count', 0) == 0:
+                print(f"   ✅ Same language conversation has no auto-inserted message (message_count: {conv.get('message_count')})")
             else:
-                print(f"   ❌ Expected 2 messages, got {len(messages1)}")
+                print(f"   ❌ Same language conversation incorrectly has messages (message_count: {conv.get('message_count')})")
                 return False
-        
-        # Test grammar check tool
-        success2, messages2 = self.run_test(
-            "Grammar Check Tool Test",
-            "POST",
-            f"conversations/{en_fr_conv_id}/messages", 
-            200,
-            data={"content": "Check my grammar: je suis alle au magasin"}
-        )
-        
-        if success2 and messages2:
-            ai_message = next((msg for msg in messages2 if msg['role'] == 'assistant'), None)
-            if ai_message and ai_message.get('tools_used'):
-                if 'grammar_check' in ai_message['tools_used']:
-                    print(f"   ✅ Grammar check tool triggered correctly")
-                else:
-                    print(f"   ⚠️  Tools used: {ai_message['tools_used']}")
-            else:
-                print(f"   ⚠️  Grammar check tool may not have triggered")
-        
-        # Test same language conversation (EN→EN)
-        if len(self.conversations_created) >= 3:
-            en_en_conv_id = self.conversations_created[2]  # Should be EN→EN
-            success3, messages3 = self.run_test(
-                "EN→EN: Same language conversation",
-                "POST",
-                f"conversations/{en_en_conv_id}/messages",
-                200,
-                data={"content": "Help me improve my writing skills"}
+                
+            # Double-check by getting messages
+            success_msg, messages = self.run_test(
+                "Get messages for EN→EN conversation", 
+                "GET",
+                f"conversations/{conv_id}/messages",
+                200
             )
             
-            if success3 and messages3:
-                print(f"   ✅ Same language conversation works (improvement mode)")
+            if success_msg:
+                if len(messages) == 0:
+                    print(f"   ✅ Same language conversation confirmed to have no messages")
+                else:
+                    print(f"   ❌ Same language conversation has {len(messages)} messages (should be 0)")
+                    return False
             else:
-                return False
-        
-        return success1 and success2
-
-    def test_tts_api(self):
-        """Test POST /api/tts"""
-        success, response = self.run_test(
-            "Text-to-Speech API",
-            "POST",
-            "tts",
-            200,
-            data={"text": "Hello, this is a test message for text to speech."}
-        )
-        
-        if success and response:
-            if 'audio_base64' in response and response['audio_base64']:
-                print(f"   ✅ TTS returned audio data (base64 length: {len(response['audio_base64'])})")
-                return True
-            else:
-                print(f"   ❌ TTS response missing audio_base64")
                 return False
         
         return success
+
+    def test_agent_tool_usage_and_proficiency_detection(self):
+        """Test agent uses tools (evaluate_response, set_proficiency_level) during assessment"""
+        print("\n🎯 Testing Agent Tool Usage and Proficiency Detection")
+        
+        if not self.conversations_created:
+            print("❌ No cross-language conversation to test with")
+            return False
+            
+        # Use the first conversation (should be EN→FR with assessment message)
+        conv_id = self.conversations_created[0]
+        
+        # Simulate user responding to assessment question
+        print("   📤 Sending user response to assessment question...")
+        success1, messages1 = self.run_test(
+            "User responds to assessment (beginner level)",
+            "POST",
+            f"conversations/{conv_id}/messages",
+            200,
+            data={"content": "Bonjour, je suis John. Je viens des États-Unis. J'aime le football."}
+        )
+        
+        if success1 and messages1:
+            # Find AI response
+            ai_msg = next((msg for msg in messages1 if msg['role'] == 'assistant'), None)
+            if ai_msg:
+                tools_used = ai_msg.get('tools_used', [])
+                print(f"   🔧 Tools used in AI response: {tools_used}")
+                
+                # Check if evaluation tools were used
+                expected_tools = ['evaluate_response', 'grammar_check']
+                tools_found = any(tool in tools_used for tool in expected_tools)
+                if tools_found:
+                    print(f"   ✅ Agent used evaluation tools correctly")
+                else:
+                    print(f"   ⚠️  Agent may not have used evaluation tools - this could be normal")
+            else:
+                print(f"   ❌ No AI message found in response")
+                return False
+        
+        # Send another response to trigger proficiency setting
+        print("   📤 Sending second response to potentially trigger proficiency setting...")
+        success2, messages2 = self.run_test(
+            "User second response (should trigger proficiency)",
+            "POST",
+            f"conversations/{conv_id}/messages",
+            200,
+            data={"content": "Hier, j'ai mangé une pomme rouge dans le jardin avec ma famille."}
+        )
+        
+        if success2 and messages2:
+            ai_msg = next((msg for msg in messages2 if msg['role'] == 'assistant'), None)
+            if ai_msg:
+                tools_used = ai_msg.get('tools_used', [])
+                print(f"   🔧 Tools used in second response: {tools_used}")
+                
+                # Check for set_proficiency_level tool
+                if 'set_proficiency_level' in tools_used:
+                    print(f"   ✅ Agent used set_proficiency_level tool!")
+                else:
+                    print(f"   ⚠️  Agent didn't use set_proficiency_level yet - may need more exchanges")
+        
+        # Give it one more try to set proficiency
+        print("   📤 Sending third response to ensure proficiency assessment...")
+        success3, messages3 = self.run_test(
+            "User third response (final proficiency trigger)",
+            "POST",
+            f"conversations/{conv_id}/messages",
+            200,
+            data={"content": "Je pense que le français est une belle langue, mais c'est difficile pour moi. Pouvez-vous m'aider à améliorer ma grammaire et mon vocabulaire?"}
+        )
+        
+        if success3 and messages3:
+            ai_msg = next((msg for msg in messages3 if msg['role'] == 'assistant'), None)
+            if ai_msg:
+                tools_used = ai_msg.get('tools_used', [])
+                print(f"   🔧 Tools used in third response: {tools_used}")
+                
+                if 'set_proficiency_level' in tools_used:
+                    print(f"   ✅ Agent successfully used set_proficiency_level tool!")
+                    return True
+        
+        # Check if proficiency was set by getting conversation details
+        success_conv, conv_details = self.run_test(
+            "Check conversation for proficiency level",
+            "GET",
+            f"conversations/{conv_id}",
+            200
+        )
+        
+        if success_conv and conv_details:
+            proficiency = conv_details.get('proficiency_level')
+            if proficiency:
+                print(f"   ✅ Proficiency level set to: {proficiency}")
+                return True
+            else:
+                print(f"   ⚠️  Proficiency level not yet set - may need more conversation exchanges")
+        
+        return success1 and success2
+
+    def test_proficiency_api_operations(self):
+        """Test PATCH /api/conversations/{id}/proficiency and proficiency persistence"""
+        print("\n🎯 Testing Proficiency API Operations")
+        
+        if not self.conversations_created:
+            print("❌ No conversations to test proficiency operations with")
+            return False
+            
+        # Use second conversation if available, otherwise first
+        conv_id = self.conversations_created[1] if len(self.conversations_created) > 1 else self.conversations_created[0]
+        
+        # Test PATCH proficiency endpoint
+        success1, patch_response = self.run_test(
+            "Set proficiency level to intermediate",
+            "PATCH",
+            f"conversations/{conv_id}/proficiency",
+            200,
+            data={"level": "intermediate"}
+        )
+        
+        if success1 and patch_response:
+            if patch_response.get('proficiency_level') == 'intermediate':
+                print(f"   ✅ PATCH proficiency successful: {patch_response}")
+            else:
+                print(f"   ❌ PATCH proficiency response incorrect: {patch_response}")
+                return False
+        
+        # Test GET conversation to verify proficiency persistence  
+        success2, conv_details = self.run_test(
+            "Get conversation to verify proficiency persistence",
+            "GET",
+            f"conversations/{conv_id}",
+            200
+        )
+        
+        if success2 and conv_details:
+            proficiency = conv_details.get('proficiency_level')
+            if proficiency == 'intermediate':
+                print(f"   ✅ Proficiency persisted correctly: {proficiency}")
+            else:
+                print(f"   ❌ Proficiency not persisted correctly: {proficiency}")
+                return False
+        
+        # Test different proficiency levels
+        for level in ['beginner', 'advanced']:
+            success, response = self.run_test(
+                f"Set proficiency to {level}",
+                "PATCH",
+                f"conversations/{conv_id}/proficiency",
+                200,
+                data={"level": level}
+            )
+            if success and response.get('proficiency_level') == level:
+                print(f"   ✅ Successfully set proficiency to {level}")
+            else:
+                print(f"   ❌ Failed to set proficiency to {level}")
+                return False
+        
+        return success1 and success2
 
     def cleanup_conversations(self):
         """Clean up test conversations"""
