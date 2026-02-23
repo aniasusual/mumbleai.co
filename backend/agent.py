@@ -188,6 +188,27 @@ MAIN_AGENT_TOOLS = [
                 "required": ["summary"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "plan_curriculum",
+            "description": "Hand off to the Curriculum Planner subagent to create a personalized learning plan. Call this AFTER setting the user's proficiency level. The planner will take over the conversation to ask the user about their goals and timeline, then build a curriculum together.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "proficiency_level": {
+                        "type": "string",
+                        "description": "The user's assessed proficiency level"
+                    },
+                    "initial_context": {
+                        "type": "string",
+                        "description": "Any context about the user's goals gathered so far"
+                    }
+                },
+                "required": ["proficiency_level"]
+            }
+        }
     }
 ]
 
