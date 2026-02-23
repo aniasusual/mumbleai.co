@@ -714,7 +714,7 @@ class LanguageTutorAgent:
                     tools_used.append(tool_name)
 
                     # Execute tool (may spawn a subagent)
-                    result = await execute_tool(self.api_key, tool_name, arguments)
+                    result = await execute_tool(self.api_key, tool_name, arguments, self.conversation_id, self.db)
 
                     # Feed result back to LLM
                     messages.append({
