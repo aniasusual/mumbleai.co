@@ -32,7 +32,7 @@ export const MessageList = ({ messages, loading, sending, toolEvents, streamingT
           <div className="w-20 h-20 rounded-full bg-[#2F5233]/10 flex items-center justify-center mb-6">
             {inputMode === "voice" ? <Mic className="w-10 h-10 text-[#2F5233]" /> : <Sparkles className="w-10 h-10 text-[#2F5233]" />}
           </div>
-          <h3 className="text-xl font-semibold text-[#1A1A1A] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+          <h3 className="text-xl font-semibold text-[#1A1A1A] mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
             {inputMode === "voice" ? "Tap the mic to start talking" : "Start practicing"}
           </h3>
           <p className="text-sm text-[#71717A] text-center max-w-md mb-8">
