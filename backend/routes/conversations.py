@@ -1,10 +1,13 @@
-"""Conversation CRUD + message sending routes."""
+"""Conversation CRUD + message sending routes (including SSE streaming)."""
 
 import uuid
+import json
+import asyncio
 from datetime import datetime, timezone
 from typing import List
 
 from fastapi import APIRouter, HTTPException
+from starlette.responses import StreamingResponse
 
 from config import db, EMERGENT_LLM_KEY
 from models import ConversationCreate, ConversationResponse, MessageCreate, MessageResponse
