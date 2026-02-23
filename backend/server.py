@@ -292,6 +292,7 @@ async def send_voice_message(
     agent = LanguageTutorAgent(
         api_key=EMERGENT_LLM_KEY,
         session_id=f"lingua_{conv_id}",
+        native_language=native_lang,
         target_language=target_lang
     )
 
