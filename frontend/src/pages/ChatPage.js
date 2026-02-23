@@ -260,6 +260,15 @@ export default function ChatPage() {
     }
   };
 
+  const loadLanguages = async () => {
+    try {
+      const res = await getLanguages();
+      setLanguages(res.data);
+    } catch (e) {
+      console.error("Failed to load languages", e);
+    }
+  };
+
   const loadMessages = async (convId) => {
     setLoading(true);
     try {
