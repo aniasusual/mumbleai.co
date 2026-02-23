@@ -13,6 +13,7 @@ export const createConversation = (data) => api.post("/conversations", data);
 export const listConversations = () => api.get("/conversations");
 export const getConversation = (id) => api.get(`/conversations/${id}`);
 export const deleteConversation = (id) => api.delete(`/conversations/${id}`);
+export const setProficiency = (id, level) => api.patch(`/conversations/${id}/proficiency`, { level });
 export const getMessages = (id) => api.get(`/conversations/${id}/messages`);
 export const sendMessage = (id, data) => api.post(`/conversations/${id}/messages`, data);
 
