@@ -2,10 +2,11 @@
 
 from datetime import datetime, timezone, timedelta
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from config import db
 from models import ProgressResponse
+from auth import get_current_user
 
 router = APIRouter()
 
@@ -34,34 +35,44 @@ def _calculate_streak(date_strings: list) -> int:
 
 
 @router.get("/progress", response_model=ProgressResponse)
-async def get_progress():
-    total_convs = await db.conversations.count_documents({})
-    total_msgs = await db.messages.count_documents({})
-    vocab_count = await db.vocabulary.count_documents({})
+async def get_progress(user: dict = Depends(get_current_user)):
+    user_conv_ids = await db.conversations.distinct("id", {"user_id": user["id"]})
+
+    total_convs = len(user_conv_ids)
+    total_msgs = await db.messages.count_documents({"conversation_id": {"$in": user_conv_ids}}) if user_conv_ids else 0
+    vocab_count = await db.vocabulary.count_documents({"user_id": user["id"]})
 
     scenario_convs = await db.conversations.find(
-        {"scenario": {"$ne": None}}, {"_id": 0, "scenario": 1}
+        {"user_id": user["id"], "scenario": {"$ne": None}}, {"_id": 0, "scenario": 1}
     ).to_list(100)
     scenarios = list(set(c["scenario"] for c in scenario_convs if c.get("scenario")))
 
-    pipeline = [
-        {"$unwind": "$tools_used"},
-        {"$group": {"_id": "$tools_used", "count": {"$sum": 1}}}
-    ]
-    tools_agg = await db.messages.aggregate(pipeline).to_list(20)
-    tools_usage = {t["_id"]: t["count"] for t in tools_agg}
+    tools_usage = {}
+    if user_conv_ids:
+        pipeline = [
+            {"$match": {"conversation_id": {"$in": user_conv_ids}}},
+            {"$unwind": "$tools_used"},
+            {"$group": {"_id": "$tools_used", "count": {"$sum": 1}}}
+        ]
+        tools_agg = await db.messages.aggregate(pipeline).to_list(20)
+        tools_usage = {t["_id"]: t["count"] for t in tools_agg}
 
-    activity_pipeline = [
-        {"$group": {"_id": {"$substr": ["$created_at", 0, 10]}}},
-        {"$sort": {"_id": -1}},
-        {"$limit": 30}
-    ]
-    activity_days = await db.messages.aggregate(activity_pipeline).to_list(30)
-    streak = _calculate_streak([d["_id"] for d in activity_days])
+    streak = 0
+    if user_conv_ids:
+        activity_pipeline = [
+            {"$match": {"conversation_id": {"$in": user_conv_ids}}},
+            {"$group": {"_id": {"$substr": ["$created_at", 0, 10]}}},
+            {"$sort": {"_id": -1}},
+            {"$limit": 30}
+        ]
+        activity_days = await db.messages.aggregate(activity_pipeline).to_list(30)
+        streak = _calculate_streak([d["_id"] for d in activity_days])
 
-    recent = await db.messages.find(
-        {"role": "user"}, {"_id": 0, "content": 1, "created_at": 1}
-    ).sort("created_at", -1).limit(5).to_list(5)
+    recent = []
+    if user_conv_ids:
+        recent = await db.messages.find(
+            {"role": "user", "conversation_id": {"$in": user_conv_ids}}, {"_id": 0, "content": 1, "created_at": 1}
+        ).sort("created_at", -1).limit(5).to_list(5)
 
     return {
         "total_conversations": total_convs,
