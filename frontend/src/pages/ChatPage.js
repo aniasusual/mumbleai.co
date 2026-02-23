@@ -235,6 +235,12 @@ export default function ChatPage() {
         setCurrentConv(conv);
         if (conv.native_language) setNativeLang(conv.native_language);
         if (conv.target_language) setTargetLang(conv.target_language);
+        // Load curriculum if in learning phase
+        if (conv.phase === "learning") {
+          getCurriculum(conv.id).then(res => setCurriculum(res.data)).catch(() => setCurriculum(null));
+        } else {
+          setCurriculum(null);
+        }
       }
     }
   }, [conversationId, conversations]);
