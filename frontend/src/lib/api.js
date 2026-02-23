@@ -8,6 +8,9 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" }
 });
 
+// Helper to get current token
+const getToken = () => localStorage.getItem("mumble_token");
+
 // Conversations
 export const createConversation = (data) => api.post("/conversations", data);
 export const listConversations = () => api.get("/conversations");
@@ -21,16 +24,16 @@ export const getCurriculum = (id) => api.get(`/conversations/${id}/curriculum`);
 
 /**
  * Stream a message with real-time tool activity events via SSE.
- * @param {string} id - Conversation ID
- * @param {object} data - { content, scenario_context }
- * @param {function} onEvent - Callback for each SSE event ({ type, tool, label, substep, ... })
- * @returns {Promise<{user_message, ai_message}>} - Final messages
  */
 export const sendMessageStream = (id, data, onEvent) => {
   return new Promise((resolve, reject) => {
+    const token = getToken();
     fetch(`${API}/conversations/${id}/messages/stream`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify(data),
     }).then(async (response) => {
       if (!response.ok) {
@@ -66,7 +69,7 @@ export const sendMessageStream = (id, data, onEvent) => {
   });
 };
 
-// Voice message - sends audio blob, returns transcribed text + AI response + TTS audio
+// Voice message
 export const sendVoiceMessage = (id, audioBlob, scenarioContext) => {
   const formData = new FormData();
   formData.append("audio", audioBlob, "recording.webm");
