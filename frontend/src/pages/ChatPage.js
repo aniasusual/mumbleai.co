@@ -695,8 +695,12 @@ export default function ChatPage() {
                 <MessageCircle className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <span className="text-sm text-gray-700 truncate block">{conv.title}</span>
-                  {conv.language && conv.language !== "en" && (
-                    <span className="text-[10px] text-[#2F5233]/70">{languages.popular.concat(languages.others).find(l => l.code === conv.language)?.name || conv.language}</span>
+                  {conv.native_language && conv.target_language && conv.native_language !== conv.target_language && (
+                    <span className="text-[10px] text-[#2F5233]/70">
+                      {[...languages.popular, ...languages.others].find(l => l.code === conv.native_language)?.name || conv.native_language}
+                      {" → "}
+                      {[...languages.popular, ...languages.others].find(l => l.code === conv.target_language)?.name || conv.target_language}
+                    </span>
                   )}
                 </div>
                 <button
