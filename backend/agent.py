@@ -630,14 +630,20 @@ class LanguageTutorAgent:
     No SDK — just an LLM call → tool execution → feed results back → repeat.
     """
 
-    def __init__(self, api_key: str, session_id: str, native_language: str = "en", target_language: str = "en"):
+    def __init__(self, api_key: str, session_id: str, native_language: str = "en", target_language: str = "en", proficiency_level: str = None, conversation_id: str = None, db=None):
         self.api_key = api_key
         self.session_id = session_id
         self.native_language = native_language
         self.target_language = target_language
         self.native_name = get_language_name(native_language)
         self.target_name = get_language_name(target_language)
+        self.proficiency_level = proficiency_level
+        self.conversation_id = conversation_id
+        self.db = db
         self.system_prompt = build_tutor_system_prompt(native_language, target_language)
+        # Add proficiency context if known
+        if proficiency_level:
+            self.system_prompt += f"\n\n## User's Proficiency: {proficiency_level.upper()}\nAdapt all content to {proficiency_level} level."
 
     async def process_message(
         self,
