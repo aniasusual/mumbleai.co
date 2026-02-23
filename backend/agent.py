@@ -4,12 +4,17 @@ Uses GPT-5.2 native tool calling via litellm + Emergent proxy.
 
 Architecture:
   Main Tutor Agent
-    ├── tool: grammar_check → runs Grammar Subagent (own loop + tools)
-    ├── tool: vocabulary_lookup → runs Vocabulary Subagent (own loop + tools)
+    ├── tool: grammar_check      → runs Grammar Subagent (own loop + tools)
+    ├── tool: vocabulary_lookup   → runs Vocabulary Subagent (own loop + tools)
     ├── tool: pronunciation_guide → runs Pronunciation Subagent (own loop + tools)
-    ├── tool: evaluate_response → runs Evaluation Subagent (own loop + tools)
-    ├── tool: start_scenario → direct tool (returns scenario setup)
-    └── tool: save_vocabulary → direct tool (saves word to DB)
+    ├── tool: evaluate_response   → runs Evaluation Subagent (own loop + tools)
+    ├── tool: plan_curriculum     → hands off to Curriculum Planner Agent (HITL, multi-turn)
+    ├── tool: start_scenario      → direct tool (returns scenario setup)
+    ├── tool: advance_lesson      → direct tool (progresses curriculum)
+    └── tool: set_proficiency_level → direct tool (saves level, triggers planning)
+
+  Curriculum Planner Agent (separate agent, runs during "planning" phase)
+    └── tool: save_curriculum → saves plan to DB, transitions back to main tutor
 """
 
 import json
