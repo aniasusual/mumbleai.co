@@ -166,6 +166,23 @@ MAIN_AGENT_TOOLS = [
                 "required": ["level", "reasoning"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "advance_lesson",
+            "description": "Move to the next lesson in the curriculum. Call this when the user has sufficiently practiced the current lesson's topics and is ready to progress.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "summary": {
+                        "type": "string",
+                        "description": "Brief summary of what the user learned/practiced in the current lesson"
+                    }
+                },
+                "required": ["summary"]
+            }
+        }
     }
 ]
 
