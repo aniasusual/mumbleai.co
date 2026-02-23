@@ -3,12 +3,26 @@ import { Mic, Sparkles } from "lucide-react";
 import { ChatBubble, TypingIndicator } from "./ChatBubble";
 import { ToolActivityLive } from "./ToolActivity";
 
-export const MessageList = ({ messages, loading, sending, toolEvents, inputMode, onPlayAudio, onSetInput, inputRef }) => {
+const StreamingBubble = ({ text }) => (
+  <div className="flex items-start gap-3 px-5 py-2 animate-slide-up" data-testid="streaming-bubble">
+    <div className="w-8 h-8 rounded-full bg-[#F0F4F8] flex items-center justify-center flex-shrink-0 mt-1">
+      <span className="text-xs font-bold text-[#2F5233]" style={{ fontFamily: 'Playfair Display, serif' }}>L</span>
+    </div>
+    <div className="chat-bubble-ai px-5 py-3 max-w-[75%]">
+      <div className="chat-content text-sm leading-relaxed whitespace-pre-wrap">
+        {text}
+        <span className="inline-block w-0.5 h-4 bg-[#2F5233] animate-pulse ml-0.5 align-text-bottom" />
+      </div>
+    </div>
+  </div>
+);
+
+export const MessageList = ({ messages, loading, sending, toolEvents, streamingText, inputMode, onPlayAudio, onSetInput, inputRef }) => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, streamingText]);
 
   if (messages.length === 0 && !loading) {
     return (
