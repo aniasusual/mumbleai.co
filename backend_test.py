@@ -351,24 +351,25 @@ class FirstLessonOnboardingTester:
                 print(f"   ⚠️  Could not delete conversation {conv_id}")
 
     def run_all_tests(self):
-        """Run all tests"""
-        print("="*60)
-        print("🧪 Voice Language Learning API Tests")
-        print("="*60)
+        """Run all First Lesson Onboarding tests"""
+        print("="*70)
+        print("🧪 FIRST LESSON ONBOARDING API TESTS")
+        print("="*70)
         print(f"Base URL: {self.base_url}")
         print(f"API URL: {self.api_url}")
+        print(f"Testing Focus: First Lesson Assessment and Proficiency Detection")
         
-        # Test sequence
+        # Test sequence focused on First Lesson Onboarding
         tests = [
-            ("Languages API", self.test_get_languages),
-            ("Dual Language Conversations", self.test_create_conversation_dual_language), 
-            ("Language-specific Messages", self.test_conversation_messages_dual_language),
-            ("Text-to-Speech", self.test_tts_api)
+            ("Cross-Language Auto-Assessment", self.test_cross_language_auto_assessment),
+            ("Same Language No Assessment", self.test_same_language_no_assessment), 
+            ("Agent Tool Usage & Proficiency Detection", self.test_agent_tool_usage_and_proficiency_detection),
+            ("Proficiency API Operations", self.test_proficiency_api_operations)
         ]
         
         results = []
         for test_name, test_func in tests:
-            print(f"\n" + "─"*50)
+            print(f"\n" + "─"*60)
             try:
                 result = test_func()
                 results.append((test_name, result))
@@ -384,9 +385,9 @@ class FirstLessonOnboardingTester:
         self.cleanup_conversations()
         
         # Summary
-        print(f"\n" + "="*60)
-        print("📊 TEST SUMMARY")
-        print("="*60)
+        print(f"\n" + "="*70)
+        print("📊 FIRST LESSON ONBOARDING TEST SUMMARY")
+        print("="*70)
         passed = sum(1 for _, result in results if result)
         total = len(results)
         
@@ -394,13 +395,13 @@ class FirstLessonOnboardingTester:
             status = "✅ PASS" if result else "❌ FAIL"
             print(f"{status} - {test_name}")
         
-        print(f"\nOverall: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
+        print(f"\nFirst Lesson Features: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
         print(f"Individual API calls: {self.tests_passed}/{self.tests_run} passed")
         
         return passed == total
 
 def main():
-    tester = VoiceLanguageTesterAPI()
+    tester = FirstLessonOnboardingTester()
     success = tester.run_all_tests()
     return 0 if success else 1
 
