@@ -67,7 +67,7 @@ export const MessageList = ({ messages, loading, sending, toolEvents, streamingT
     <div className="flex-1 overflow-y-auto">
       <div className="max-w-3xl mx-auto py-4">
         {messages.map((msg, idx) => (
-          <ChatBubble key={msg.id} message={msg} index={idx} onPlayAudio={onPlayAudio} />
+          <ChatBubble key={msg.id} message={msg} index={idx} onPlayAudio={onPlayAudio} speakingState={speakingState} onStopAudio={onStopAudio} />
         ))}
         {sending && toolEvents.length > 0 && <ToolActivityLive events={toolEvents} />}
         {sending && streamingText && <StreamingBubble text={streamingText} />}
