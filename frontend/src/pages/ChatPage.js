@@ -200,7 +200,9 @@ export default function ChatPage() {
       const { user_message, ai_message, ai_audio_base64 } = res.data;
       setMessages(prev => [...prev.filter(m => m.id !== tempId), user_message, ai_message]);
       refreshConversations();
-      if (ai_audio_base64) { try { await playAudioBase64(ai_audio_base64); } catch (e) { console.error("Audio playback failed:", e); } }
+      if (ai_audio_base64) {
+        playWithKaraoke(ai_audio_base64, ai_message.id, ai_message.content);
+      }
     } catch (e) {
       toast.error(e.response?.data?.detail || "Voice message failed. Try again.");
       setMessages(prev => prev.filter(m => m.id !== tempId));
