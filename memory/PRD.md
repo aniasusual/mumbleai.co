@@ -7,7 +7,7 @@ Build a conversational agent, "LinguaFlow," that acts as a personal language tut
 - **Backend**: FastAPI + MongoDB (motor) — modular service-oriented architecture
 - **Frontend**: React + TailwindCSS + Shadcn/UI — component-based structure
 - **Agent**: Custom parent/subagent model. `LanguageTutorAgent` delegates to `CurriculumPlannerAgent` based on conversation phase. Four LLM-powered subagents (Grammar, Vocabulary, Pronunciation, Evaluation) available as tools.
-- **Real-time UI**: Server-Sent Events (SSE) stream agent activity from backend to frontend
+- **Real-time UI**: Server-Sent Events (SSE) stream agent activity AND text response tokens from backend to frontend
 - **Voice**: OpenAI Whisper (STT) + OpenAI TTS via emergentintegrations
 - **LLM**: OpenAI GPT-5.2 via Emergent LLM Key
 
@@ -25,7 +25,8 @@ Build a conversational agent, "LinguaFlow," that acts as a personal language tut
 - [x] Chat deletion (individual + clear all)
 - [x] Backend refactor (modular: agents/, routes/, services/, models.py, config.py)
 - [x] Frontend refactor (ChatPage orchestrator + 7 child components + custom hook)
-- [x] **Live Tool & Subagent Activity UI** (SSE streaming, real-time spinners, collapsible summary) — Verified 2026-02-23
+- [x] Live Tool & Subagent Activity UI (SSE streaming, real-time spinners, collapsible summary) — Verified 2026-02-23
+- [x] **Streaming Text Response** — Agent text appears token-by-token via SSE text_delta events with a blinking cursor (StreamingBubble component). Both tutor and planner agents stream. — Implemented 2026-02-23
 
 ## Backlog
 - **P1**: Progress Journal — auto-generate weekly learning summaries (mistakes, improvements, new vocab, proficiency changes)
@@ -34,10 +35,18 @@ Build a conversational agent, "LinguaFlow," that acts as a personal language tut
 
 ## Key Endpoints
 - `POST /api/conversations` — create conversation (agent auto-sends welcome)
-- `POST /api/conversations/{id}/messages/stream` — SSE streaming with live tool activity
+- `POST /api/conversations/{id}/messages/stream` — SSE streaming: tool events + text_delta tokens + done
 - `POST /api/conversations/{id}/voice-message` — voice input
 - `GET /api/conversations/{id}/messages` — message history (includes tool_activity)
 - `POST /api/tts` — text-to-speech
+
+## SSE Event Types
+- `thinking` — agent is making an LLM call
+- `tool_start` — tool execution begins (label, tool name)
+- `substep` — sub-step within a tool
+- `tool_end` — tool execution done
+- `text_delta` — token chunk of the agent's text response
+- `done` — final event with user_message + ai_message payloads
 
 ## DB Collections
 - `conversations`: id, title, scenario, native_language, target_language, proficiency_level, phase, message_count
