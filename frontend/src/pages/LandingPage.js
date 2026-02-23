@@ -260,10 +260,10 @@ export default function LandingPage() {
       <section className="bg-[#2F5233] py-20 md:py-24" data-testid="cta-section">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl tracking-tight text-white mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>
-            Ready to improve your English?
+            Ready to master a new language?
           </h2>
           <p className="text-white/70 text-base md:text-lg mb-8 max-w-xl mx-auto">
-            Start a conversation with your AI tutor now. It's like having a patient friend who never gets tired of helping.
+            Choose from 50+ languages and start a voice conversation with your AI tutor. It's like having a patient friend who speaks every language.
           </p>
           <Button
             onClick={() => navigate("/chat")}
