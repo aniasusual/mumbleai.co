@@ -61,6 +61,18 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (!conversationId) return;
+    // Skip if we just created this conversation via ensureConversation during a send
+    if (skipNextLoadRef.current) {
+      skipNextLoadRef.current = false;
+      // Still update currentConv metadata
+      const conv = conversations.find(c => c.id === conversationId);
+      if (conv) {
+        setCurrentConv(conv);
+        if (conv.native_language) setNativeLang(conv.native_language);
+        if (conv.target_language) setTargetLang(conv.target_language);
+      }
+      return;
+    }
     loadMessages(conversationId);
     const conv = conversations.find(c => c.id === conversationId);
     if (conv) {
