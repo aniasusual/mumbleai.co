@@ -117,11 +117,7 @@ export const ChatBubble = ({ message, index, onPlayAudio, speakingState, onStopA
       style={{ animationDelay: `${index * 0.05}s` }}
       data-testid={`chat-message-${message.id}`}
     >
-      {!isUser && (
-        <div className="w-8 h-8 rounded-full bg-[#F0F4F8] flex items-center justify-center flex-shrink-0 mt-1">
-          <span className="text-xs font-bold text-[#2F5233]" style={{ fontFamily: 'Playfair Display, serif' }}>M</span>
-        </div>
-      )}
+      {!isUser && <AiAvatar />}
       <div className={`max-w-[75%] ${isUser ? "chat-bubble-user px-5 py-3" : "chat-bubble-ai px-5 py-3"}`}>
         <div className="chat-content text-sm leading-relaxed">
           {isUser
