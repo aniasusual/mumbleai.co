@@ -17,7 +17,7 @@ export const ChatHeader = ({ currentConv, curriculum, languages, inputMode, onSe
       </button>
 
       <div className="flex-1 min-w-0">
-        <h2 className="text-sm font-semibold text-[#1A1A1A] truncate" style={{ fontFamily: 'Playfair Display, serif' }}>
+        <h2 className="text-sm font-semibold text-[#1A1A1A] truncate" style={{ fontFamily: 'Sora, sans-serif' }}>
           {currentConv?.title || "New Conversation"}
         </h2>
         <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
