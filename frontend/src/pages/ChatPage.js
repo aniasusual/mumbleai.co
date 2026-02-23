@@ -692,6 +692,18 @@ export default function ChatPage() {
         </div>
 
         <ScrollArea className="flex-1 px-3">
+          {conversations.length > 0 && (
+            <div className="flex items-center justify-between px-1 mb-2 pt-1">
+              <span className="text-[10px] uppercase tracking-wider text-[#71717A]">Conversations</span>
+              <button
+                onClick={handleClearAll}
+                className="text-[10px] text-red-400 hover:text-red-500 transition-colors duration-150"
+                data-testid="clear-all-chats-btn"
+              >
+                Clear all
+              </button>
+            </div>
+          )}
           <div className="space-y-1">
             {conversations.map((conv) => (
               <div
