@@ -236,7 +236,7 @@ export default function VocabularyPage() {
                   </h3>
                   <button
                     onClick={() => handleDelete(item.id)}
-                    className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-50 rounded-lg transition-opacity duration-150"
+                    className="p-1.5 hover:bg-red-50 rounded-lg opacity-40 hover:opacity-100 transition-opacity duration-150"
                     data-testid={`delete-vocab-${item.id}`}
                   >
                     <Trash2 className="w-4 h-4 text-red-400" />
