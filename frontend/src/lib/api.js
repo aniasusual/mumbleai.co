@@ -19,6 +19,53 @@ export const getMessages = (id) => api.get(`/conversations/${id}/messages`);
 export const sendMessage = (id, data) => api.post(`/conversations/${id}/messages`, data);
 export const getCurriculum = (id) => api.get(`/conversations/${id}/curriculum`);
 
+/**
+ * Stream a message with real-time tool activity events via SSE.
+ * @param {string} id - Conversation ID
+ * @param {object} data - { content, scenario_context }
+ * @param {function} onEvent - Callback for each SSE event ({ type, tool, label, substep, ... })
+ * @returns {Promise<{user_message, ai_message}>} - Final messages
+ */
+export const sendMessageStream = (id, data, onEvent) => {
+  return new Promise((resolve, reject) => {
+    fetch(`${API}/conversations/${id}/messages/stream`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }).then(async (response) => {
+      if (!response.ok) {
+        reject(new Error(`Stream failed: ${response.status}`));
+        return;
+      }
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const event = JSON.parse(line.slice(6));
+              if (event.type === "done") {
+                resolve(event);
+              } else if (onEvent) {
+                onEvent(event);
+              }
+            } catch (e) { /* skip malformed */ }
+          }
+        }
+      }
+    }).catch(reject);
+  });
+};
+
 // Voice message - sends audio blob, returns transcribed text + AI response + TTS audio
 export const sendVoiceMessage = (id, audioBlob, scenarioContext) => {
   const formData = new FormData();
