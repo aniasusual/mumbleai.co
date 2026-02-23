@@ -461,7 +461,7 @@ def start_scenario(scenario_type: str, difficulty: str = "intermediate") -> str:
 # Tool Router — maps tool name → execution
 # ──────────────────────────────────────────────────
 
-async def execute_tool(api_key: str, tool_name: str, arguments: dict) -> str:
+async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversation_id: str = None, db=None) -> str:
     """Route a tool call to the appropriate handler (subagent or direct tool)."""
     target_lang = arguments.get("target_language", "English")
 
@@ -488,6 +488,25 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict) -> str:
             arguments["scenario_type"],
             arguments.get("difficulty", "intermediate")
         )
+
+    elif tool_name == "set_proficiency_level":
+        level = arguments.get("level", "beginner")
+        reasoning = arguments.get("reasoning", "")
+        # Save to DB if available
+        if db and conversation_id:
+            await db.conversations.update_one(
+                {"id": conversation_id},
+                {"$set": {"proficiency_level": level}}
+            )
+        return json.dumps({
+            "status": "saved",
+            "level": level,
+            "reasoning": reasoning,
+            "instruction": f"Level set to {level}. Now adapt your teaching to this level. For {level}: "
+                + {"beginner": "use simple words, short sentences, lots of native language support, basic vocabulary",
+                   "intermediate": "mix of target and native language, introduce idioms, more complex grammar, encourage longer responses",
+                   "advanced": "mostly target language, complex topics, nuanced grammar, cultural references, minimal native language"}[level]
+        })
 
     return f"Unknown tool: {tool_name}"
 
