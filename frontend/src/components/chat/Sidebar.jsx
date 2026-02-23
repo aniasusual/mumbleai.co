@@ -31,7 +31,7 @@ export const Sidebar = ({
         <div className="p-4 flex items-center justify-between">
           <button onClick={() => navigate("/")} className="flex items-center gap-2" data-testid="sidebar-logo">
             <div className="w-7 h-7 rounded-lg bg-[#2F5233] flex items-center justify-center">
-              <span className="text-white text-xs font-bold" style={{ fontFamily: 'Playfair Display, serif' }}>L</span>
+              <span className="text-white text-xs font-bold" style={{ fontFamily: 'Playfair Display, serif' }}>M</span>
             </div>
             <span className="font-semibold text-sm" style={{ fontFamily: 'Playfair Display, serif' }}>Mumble AI</span>
           </button>
