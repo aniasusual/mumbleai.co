@@ -285,13 +285,15 @@ export default function ChatPage() {
     try {
       const res = await createConversation({
         title: scenario ? `${scenario} Practice` : null,
-        scenario
+        scenario,
+        language: selectedLang
       });
       setConversations(prev => [res.data, ...prev]);
       setCurrentConv(res.data);
       setMessages([]);
       navigate(`/chat/${res.data.id}`);
       setSidebarOpen(false);
+      setShowLangPicker(false);
     } catch (e) {
       toast.error("Failed to create conversation");
     }
@@ -300,7 +302,7 @@ export default function ChatPage() {
   const ensureConversation = async () => {
     if (conversationId) return conversationId;
     try {
-      const res = await createConversation({ title: null });
+      const res = await createConversation({ title: null, language: selectedLang });
       setConversations(prev => [res.data, ...prev]);
       setCurrentConv(res.data);
       navigate(`/chat/${res.data.id}`, { replace: true });
