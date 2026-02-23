@@ -535,17 +535,16 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
     elif tool_name == "set_proficiency_level":
         level = arguments.get("level", "beginner")
         reasoning = arguments.get("reasoning", "")
-        # Save to DB and transition to planning phase
         if db is not None and conversation_id:
             await db.conversations.update_one(
                 {"id": conversation_id},
-                {"$set": {"proficiency_level": level, "phase": "planning"}}
+                {"$set": {"proficiency_level": level}}
             )
         return json.dumps({
             "status": "saved",
             "level": level,
             "reasoning": reasoning,
-            "instruction": f"Level set to {level}. IMPORTANT: The conversation will now transition to curriculum planning mode. In your FINAL response for this turn, tell the user their level has been assessed and that you'd now like to create a personalized learning plan together. Ask them ONE question: what is their goal for learning this language?"
+            "instruction": f"Level set to {level}. Now you MUST call the `plan_curriculum` tool to hand off to the Curriculum Planner. Pass proficiency_level='{level}'. The planner will create a personalized study plan with the user."
         })
 
     elif tool_name == "save_curriculum":
