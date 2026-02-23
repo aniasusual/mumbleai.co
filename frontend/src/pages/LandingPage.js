@@ -531,11 +531,11 @@ export default function LandingPage() {
 
           <motion.div
             className="hidden lg:block flex-shrink-0"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4, duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 1, ease: [0.22, 1, 0.36, 1] }}
           >
-            <LanguageOrbit />
+            <GreetingScroll />
           </motion.div>
         </motion.div>
 
