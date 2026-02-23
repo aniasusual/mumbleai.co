@@ -177,7 +177,7 @@ export default function ChatPage() {
       toast.error("Failed to send message.");
       setMessages(prev => prev.filter(m => m.id !== tempId));
       setInput(userText);
-      setToolEvents([]);
+      setToolEvents([]); setStreamingText("");
     } finally { setSending(false); inputRef.current?.focus(); }
   };
 
