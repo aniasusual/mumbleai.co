@@ -107,14 +107,26 @@ export default function ChatPage() {
   // --- Conversation Management ---
   const ensureConversation = async () => {
     if (conversationId) return conversationId;
-    try {
-      const res = await createConversation({ title: null, native_language: nativeLang, target_language: targetLang });
-      setConversations(prev => [res.data, ...prev]);
-      setCurrentConv(res.data);
-      pendingTtsRef.current = true;
-      navigate(`/chat/${res.data.id}`, { replace: true });
-      return res.data.id;
-    } catch (e) { toast.error("Failed to create conversation"); return null; }
+
+    // Prevent duplicate creation — if already creating, wait for that result
+    if (creatingConvRef.current) return creatingConvRef.current;
+
+    creatingConvRef.current = (async () => {
+      try {
+        const res = await createConversation({ title: null, native_language: nativeLang, target_language: targetLang });
+        setConversations(prev => [res.data, ...prev]);
+        setCurrentConv(res.data);
+        navigate(`/chat/${res.data.id}`, { replace: true });
+        return res.data.id;
+      } catch (e) {
+        toast.error("Failed to create conversation");
+        return null;
+      } finally {
+        creatingConvRef.current = null;
+      }
+    })();
+
+    return creatingConvRef.current;
   };
 
   const handleNewConversation = async (scenario = null) => {
