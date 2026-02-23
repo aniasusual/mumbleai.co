@@ -765,6 +765,15 @@ export default function ChatPage() {
                   {currentConv.scenario.replace("_", " ")}
                 </Badge>
               )}
+              {currentConv?.proficiency_level && (
+                <Badge className={`text-[10px] border-0 ${
+                  currentConv.proficiency_level === "beginner" ? "bg-blue-100 text-blue-700" :
+                  currentConv.proficiency_level === "intermediate" ? "bg-amber-100 text-amber-700" :
+                  "bg-emerald-100 text-emerald-700"
+                }`} data-testid="proficiency-badge">
+                  {currentConv.proficiency_level}
+                </Badge>
+              )}
             </div>
           </div>
           {/* Input mode toggle */}
