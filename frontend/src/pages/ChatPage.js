@@ -48,6 +48,7 @@ export default function ChatPage() {
   const inputRef = useRef(null);
   const pendingTtsRef = useRef(false);
   const audioControllerRef = useRef(null);
+  const creatingConvRef = useRef(null);
   const { isRecording, audioLevel, startRecording, stopRecording } = useVoiceRecorder();
 
   // --- Data Loading ---
