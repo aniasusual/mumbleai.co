@@ -185,6 +185,13 @@ async def set_proficiency(conv_id: str, data: dict):
     )
     return {"status": "updated", "proficiency_level": level}
 
+@api_router.get("/conversations/{conv_id}/curriculum")
+async def get_curriculum(conv_id: str):
+    curr = await db.curricula.find_one({"conversation_id": conv_id}, {"_id": 0})
+    if not curr:
+        raise HTTPException(status_code=404, detail="No curriculum found")
+    return curr
+
 @api_router.get("/conversations", response_model=List[ConversationResponse])
 async def list_conversations():
     convs = await db.conversations.find({}, {"_id": 0}).sort("updated_at", -1).to_list(100)
