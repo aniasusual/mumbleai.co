@@ -151,12 +151,24 @@ Have a short conversation with the user to understand their needs, then build a 
 
                     logger.info(f"[Planner Agent] calling tool: {tool_name}({arguments})")
                     tools_used.append(tool_name)
+
+                    from agents.tool_executor import TOOL_LABELS
+                    tool_entry = {"tool": tool_name, "label": TOOL_LABELS.get(tool_name, tool_name), "status": "running", "substeps": []}
+                    tool_activity.append(tool_entry)
+                    if on_event:
+                        await on_event({"type": "tool_start", "tool": tool_name, "label": tool_entry["label"]})
+
                     result = await self._execute_tool(tool_name, arguments)
                     messages.append({"role": "tool", "tool_call_id": tc.id, "content": result})
+
+                    tool_entry["status"] = "done"
+                    if on_event:
+                        await on_event({"type": "tool_end", "tool": tool_name, "label": tool_entry["label"]})
 
             return {
                 "response": msg.content or "Let me finalize your study plan.",
                 "tools_used": tools_used,
+                "tool_activity": tool_activity,
                 "type": "planning"
             }
 
