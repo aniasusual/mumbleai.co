@@ -33,6 +33,11 @@ Build a conversational agent that acts as a personal tutor to help users improve
 - [x] "Clear All Chats" feature with confirmation dialog
 - [x] Human-like AI personality (casual, non-robotic prompts)
 - [x] Agent always initiates conversation (all cases: same-lang, cross-lang, scenarios)
+- [x] Welcome message auto-speaks via TTS on new conversation
+- [x] One-question-at-a-time agent behavior
+- [x] Curriculum Planning Subagent (HITL): auto-triggers after proficiency assessment, asks about goals/timeline/preferences, creates personalized learning plan
+- [x] Curriculum-driven learning: agent follows the saved curriculum, lesson progress shown in header
+- [x] Advance lesson tool: agent can progress through curriculum lessons
 
 ## API Endpoints
 - `POST /api/conversations` - Create conversation
@@ -49,6 +54,18 @@ Build a conversational agent that acts as a personal tutor to help users improve
 - `POST /api/vocabulary` - Save vocabulary word
 - `GET /api/vocabulary` - List vocabulary
 - `DELETE /api/vocabulary/{id}` - Delete vocabulary
+
+## DB Collections
+- **conversations**: id, title, scenario, native_language, target_language, proficiency_level, phase (assessment|planning|learning), created_at, updated_at, message_count
+- **messages**: id, conversation_id, role, content, tools_used, created_at
+- **curricula**: id, conversation_id, proficiency_level, timeline, goal, lessons[], current_lesson, status (active|completed), created_at
+- **vocabulary**: id, word, definition, example, context, created_at
+- **activity**: id, text_length, tools_used, scenario, created_at
+
+## Agent Phases
+1. **Assessment** (cross-lang only): Agent asks 2-3 progressively harder questions to determine proficiency level
+2. **Planning** (auto-triggered): Curriculum planner asks about goals, timeline, preferences — HITL collaborative plan creation
+3. **Learning**: Agent follows the saved curriculum, advancing through lessons
 
 ## Backlog
 - P1: Progress Journal (auto-generated weekly learning summaries)
