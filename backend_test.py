@@ -368,6 +368,8 @@ def main():
         ("List Conversations", tester.test_list_conversations),
         ("Send Message & AI Response", tester.test_send_message),
         ("Get Messages", tester.test_get_messages),
+        ("Text-to-Speech API", tester.test_tts_api),
+        ("Voice Message API", tester.test_voice_message_api),
         ("Progress Stats", tester.test_progress_api),
         ("Save Vocabulary", tester.test_vocabulary_save),
         ("List Vocabulary", tester.test_vocabulary_list),
