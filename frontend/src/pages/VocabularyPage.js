@@ -26,6 +26,7 @@ import {
   X
 } from "lucide-react";
 import { listVocabulary, saveVocabulary, deleteVocabulary } from "@/lib/api";
+import { WaveformLogo } from "@/components/WaveformLogo";
 
 export default function VocabularyPage() {
   const navigate = useNavigate();
