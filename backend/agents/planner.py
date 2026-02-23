@@ -105,7 +105,7 @@ Have a short conversation with the user to understand their needs, then build a 
         return f"Unknown planner tool: {tool_name}"
 
     async def process_message(self, user_text: str, conversation_history: list, on_event=None, **kwargs) -> dict:
-        """The planner's own agent loop."""
+        """The planner's own agent loop with streaming."""
         messages = [
             {"role": m.get("role", "user"), "content": m.get("content", "")}
             for m in conversation_history[-10:]
@@ -121,31 +121,34 @@ Have a short conversation with the user to understand their needs, then build a 
                 if on_event:
                     await on_event({"type": "thinking"})
 
-                response = await llm_call(
+                stream = await llm_call_stream(
                     api_key=self.api_key, messages=messages,
                     system=self.system_prompt, tools=self.tools, max_tokens=2000
                 )
+                content, tool_calls, finish_reason = await consume_stream(stream, on_event=on_event)
 
-                msg = response.choices[0].message
-                finish_reason = response.choices[0].finish_reason
-
-                assistant_msg = {"role": "assistant", "content": msg.content or ""}
-                if msg.tool_calls:
-                    assistant_msg["tool_calls"] = serialize_tool_calls(msg.tool_calls)
+                # Build assistant message for history
+                assistant_msg = {"role": "assistant", "content": content}
+                if tool_calls:
+                    assistant_msg["tool_calls"] = [
+                        {"id": tc["id"], "type": "function",
+                         "function": {"name": tc["name"], "arguments": tc["arguments"]}}
+                        for tc in tool_calls
+                    ]
                 messages.append(assistant_msg)
 
-                if finish_reason != "tool_calls" or not msg.tool_calls:
+                if finish_reason != "tool_calls" or not tool_calls:
                     return {
-                        "response": msg.content or "Let's keep planning your curriculum!",
+                        "response": content or "Let's keep planning your curriculum!",
                         "tools_used": tools_used,
                         "tool_activity": tool_activity,
                         "type": "planning"
                     }
 
-                for tc in msg.tool_calls:
-                    tool_name = tc.function.name
+                for tc in tool_calls:
+                    tool_name = tc["name"]
                     try:
-                        arguments = json.loads(tc.function.arguments)
+                        arguments = json.loads(tc["arguments"])
                     except json.JSONDecodeError:
                         arguments = {}
 
@@ -159,14 +162,14 @@ Have a short conversation with the user to understand their needs, then build a 
                         await on_event({"type": "tool_start", "tool": tool_name, "label": tool_entry["label"]})
 
                     result = await self._execute_tool(tool_name, arguments)
-                    messages.append({"role": "tool", "tool_call_id": tc.id, "content": result})
+                    messages.append({"role": "tool", "tool_call_id": tc["id"], "content": result})
 
                     tool_entry["status"] = "done"
                     if on_event:
                         await on_event({"type": "tool_end", "tool": tool_name, "label": tool_entry["label"]})
 
             return {
-                "response": msg.content or "Let me finalize your study plan.",
+                "response": content or "Let me finalize your study plan.",
                 "tools_used": tools_used,
                 "tool_activity": tool_activity,
                 "type": "planning"
