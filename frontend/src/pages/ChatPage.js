@@ -695,11 +695,19 @@ export default function ChatPage() {
             <h2 className="text-sm font-semibold text-[#1A1A1A] truncate" style={{ fontFamily: 'Playfair Display, serif' }}>
               {currentConv?.title || "New Conversation"}
             </h2>
-            {currentConv?.scenario && (
-              <Badge variant="outline" className="text-[10px] mt-0.5 border-[#2F5233]/20 text-[#2F5233]">
-                {currentConv.scenario.replace("_", " ")}
-              </Badge>
-            )}
+            <div className="flex items-center gap-1.5 mt-0.5">
+              {currentConv?.language && (
+                <Badge variant="outline" className="text-[10px] border-[#2F5233]/20 text-[#2F5233] flex items-center gap-1">
+                  <Globe className="w-2.5 h-2.5" />
+                  {languages.popular.concat(languages.others).find(l => l.code === (currentConv?.language || selectedLang))?.name || selectedLang}
+                </Badge>
+              )}
+              {currentConv?.scenario && (
+                <Badge variant="outline" className="text-[10px] border-amber-200 text-amber-600">
+                  {currentConv.scenario.replace("_", " ")}
+                </Badge>
+              )}
+            </div>
           </div>
           {/* Input mode toggle */}
           <div className="flex items-center bg-gray-100 rounded-full p-0.5" data-testid="input-mode-toggle">
