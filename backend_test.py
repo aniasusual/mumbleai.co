@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
-Backend API testing for Voice Conversation Agent with Dual Language System
+Backend API testing for Voice Language Tutor with First Lesson Onboarding
 
-Tests the key features:
-1. POST /api/conversations with native_language and target_language
-2. POST /api/conversations/{id}/messages with language-specific behavior
-3. GET /api/languages (99 languages)
-4. POST /api/tts
-5. Dual language conversation flow
+Tests the FIRST LESSON ONBOARDING features:
+1. POST /api/conversations with cross-language auto-inserts welcome assessment message
+2. GET /api/conversations/{id}/messages shows auto-generated welcome message
+3. POST /api/conversations with same language does NOT auto-insert assessment message
+4. POST /api/conversations/{id}/messages triggers agent tools (grammar_check, evaluate_response, set_proficiency_level)
+5. PATCH /api/conversations/{id}/proficiency sets proficiency level directly
+6. GET /api/conversations/{id} returns proficiency_level field
+7. Proficiency level persistence and retrieval
 """
 
 import requests
