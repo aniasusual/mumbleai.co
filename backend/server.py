@@ -37,14 +37,16 @@ api_router = APIRouter(prefix="/api")
 class ConversationCreate(BaseModel):
     title: Optional[str] = None
     scenario: Optional[str] = None
-    language: str = "en"
+    native_language: str = "en"
+    target_language: str = "en"
 
 class ConversationResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
     title: str
     scenario: Optional[str] = None
-    language: str = "en"
+    native_language: str = "en"
+    target_language: str = "en"
     created_at: str
     updated_at: str
     message_count: int = 0
@@ -93,12 +95,14 @@ class ProgressResponse(BaseModel):
 @api_router.post("/conversations", response_model=ConversationResponse)
 async def create_conversation(data: ConversationCreate):
     now = datetime.now(timezone.utc).isoformat()
-    lang_code = data.language if data.language in SUPPORTED_LANGUAGES else "en"
+    native = data.native_language if data.native_language in SUPPORTED_LANGUAGES else "en"
+    target = data.target_language if data.target_language in SUPPORTED_LANGUAGES else "en"
     conv = {
         "id": str(uuid.uuid4()),
         "title": data.title or "New Conversation",
         "scenario": data.scenario,
-        "language": lang_code,
+        "native_language": native,
+        "target_language": target,
         "created_at": now,
         "updated_at": now,
         "message_count": 0
