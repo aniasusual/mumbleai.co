@@ -748,10 +748,12 @@ export default function ChatPage() {
               {currentConv?.title || "New Conversation"}
             </h2>
             <div className="flex items-center gap-1.5 mt-0.5">
-              {currentConv?.language && (
+              {currentConv?.target_language && currentConv.native_language !== currentConv.target_language && (
                 <Badge variant="outline" className="text-[10px] border-[#2F5233]/20 text-[#2F5233] flex items-center gap-1">
                   <Globe className="w-2.5 h-2.5" />
-                  {languages.popular.concat(languages.others).find(l => l.code === (currentConv?.language || selectedLang))?.name || selectedLang}
+                  {[...languages.popular, ...languages.others].find(l => l.code === currentConv.native_language)?.name || "English"}
+                  {" → "}
+                  {[...languages.popular, ...languages.others].find(l => l.code === currentConv.target_language)?.name || "English"}
                 </Badge>
               )}
               {currentConv?.scenario && (
