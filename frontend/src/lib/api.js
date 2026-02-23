@@ -38,6 +38,9 @@ export const deleteVocabulary = (id) => api.delete(`/vocabulary/${id}`);
 // Scenarios
 export const getScenarios = () => api.get("/scenarios");
 
+// Languages
+export const getLanguages = () => api.get("/languages");
+
 // Progress
 export const getProgress = () => api.get("/progress");
 
