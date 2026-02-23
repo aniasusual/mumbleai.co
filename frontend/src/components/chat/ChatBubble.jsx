@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Volume2 } from "lucide-react";
+import { Loader2, Volume2, Square } from "lucide-react";
 import { ToolActivitySummary } from "./ToolActivity";
 
 const TypingIndicator = () => (
@@ -17,15 +17,68 @@ const TypingIndicator = () => (
   </div>
 );
 
-export const ChatBubble = ({ message, index, onPlayAudio }) => {
+/** Small animated waveform bars — shows when audio is playing */
+const AudioWaveform = () => (
+  <div className="flex items-center gap-[2px] h-3.5" data-testid="audio-waveform">
+    {[1, 2, 3, 4, 5].map(i => (
+      <div
+        key={i}
+        className="w-[2.5px] bg-[#2F5233] rounded-full waveform-bar"
+      />
+    ))}
+  </div>
+);
+
+/** Render message text with karaoke word-by-word highlighting */
+const KaraokeText = ({ text, currentWordIndex }) => {
+  // Split into words and whitespace tokens, preserving structure
+  const tokens = text.split(/(\s+)/);
+  let wordIdx = 0;
+
+  return (
+    <span>
+      {tokens.map((token, i) => {
+        // Whitespace tokens — render as-is
+        if (/^\s+$/.test(token)) {
+          return <span key={i}>{token}</span>;
+        }
+        const idx = wordIdx++;
+        let cls = "karaoke-word karaoke-word-upcoming";
+        if (idx < currentWordIndex) {
+          cls = "karaoke-word karaoke-word-spoken";
+        } else if (idx === currentWordIndex) {
+          cls = "karaoke-word karaoke-word-current";
+        }
+        return <span key={i} className={cls}>{token}</span>;
+      })}
+    </span>
+  );
+};
+
+export const ChatBubble = ({ message, index, onPlayAudio, speakingState, onStopAudio }) => {
   const isUser = message.role === "user";
-  const [playing, setPlaying] = useState(false);
+  const [fetchingAudio, setFetchingAudio] = useState(false);
+
+  const isSpeaking = speakingState?.messageId === message.id;
+  const currentWordIndex = isSpeaking ? (speakingState.wordIndex ?? -1) : -1;
 
   const handlePlay = async () => {
-    if (playing) return;
-    setPlaying(true);
-    try { await onPlayAudio(message.content); } catch (e) { console.error("Playback failed", e); }
-    setPlaying(false);
+    if (fetchingAudio || isSpeaking) return;
+    if (isSpeaking && onStopAudio) {
+      onStopAudio();
+      return;
+    }
+    setFetchingAudio(true);
+    try {
+      await onPlayAudio(message.id, message.content);
+    } catch (e) {
+      console.error("Playback failed", e);
+    }
+    setFetchingAudio(false);
+  };
+
+  const handleStop = () => {
+    if (onStopAudio) onStopAudio();
   };
 
   return (
@@ -40,12 +93,39 @@ export const ChatBubble = ({ message, index, onPlayAudio }) => {
         </div>
       )}
       <div className={`max-w-[75%] ${isUser ? "chat-bubble-user px-5 py-3" : "chat-bubble-ai px-5 py-3"}`}>
-        <div className="chat-content text-sm leading-relaxed whitespace-pre-wrap">{message.content}</div>
+        <div className="chat-content text-sm leading-relaxed whitespace-pre-wrap">
+          {!isUser && isSpeaking
+            ? <KaraokeText text={message.content} currentWordIndex={currentWordIndex} />
+            : message.content
+          }
+        </div>
         <div className="flex items-center gap-2 mt-2">
           {!isUser && (
-            <button onClick={handlePlay} className="p-1.5 rounded-full hover:bg-gray-100 transition-colors duration-150" data-testid={`play-audio-${message.id}`} title="Listen">
-              {playing ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2F5233]" /> : <Volume2 className="w-3.5 h-3.5 text-[#71717A]" />}
-            </button>
+            <>
+              {isSpeaking ? (
+                <button
+                  onClick={handleStop}
+                  className="flex items-center gap-2 p-1.5 rounded-full hover:bg-gray-100 transition-colors duration-150"
+                  data-testid={`stop-audio-${message.id}`}
+                  title="Stop"
+                >
+                  <Square className="w-3 h-3 text-[#2F5233] fill-[#2F5233]" />
+                  <AudioWaveform />
+                </button>
+              ) : (
+                <button
+                  onClick={handlePlay}
+                  className="p-1.5 rounded-full hover:bg-gray-100 transition-colors duration-150"
+                  data-testid={`play-audio-${message.id}`}
+                  title="Listen"
+                >
+                  {fetchingAudio
+                    ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2F5233]" />
+                    : <Volume2 className="w-3.5 h-3.5 text-[#71717A]" />
+                  }
+                </button>
+              )}
+            </>
           )}
         </div>
         {!isUser && message.tool_activity && <ToolActivitySummary toolActivity={message.tool_activity} />}
