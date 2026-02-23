@@ -8,12 +8,13 @@ from fastapi import FastAPI, APIRouter
 from starlette.middleware.cors import CORSMiddleware
 
 from config import client, logger
-from routes import conversations, voice, vocabulary, progress, resources
+from routes import conversations, voice, vocabulary, progress, resources, auth
 
 app = FastAPI()
 
 # Mount all routes under /api prefix
 api_router = APIRouter(prefix="/api")
+api_router.include_router(auth.router)
 api_router.include_router(conversations.router)
 api_router.include_router(voice.router)
 api_router.include_router(vocabulary.router)
