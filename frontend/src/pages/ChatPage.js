@@ -33,6 +33,7 @@ export default function ChatPage() {
   const [inputMode, setInputMode] = useState("voice");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [curriculum, setCurriculum] = useState(null);
+  const [toolEvents, setToolEvents] = useState([]);
 
   // Reference data
   const [scenarios, setScenarios] = useState([]);
