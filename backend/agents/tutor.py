@@ -1,14 +1,15 @@
 """
 Main Tutor Agent — the primary agent that handles language tutoring.
 Uses a tool-calling loop: LLM decides tools -> execute -> feed results -> repeat.
+Streams the final text response token-by-token via on_event text_delta events.
 """
 
 import json
 import logging
 from typing import Optional
-from agents.llm import llm_call, serialize_tool_calls
+from agents.llm import llm_call, llm_call_stream, consume_stream
 from agents.tools import MAIN_AGENT_TOOLS
-from agents.tool_executor import execute_tool
+from agents.tool_executor import execute_tool, TOOL_LABELS
 from agents.prompts import build_tutor_system_prompt, build_curriculum_context
 from languages import get_language_name
 
@@ -43,9 +44,9 @@ class LanguageTutorAgent:
     async def process_message(self, user_text: str, conversation_history: list,
                               scenario_context: Optional[str] = None, on_event=None) -> dict:
         """
-        The agent loop:
-          user message -> LLM decides tool calls -> execute tools -> feed results -> repeat until done.
-        on_event: async callback for real-time tool activity tracking.
+        The agent loop with streaming:
+          user message -> streaming LLM call -> if tools, execute & loop -> else stream text to client.
+        on_event: async callback for real-time tool/text activity tracking.
         """
         messages = [
             {"role": m.get("role", "user"), "content": m.get("content", "")}
@@ -64,21 +65,24 @@ class LanguageTutorAgent:
                 if on_event:
                     await on_event({"type": "thinking"})
 
-                response = await llm_call(
+                stream = await llm_call_stream(
                     api_key=self.api_key, messages=messages,
                     system=self.system_prompt, tools=self.tools, max_tokens=2000
                 )
+                content, tool_calls, finish_reason = await consume_stream(stream, on_event=on_event)
 
-                msg = response.choices[0].message
-                finish_reason = response.choices[0].finish_reason
-
-                assistant_msg = {"role": "assistant", "content": msg.content or ""}
-                if msg.tool_calls:
-                    assistant_msg["tool_calls"] = serialize_tool_calls(msg.tool_calls)
+                # Build assistant message for history
+                assistant_msg = {"role": "assistant", "content": content}
+                if tool_calls:
+                    assistant_msg["tool_calls"] = [
+                        {"id": tc["id"], "type": "function",
+                         "function": {"name": tc["name"], "arguments": tc["arguments"]}}
+                        for tc in tool_calls
+                    ]
                 messages.append(assistant_msg)
 
-                if finish_reason != "tool_calls" or not msg.tool_calls:
-                    final_text = msg.content or "I'm here to help — could you try rephrasing that?"
+                if finish_reason != "tool_calls" or not tool_calls:
+                    final_text = content or "I'm here to help — could you try rephrasing that?"
                     logger.info(f"Agent completed in {iteration + 1} iteration(s), tools: {tools_used}")
                     return {
                         "response": final_text,
@@ -87,38 +91,37 @@ class LanguageTutorAgent:
                         "type": "scenario" if scenario_context else "chat"
                     }
 
-                for tc in msg.tool_calls:
-                    tool_name = tc.function.name
+                for tc in tool_calls:
+                    tool_name = tc["name"]
                     try:
-                        arguments = json.loads(tc.function.arguments)
+                        arguments = json.loads(tc["arguments"])
                     except json.JSONDecodeError:
                         arguments = {}
 
                     logger.info(f"[Agent] calling tool: {tool_name}({arguments})")
                     tools_used.append(tool_name)
 
-                    from agents.tool_executor import TOOL_LABELS
                     tool_entry = {"tool": tool_name, "label": TOOL_LABELS.get(tool_name, tool_name), "status": "running", "substeps": []}
                     tool_activity.append(tool_entry)
 
                     if on_event:
                         await on_event({"type": "tool_start", "tool": tool_name, "label": tool_entry["label"]})
 
-                    async def substep_callback(evt):
+                    async def substep_callback(evt, _entry=tool_entry):
                         if evt.get("type") == "substep":
-                            tool_entry["substeps"].append({"substep": evt["substep"], "label": evt["label"]})
+                            _entry["substeps"].append({"substep": evt["substep"], "label": evt["label"]})
                             if on_event:
                                 await on_event(evt)
 
                     result = await execute_tool(self.api_key, tool_name, arguments, self.conversation_id, self.db, on_event=substep_callback)
-                    messages.append({"role": "tool", "tool_call_id": tc.id, "content": result or "Tool completed."})
+                    messages.append({"role": "tool", "tool_call_id": tc["id"], "content": result or "Tool completed."})
 
                     tool_entry["status"] = "done"
                     if on_event:
                         await on_event({"type": "tool_end", "tool": tool_name, "label": tool_entry["label"]})
 
             return {
-                "response": msg.content or "Let me help you with that — could you try again?",
+                "response": content or "Let me help you with that — could you try again?",
                 "tools_used": tools_used,
                 "tool_activity": tool_activity,
                 "type": "chat"
