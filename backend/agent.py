@@ -709,7 +709,7 @@ class LanguageTutorAgent:
                     api_key=self.api_key,
                     messages=messages,
                     system=self.system_prompt,
-                    tools=MAIN_AGENT_TOOLS,
+                    tools=self.tools,
                     max_tokens=2000
                 )
 
