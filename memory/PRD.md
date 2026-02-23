@@ -7,7 +7,7 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - **Name**: mumble (lowercase)
 - **Logo**: SVG waveform forming letter M (WaveformLogo component)
 - **Font**: Sora (headings) + DM Sans (body)
-- **Landing theme**: Dark (#050805) with emerald-400/500 accents
+- **Landing theme**: Warm dark (#0a0a0a) with gold (#c8a97e) accent — "quiet luxury" aesthetic
 - **App theme**: Light (#F0F4F8 sidebar, white cards, #2F5233 primary)
 
 ## Completed Features
@@ -27,6 +27,7 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - [x] Markdown Rendering (react-markdown + remark-gfm)
 - [x] Waveform M Logo + mumble branding (Sora font)
 - [x] **Advanced Dark Landing Page v2** — Word-by-word text reveals, language orbit (18 languages), 3D tilt tool icons, animated chat demo, parallax scenario scroll, scroll progress bar, alternating feature rows with gradient accent lines, hero parallax with scale/fade. — Implemented 2026-02-23
+- [x] **Landing Page v3 — Warm Gold Redesign** — Replaced rainbow/violet theme with refined warm-gold (#c8a97e) on near-black (#0a0a0a). Minimal navbar (no gradient button), unified monochrome orbit, simplified feature icons, clean CTA. Smooth animations retained. — Tested & verified 2026-02-23
 
 ## Backlog
 - **P1**: Progress Journal — auto-generate weekly learning summaries
