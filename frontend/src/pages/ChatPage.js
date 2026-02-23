@@ -14,7 +14,7 @@ import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import { playAudioBase64 } from "@/lib/audio";
 import {
   createConversation, listConversations, getMessages, sendMessage,
-  sendVoiceMessage, deleteConversation, clearAllConversations,
+  sendMessageStream, sendVoiceMessage, deleteConversation, clearAllConversations,
   getScenarios, getLanguages, textToSpeech, getCurriculum
 } from "@/lib/api";
 
