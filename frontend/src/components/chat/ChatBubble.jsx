@@ -1,4 +1,6 @@
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Loader2, Volume2, Square } from "lucide-react";
 import { ToolActivitySummary } from "./ToolActivity";
 
@@ -21,24 +23,49 @@ const TypingIndicator = () => (
 const AudioWaveform = () => (
   <div className="flex items-center gap-[2px] h-3.5" data-testid="audio-waveform">
     {[1, 2, 3, 4, 5].map(i => (
-      <div
-        key={i}
-        className="w-[2.5px] bg-[#2F5233] rounded-full waveform-bar"
-      />
+      <div key={i} className="w-[2.5px] bg-[#2F5233] rounded-full waveform-bar" />
     ))}
   </div>
 );
 
+/** Shared markdown renderer for AI messages */
+const MarkdownContent = ({ content }) => (
+  <ReactMarkdown
+    remarkPlugins={[remarkGfm]}
+    components={{
+      p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+      strong: ({ children }) => <strong className="font-semibold text-[#2F5233]">{children}</strong>,
+      em: ({ children }) => <em className="italic">{children}</em>,
+      ul: ({ children }) => <ul className="list-disc ml-4 mb-2 space-y-0.5">{children}</ul>,
+      ol: ({ children }) => <ol className="list-decimal ml-4 mb-2 space-y-0.5">{children}</ol>,
+      li: ({ children }) => <li>{children}</li>,
+      code: ({ inline, children }) =>
+        inline
+          ? <code className="bg-[#2F5233]/8 text-[#2F5233] px-1.5 py-0.5 rounded text-[13px] font-mono">{children}</code>
+          : <pre className="bg-[#F0F4F8] rounded-lg p-3 mb-2 overflow-x-auto"><code className="text-[13px] font-mono text-[#1A1A1A]">{children}</code></pre>,
+      blockquote: ({ children }) => <blockquote className="border-l-2 border-[#2F5233]/30 pl-3 italic text-gray-600 mb-2">{children}</blockquote>,
+      h1: ({ children }) => <h4 className="font-semibold text-base mb-1">{children}</h4>,
+      h2: ({ children }) => <h4 className="font-semibold text-base mb-1">{children}</h4>,
+      h3: ({ children }) => <h4 className="font-semibold text-sm mb-1">{children}</h4>,
+      hr: () => <hr className="border-gray-200 my-2" />,
+      a: ({ href, children }) => <a href={href} className="text-[#2F5233] underline" target="_blank" rel="noopener noreferrer">{children}</a>,
+      table: ({ children }) => <table className="border-collapse text-xs mb-2 w-full">{children}</table>,
+      th: ({ children }) => <th className="border border-gray-200 bg-[#F0F4F8] px-2 py-1 text-left font-semibold">{children}</th>,
+      td: ({ children }) => <td className="border border-gray-200 px-2 py-1">{children}</td>,
+    }}
+  >
+    {content}
+  </ReactMarkdown>
+);
+
 /** Render message text with karaoke word-by-word highlighting */
 const KaraokeText = ({ text, currentWordIndex }) => {
-  // Split into words and whitespace tokens, preserving structure
   const tokens = text.split(/(\s+)/);
   let wordIdx = 0;
 
   return (
     <span>
       {tokens.map((token, i) => {
-        // Whitespace tokens — render as-is
         if (/^\s+$/.test(token)) {
           return <span key={i}>{token}</span>;
         }
@@ -64,10 +91,6 @@ export const ChatBubble = ({ message, index, onPlayAudio, speakingState, onStopA
 
   const handlePlay = async () => {
     if (fetchingAudio || isSpeaking) return;
-    if (isSpeaking && onStopAudio) {
-      onStopAudio();
-      return;
-    }
     setFetchingAudio(true);
     try {
       await onPlayAudio(message.id, message.content);
@@ -93,10 +116,12 @@ export const ChatBubble = ({ message, index, onPlayAudio, speakingState, onStopA
         </div>
       )}
       <div className={`max-w-[75%] ${isUser ? "chat-bubble-user px-5 py-3" : "chat-bubble-ai px-5 py-3"}`}>
-        <div className="chat-content text-sm leading-relaxed whitespace-pre-wrap">
-          {!isUser && isSpeaking
-            ? <KaraokeText text={message.content} currentWordIndex={currentWordIndex} />
-            : message.content
+        <div className="chat-content text-sm leading-relaxed">
+          {isUser
+            ? <span className="whitespace-pre-wrap">{message.content}</span>
+            : isSpeaking
+              ? <KaraokeText text={message.content} currentWordIndex={currentWordIndex} />
+              : <MarkdownContent content={message.content} />
           }
         </div>
         <div className="flex items-center gap-2 mt-2">
@@ -134,4 +159,4 @@ export const ChatBubble = ({ message, index, onPlayAudio, speakingState, onStopA
   );
 };
 
-export { TypingIndicator };
+export { TypingIndicator, MarkdownContent };
