@@ -1,6 +1,7 @@
 """
 Tool executor — routes tool calls from the main agent to the correct handler.
 Maps tool name -> subagent or direct execution.
+Passes on_event callback to subagents for real-time activity tracking.
 """
 
 import json
@@ -15,9 +16,21 @@ from scenarios import SCENARIOS
 
 logger = logging.getLogger(__name__)
 
+# Human-readable labels for tools
+TOOL_LABELS = {
+    "grammar_check": "Checking grammar",
+    "vocabulary_lookup": "Looking up vocabulary",
+    "pronunciation_guide": "Preparing pronunciation guide",
+    "evaluate_response": "Evaluating your response",
+    "start_scenario": "Setting up scenario",
+    "set_proficiency_level": "Assessing your level",
+    "plan_curriculum": "Handing off to planner",
+    "advance_lesson": "Advancing to next lesson",
+    "save_curriculum": "Saving your learning plan",
+}
+
 
 def start_scenario(scenario_type: str, difficulty: str = "intermediate") -> str:
-    """Direct tool: set up a role-play scenario."""
     scenario = SCENARIOS.get(scenario_type, SCENARIOS["small_talk"])
     return json.dumps({
         "scenario": scenario["title"],
@@ -27,26 +40,26 @@ def start_scenario(scenario_type: str, difficulty: str = "intermediate") -> str:
     })
 
 
-async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversation_id: str = None, db=None) -> str:
+async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversation_id: str = None, db=None, on_event=None) -> str:
     """Route a tool call to the appropriate handler (subagent or direct tool)."""
     target_lang = arguments.get("target_language", "English")
 
     if tool_name == "grammar_check":
-        return await run_grammar_subagent(api_key, arguments["text"], target_lang)
+        return await run_grammar_subagent(api_key, arguments["text"], target_lang, on_event=on_event)
 
     elif tool_name == "vocabulary_lookup":
         return await run_vocabulary_subagent(
-            api_key, arguments["word"], target_lang, arguments.get("context", "")
+            api_key, arguments["word"], target_lang, arguments.get("context", ""), on_event=on_event
         )
 
     elif tool_name == "pronunciation_guide":
-        return await run_pronunciation_subagent(api_key, arguments["word"], target_lang)
+        return await run_pronunciation_subagent(api_key, arguments["word"], target_lang, on_event=on_event)
 
     elif tool_name == "evaluate_response":
         return await run_evaluation_subagent(
             api_key, arguments["user_text"],
             arguments.get("conversation_context", ""),
-            target_lang
+            target_lang, on_event=on_event
         )
 
     elif tool_name == "start_scenario":
