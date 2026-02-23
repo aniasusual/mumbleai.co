@@ -46,6 +46,7 @@ import {
   sendMessage,
   sendVoiceMessage,
   deleteConversation,
+  clearAllConversations,
   getScenarios,
   getLanguages,
   textToSpeech

@@ -162,6 +162,14 @@ async def get_conversation(conv_id: str):
         raise HTTPException(status_code=404, detail="Conversation not found")
     return conv
 
+@api_router.delete("/conversations/all")
+async def delete_all_conversations():
+    conv_ids = await db.conversations.distinct("id")
+    if conv_ids:
+        await db.messages.delete_many({"conversation_id": {"$in": conv_ids}})
+    await db.conversations.delete_many({})
+    return {"status": "deleted", "count": len(conv_ids)}
+
 @api_router.delete("/conversations/{conv_id}")
 async def delete_conversation(conv_id: str):
     await db.conversations.delete_one({"id": conv_id})
