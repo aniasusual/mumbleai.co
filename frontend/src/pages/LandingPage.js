@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { WaveformLogo } from "@/components/WaveformLogo";
 import {
   Mic, BookOpen, BarChart3, ArrowRight, Sparkles, Brain,
   Languages, AudioLines, Target, GraduationCap,
@@ -46,7 +47,7 @@ const FEATURES = [
   {
     icon: Mic,
     title: "Voice-First",
-    desc: "Speak naturally. Mumble AI listens, understands, and responds with voice. Like a real conversation.",
+    desc: "Speak naturally. mumble listens, understands, and responds with voice. Like a real conversation.",
     span: "md:col-span-2",
   },
   {
@@ -71,7 +72,7 @@ const FEATURES = [
 
 const STEPS = [
   { num: "01", title: "Pick your language", desc: "Choose from 50+ languages. Set your native tongue and target." },
-  { num: "02", title: "Start talking", desc: "Mumble AI assesses your level through natural conversation." },
+  { num: "02", title: "Start talking", desc: "mumble assesses your level through natural conversation." },
   { num: "03", title: "Get your plan", desc: "A personalized curriculum is built around your goals and timeline." },
   { num: "04", title: "Practice daily", desc: "Real scenarios, grammar drills, vocabulary — all adapting to you." },
 ];
@@ -117,12 +118,10 @@ export default function LandingPage() {
       {/* ── NAV ── */}
       <nav className="fixed top-0 w-full z-50 backdrop-blur-xl bg-[#060A06]/70 border-b border-white/[0.04]" data-testid="navbar">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between h-16">
-          <button onClick={() => navigate("/")} className="flex items-center gap-2.5 group" data-testid="logo-button">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center group-hover:bg-emerald-500/30 transition-colors duration-300">
-              <span className="text-emerald-400 font-bold text-sm" style={{ fontFamily: 'Playfair Display, serif' }}>M</span>
-            </div>
-            <span className="text-base font-semibold text-white tracking-tight" style={{ fontFamily: 'Playfair Display, serif' }}>
-              Mumble AI
+          <button onClick={() => navigate("/")} className="flex items-center gap-2 group" data-testid="logo-button">
+            <WaveformLogo size={32} className="text-emerald-400 group-hover:text-emerald-300 transition-colors duration-300" />
+            <span className="text-base font-medium text-white tracking-tight" style={{ fontFamily: 'Sora, sans-serif' }}>
+              mumble
             </span>
           </button>
           <div className="hidden md:flex items-center gap-8">
@@ -162,7 +161,7 @@ export default function LandingPage() {
             <motion.h1
               variants={fadeUp} initial="hidden" animate="visible" custom={1}
               className="text-4xl sm:text-5xl lg:text-7xl tracking-tight leading-[1.08] text-white mb-6"
-              style={{ fontFamily: 'Playfair Display, serif' }}
+              style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600 }}
             >
               Learn any language<br />
               <span className="text-emerald-400">by actually speaking it</span>
@@ -172,7 +171,7 @@ export default function LandingPage() {
               variants={fadeUp} initial="hidden" animate="visible" custom={2}
               className="text-base md:text-lg text-gray-400 leading-relaxed max-w-xl mb-10"
             >
-              Mumble AI is your personal tutor that listens, corrects, and adapts.
+              mumble is your personal tutor that listens, corrects, and adapts.
               Voice-first, 50+ languages, real-time feedback. No textbooks, just conversations.
             </motion.p>
 
@@ -206,10 +205,8 @@ export default function LandingPage() {
           >
             <div className="relative rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm p-6 shadow-[0_0_60px_rgba(0,0,0,0.3)]">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-emerald-400" style={{ fontFamily: 'Playfair Display, serif' }}>M</span>
-                </div>
-                <span className="text-xs text-gray-500">Mumble AI speaking...</span>
+                <WaveformLogo size={20} className="text-emerald-400" />
+                <span className="text-xs text-gray-500">mumble speaking...</span>
                 <div className="flex items-center gap-[2px] ml-auto">
                   {[1,2,3,4,5].map(i => (
                     <motion.div
@@ -225,7 +222,7 @@ export default function LandingPage() {
                 <span className="text-gray-600">Hola,</span>{" "}
                 <span className="text-gray-600">me</span>{" "}
                 <span className="text-gray-600">llamo</span>{" "}
-                <span className="bg-emerald-500/15 text-emerald-300 px-1 rounded">Mumble</span>{" "}
+                <span className="bg-emerald-500/15 text-emerald-300 px-1 rounded">mumble</span>{" "}
                 <span className="text-gray-600/40">y</span>{" "}
                 <span className="text-gray-600/40">estoy</span>{" "}
                 <span className="text-gray-600/40">aqui</span>{" "}
@@ -249,7 +246,7 @@ export default function LandingPage() {
           <motion.h2
             variants={fadeUp} custom={1}
             className="text-3xl md:text-4xl tracking-tight text-white mb-14"
-            style={{ fontFamily: 'Playfair Display, serif' }}
+            style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600 }}
           >
             Built different from day one
           </motion.h2>
@@ -265,7 +262,7 @@ export default function LandingPage() {
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-5 group-hover:bg-emerald-500/20 transition-colors duration-300">
                   <f.icon className="w-5 h-5 text-emerald-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>{f.title}</h3>
+                <h3 className="text-lg font-semibold text-white mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>{f.title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
               </motion.div>
             ))}
@@ -283,7 +280,7 @@ export default function LandingPage() {
               <motion.h2
                 variants={fadeUp} custom={1}
                 className="text-3xl md:text-4xl tracking-tight text-white mb-6"
-                style={{ fontFamily: 'Playfair Display, serif' }}
+                style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600 }}
               >
                 Real-time AI tools<br />working for you
               </motion.h2>
@@ -326,7 +323,7 @@ export default function LandingPage() {
           <motion.h2
             variants={fadeUp} custom={1}
             className="text-3xl md:text-4xl tracking-tight text-white mb-14"
-            style={{ fontFamily: 'Playfair Display, serif' }}
+            style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600 }}
           >
             Four steps to fluency
           </motion.h2>
@@ -339,7 +336,7 @@ export default function LandingPage() {
                 className="relative"
                 data-testid={`step-${i}`}
               >
-                <span className="text-5xl font-bold text-emerald-500/10 mb-2 block" style={{ fontFamily: 'Playfair Display, serif' }}>
+                <span className="text-5xl font-bold text-emerald-500/10 mb-2 block" style={{ fontFamily: 'Sora, sans-serif' }}>
                   {step.num}
                 </span>
                 <h3 className="text-base font-semibold text-white mb-2">{step.title}</h3>
@@ -364,7 +361,7 @@ export default function LandingPage() {
               <motion.h2
                 variants={fadeUp} custom={1}
                 className="text-3xl md:text-4xl tracking-tight text-white"
-                style={{ fontFamily: 'Playfair Display, serif' }}
+                style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600 }}
               >
                 Real conversations,<br />real confidence
               </motion.h2>
@@ -433,12 +430,12 @@ export default function LandingPage() {
               <motion.h2
                 variants={fadeUp} custom={1}
                 className="text-3xl md:text-4xl tracking-tight text-white mb-6"
-                style={{ fontFamily: 'Playfair Display, serif' }}
+                style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600 }}
               >
                 A curriculum built<br />around you
               </motion.h2>
               <motion.p variants={fadeUp} custom={2} className="text-gray-500 leading-relaxed mb-6 max-w-md">
-                After assessing your level, Mumble AI collaborates with you to build a personalized
+                After assessing your level, mumble collaborates with you to build a personalized
                 lesson plan. Set your goals, timeline, and topics — then follow a structured path to fluency.
               </motion.p>
               <motion.div variants={fadeUp} custom={3}>
@@ -462,13 +459,13 @@ export default function LandingPage() {
           <motion.h2
             variants={fadeUp} custom={0}
             className="text-3xl md:text-5xl tracking-tight text-white mb-6"
-            style={{ fontFamily: 'Playfair Display, serif' }}
+            style={{ fontFamily: 'Sora, sans-serif', fontWeight: 600 }}
           >
             Stop studying.<br />
             <span className="text-emerald-400">Start speaking.</span>
           </motion.h2>
           <motion.p variants={fadeUp} custom={1} className="text-gray-500 text-base md:text-lg mb-10 max-w-lg mx-auto">
-            The best way to learn a language is to use it. Mumble AI gives you a patient,
+            The best way to learn a language is to use it. mumble gives you a patient,
             always-available conversation partner who adapts to your level.
           </motion.p>
           <motion.div variants={fadeUp} custom={2}>
@@ -487,11 +484,9 @@ export default function LandingPage() {
       {/* ── FOOTER ── */}
       <footer className="border-t border-white/[0.04] py-8" data-testid="footer">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
-              <span className="text-emerald-400 text-[10px] font-bold" style={{ fontFamily: 'Playfair Display, serif' }}>M</span>
-            </div>
-            <span className="text-sm text-gray-600">Mumble AI</span>
+          <div className="flex items-center gap-2">
+            <WaveformLogo size={24} className="text-emerald-400" />
+            <span className="text-sm text-gray-600" style={{ fontFamily: 'Sora, sans-serif' }}>mumble</span>
           </div>
           <div className="flex items-center gap-6">
             {[
