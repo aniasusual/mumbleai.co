@@ -1,5 +1,5 @@
 """
-Supported languages for LinguaFlow.
+Supported languages for Mumble AI.
 All languages supported by OpenAI Whisper STT + TTS.
 """
 

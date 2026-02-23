@@ -1,5 +1,5 @@
 """
-LinguaFlow API — FastAPI application setup.
+Mumble AI API — FastAPI application setup.
 All route logic is in the routes/ package.
 """
 
