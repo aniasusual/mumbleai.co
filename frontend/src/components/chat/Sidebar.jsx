@@ -16,15 +16,14 @@ const ICON_MAP = { Briefcase, Plane, UtensilsCrossed, MessageCircle, Phone, User
 
 export const Sidebar = ({
   conversations, conversationId, scenarios, languages,
-  nativeLang, targetLang, sidebarOpen,
+  nativeLang, targetLang, sidebarOpen, userEmail, onLogout,
   onSetNativeLang, onSetTargetLang, onNewConversation,
   onDeleteConv, onClearAll, onCloseSidebar,
 }) => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    logout();
+    onLogout();
     navigate("/");
   };
 
