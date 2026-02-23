@@ -70,7 +70,8 @@ export const MessageList = ({ messages, loading, sending, toolEvents, streamingT
           <ChatBubble key={msg.id} message={msg} index={idx} onPlayAudio={onPlayAudio} />
         ))}
         {sending && toolEvents.length > 0 && <ToolActivityLive events={toolEvents} />}
-        {sending && toolEvents.length === 0 && <TypingIndicator />}
+        {sending && streamingText && <StreamingBubble text={streamingText} />}
+        {sending && !streamingText && toolEvents.length === 0 && <TypingIndicator />}
         <div ref={messagesEndRef} />
       </div>
     </div>
