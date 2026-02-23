@@ -1,6 +1,7 @@
 """
 Subagents — each is a specialized agent with its own tools and loop.
 The main tutor agent delegates to these for specific tasks.
+Each subagent accepts an optional on_event callback for real-time activity tracking.
 """
 
 import json
@@ -9,8 +10,23 @@ from agents.llm import llm_call, serialize_tool_calls
 
 logger = logging.getLogger(__name__)
 
+# Maps subagent tool names to human-readable labels
+SUBSTEP_LABELS = {
+    "identify_errors": "Scanning for errors",
+    "suggest_correction": "Writing correction",
+    "define_word": "Looking up definition",
+    "find_examples": "Generating examples",
+    "phonetic_breakdown": "Analyzing pronunciation",
+    "score_response": "Scoring your response",
+}
 
-async def run_grammar_subagent(api_key: str, text: str, target_language: str = "English") -> str:
+
+async def _emit(on_event, event):
+    if on_event:
+        await on_event(event)
+
+
+async def run_grammar_subagent(api_key: str, text: str, target_language: str = "English", on_event=None) -> str:
     """Grammar checker subagent with its own tools and loop."""
     tools = [
         {
@@ -60,6 +76,8 @@ Be thorough but concise. Format your response clearly with original -> corrected
 
         for tc in msg.tool_calls:
             args = json.loads(tc.function.arguments)
+            await _emit(on_event, {"type": "substep", "parent": "grammar_check", "substep": tc.function.name, "label": SUBSTEP_LABELS.get(tc.function.name, tc.function.name)})
+
             if tc.function.name == "identify_errors":
                 result = f"Analyzing '{args.get('text', text)}' in {args.get('language', target_language)}: proceed with error identification."
             elif tc.function.name == "suggest_correction":
@@ -71,7 +89,7 @@ Be thorough but concise. Format your response clearly with original -> corrected
     return messages[-1].get("content", "Grammar check completed.")
 
 
-async def run_vocabulary_subagent(api_key: str, word: str, target_language: str = "English", context: str = "") -> str:
+async def run_vocabulary_subagent(api_key: str, word: str, target_language: str = "English", context: str = "", on_event=None) -> str:
     """Vocabulary lookup subagent with its own loop."""
     tools = [
         {
@@ -126,6 +144,8 @@ If the word is in a language other than English, also provide the English transl
 
         for tc in msg.tool_calls:
             args = json.loads(tc.function.arguments)
+            await _emit(on_event, {"type": "substep", "parent": "vocabulary_lookup", "substep": tc.function.name, "label": SUBSTEP_LABELS.get(tc.function.name, tc.function.name)})
+
             if tc.function.name == "define_word":
                 result = f"Definition structured: {args.get('definitions', '')} [{args.get('part_of_speech', '')}] ({args.get('register', 'neutral')})"
             elif tc.function.name == "find_examples":
@@ -137,7 +157,7 @@ If the word is in a language other than English, also provide the English transl
     return messages[-1].get("content", f"Vocabulary lookup for '{word}' completed.")
 
 
-async def run_pronunciation_subagent(api_key: str, word: str, target_language: str = "English") -> str:
+async def run_pronunciation_subagent(api_key: str, word: str, target_language: str = "English", on_event=None) -> str:
     """Pronunciation guide subagent."""
     tools = [
         {
@@ -176,13 +196,14 @@ Describe mouth/tongue positions for difficult sounds."""
 
         for tc in msg.tool_calls:
             args = json.loads(tc.function.arguments)
+            await _emit(on_event, {"type": "substep", "parent": "pronunciation_guide", "substep": tc.function.name, "label": SUBSTEP_LABELS.get(tc.function.name, tc.function.name)})
             result = f"Phonetics: IPA={args.get('ipa','')}, Syllables={args.get('syllables','')}, Mistakes={args.get('common_mistakes','')}"
             messages.append({"role": "tool", "tool_call_id": tc.id, "content": result})
 
     return messages[-1].get("content", f"Pronunciation guide for '{word}' completed.")
 
 
-async def run_evaluation_subagent(api_key: str, user_text: str, context: str = "", target_language: str = "English") -> str:
+async def run_evaluation_subagent(api_key: str, user_text: str, context: str = "", target_language: str = "English", on_event=None) -> str:
     """Evaluates user's response for fluency, grammar, vocabulary, naturalness."""
     tools = [
         {
@@ -222,6 +243,7 @@ fluency (1-10), and naturalness (1-10). Provide specific improvement suggestions
 
         for tc in msg.tool_calls:
             args = json.loads(tc.function.arguments)
+            await _emit(on_event, {"type": "substep", "parent": "evaluate_response", "substep": tc.function.name, "label": SUBSTEP_LABELS.get(tc.function.name, tc.function.name)})
             result = (
                 f"Scores - Grammar: {args.get('grammar_score', 0)}/10, "
                 f"Vocabulary: {args.get('vocabulary_score', 0)}/10, "
