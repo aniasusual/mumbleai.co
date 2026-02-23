@@ -237,7 +237,8 @@ export default function ChatPage() {
         />
 
         <MessageList
-          messages={messages} loading={loading} sending={sending} toolEvents={toolEvents}
+          messages={messages} loading={loading} sending={sending}
+          toolEvents={toolEvents} streamingText={streamingText}
           inputMode={inputMode} onPlayAudio={handlePlayMessage}
           onSetInput={setInput} inputRef={inputRef}
         />
