@@ -37,6 +37,7 @@ class MessageResponse(BaseModel):
     role: str
     content: str
     tools_used: List[str] = []
+    tool_activity: List[dict] = []
     created_at: str
 
 
