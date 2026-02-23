@@ -30,6 +30,7 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - [x] **Landing Page v3 — Warm Gold Redesign** — Replaced rainbow/violet theme with refined warm-gold (#c8a97e) on near-black (#0a0a0a). Minimal navbar (no gradient button), unified monochrome orbit, simplified feature icons, clean CTA. Smooth animations retained. — Tested & verified 2026-02-23
 - [x] **Hero Greeting Scroll** — Replaced rotating language orbit with dual-column greeting scroll (20 languages in Latin + non-Latin scripts, scrolling in opposite directions with fade masks). — Verified 2026-02-23
 - [x] **JWT Authentication** — Full email/password auth with signup/login/logout. Backend: PyJWT + bcrypt, user-scoped data (conversations, vocabulary, progress). Frontend: React context (useAuth), ProtectedRoute wrapper, AuthPage with Login/Signup tabs. Google login placeholder. — Tested & verified 2026-02-23
+- [x] **Bug Fix: Duplicate Chat Creation** — Fixed race condition in `ensureConversation` causing multiple chats when typing and submitting from `/chat` without an existing conversation. Added `creatingConvRef` to prevent duplicate API calls and `skipNextLoadRef` to prevent `loadMessages` from racing with active message send. — Fixed & verified 2026-02-23
 
 ## Backlog
 - **P1**: Progress Journal — auto-generate weekly learning summaries
