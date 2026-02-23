@@ -1,5 +1,5 @@
 """
-Supported languages for Mumble AI.
+Supported languages for mumble.
 All languages supported by OpenAI Whisper STT + TTS.
 """
 

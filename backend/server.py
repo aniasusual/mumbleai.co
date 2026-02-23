@@ -1,5 +1,5 @@
 """
-Mumble AI API — FastAPI application setup.
+mumble API — FastAPI application setup.
 All route logic is in the routes/ package.
 """
 
