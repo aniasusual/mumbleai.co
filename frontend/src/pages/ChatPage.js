@@ -715,7 +715,7 @@ export default function ChatPage() {
                 </div>
                 <button
                   onClick={(e) => handleDeleteConv(conv.id, e)}
-                  className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 rounded transition-opacity duration-150"
+                  className="p-1.5 hover:bg-red-50 rounded-lg text-gray-300 hover:text-red-400 transition-colors duration-150 flex-shrink-0"
                   data-testid={`delete-conv-${conv.id}`}
                 >
                   <Trash2 className="w-3.5 h-3.5 text-red-400" />
