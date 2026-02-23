@@ -204,7 +204,181 @@ async def send_message(conv_id: str, data: MessageCreate):
     return [user_msg, ai_msg]
 
 
-# --- Vocabulary ---
+# --- Voice Message (Speech-to-Text → Agent → Text-to-Speech) ---
+
+@api_router.post("/conversations/{conv_id}/voice-message")
+async def send_voice_message(
+    conv_id: str,
+    audio: UploadFile = File(...),
+    scenario_context: Optional[str] = Form(None)
+):
+    conv = await db.conversations.find_one({"id": conv_id}, {"_id": 0})
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    now = datetime.now(timezone.utc).isoformat()
+
+    # Step 1: Transcribe audio with Whisper
+    stt = OpenAISpeechToText(api_key=EMERGENT_LLM_KEY)
+    audio_bytes = await audio.read()
+
+    # Save to temp file for Whisper
+    suffix = ".webm"
+    if audio.content_type:
+        ext_map = {"audio/webm": ".webm", "audio/wav": ".wav", "audio/mp3": ".mp3", "audio/mpeg": ".mp3", "audio/ogg": ".ogg", "audio/mp4": ".mp4"}
+        suffix = ext_map.get(audio.content_type, ".webm")
+
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp.write(audio_bytes)
+        tmp_path = tmp.name
+
+    try:
+        with open(tmp_path, "rb") as f:
+            transcript_response = await stt.transcribe(
+                file=f,
+                model="whisper-1",
+                language="en",
+                response_format="verbose_json",
+                temperature=0.0
+            )
+        user_text = transcript_response.text
+    except Exception as e:
+        logger.error(f"Whisper transcription failed: {e}")
+        os.unlink(tmp_path)
+        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
+    finally:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+
+    if not user_text or not user_text.strip():
+        raise HTTPException(status_code=400, detail="Could not understand the audio. Please try speaking again.")
+
+    # Save user message
+    user_msg = {
+        "id": str(uuid.uuid4()),
+        "conversation_id": conv_id,
+        "role": "user",
+        "content": user_text.strip(),
+        "tools_used": [],
+        "created_at": now
+    }
+    await db.messages.insert_one(user_msg)
+
+    # Step 2: Process through agent
+    history = await db.messages.find(
+        {"conversation_id": conv_id}, {"_id": 0}
+    ).sort("created_at", 1).to_list(50)
+
+    history_for_agent = [
+        {"role": m["role"], "content": m["content"]}
+        for m in history
+    ]
+
+    agent = LanguageTutorAgent(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=f"lingua_{conv_id}"
+    )
+
+    result = await agent.process_message(
+        user_text=user_text.strip(),
+        conversation_history=history_for_agent,
+        scenario_context=scenario_context or conv.get("scenario")
+    )
+
+    ai_text = result["response"]
+
+    # Save AI message
+    ai_msg = {
+        "id": str(uuid.uuid4()),
+        "conversation_id": conv_id,
+        "role": "assistant",
+        "content": ai_text,
+        "tools_used": result.get("tools_used", []),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.messages.insert_one(ai_msg)
+
+    # Step 3: Generate TTS audio for AI response
+    audio_base64 = None
+    try:
+        tts = OpenAITextToSpeech(api_key=EMERGENT_LLM_KEY)
+        # Truncate for TTS if too long (4096 char limit)
+        tts_text = ai_text[:4000] if len(ai_text) > 4000 else ai_text
+        tts_audio = await tts.generate_speech(
+            text=tts_text,
+            model="tts-1",
+            voice="nova",
+            response_format="mp3",
+            speed=1.0
+        )
+        audio_base64 = base64.b64encode(tts_audio).decode("utf-8")
+    except Exception as e:
+        logger.error(f"TTS generation failed: {e}")
+        # Non-fatal: return text without audio
+
+    # Update conversation
+    update_title = conv.get("title", "New Conversation")
+    if update_title == "New Conversation" and len(user_text) > 3:
+        update_title = user_text[:50] + ("..." if len(user_text) > 50 else "")
+
+    await db.conversations.update_one(
+        {"id": conv_id},
+        {"$set": {
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "title": update_title
+        },
+        "$inc": {"message_count": 2}}
+    )
+
+    await _track_activity(user_text, result.get("tools_used", []), conv.get("scenario"))
+
+    user_msg.pop("_id", None)
+    ai_msg.pop("_id", None)
+
+    return JSONResponse(content={
+        "user_message": {
+            "id": user_msg["id"],
+            "conversation_id": conv_id,
+            "role": "user",
+            "content": user_msg["content"],
+            "tools_used": [],
+            "created_at": user_msg["created_at"]
+        },
+        "ai_message": {
+            "id": ai_msg["id"],
+            "conversation_id": conv_id,
+            "role": "assistant",
+            "content": ai_msg["content"],
+            "tools_used": ai_msg["tools_used"],
+            "created_at": ai_msg["created_at"]
+        },
+        "ai_audio_base64": audio_base64,
+        "transcribed_text": user_text.strip()
+    })
+
+
+# --- Text-to-Speech for existing messages ---
+
+@api_router.post("/tts")
+async def text_to_speech(data: dict):
+    text = data.get("text", "")
+    if not text:
+        raise HTTPException(status_code=400, detail="Text is required")
+    try:
+        tts = OpenAITextToSpeech(api_key=EMERGENT_LLM_KEY)
+        tts_text = text[:4000] if len(text) > 4000 else text
+        tts_audio = await tts.generate_speech(
+            text=tts_text,
+            model="tts-1",
+            voice="nova",
+            response_format="mp3",
+            speed=1.0
+        )
+        audio_b64 = base64.b64encode(tts_audio).decode("utf-8")
+        return {"audio_base64": audio_b64}
+    except Exception as e:
+        logger.error(f"TTS failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate speech")
 
 @api_router.post("/vocabulary", response_model=VocabularyResponse)
 async def save_vocabulary(data: VocabularyCreate):
