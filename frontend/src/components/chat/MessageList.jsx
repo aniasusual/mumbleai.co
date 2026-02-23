@@ -1,8 +1,9 @@
 import { useRef, useEffect } from "react";
 import { Mic, Sparkles } from "lucide-react";
 import { ChatBubble, TypingIndicator } from "./ChatBubble";
+import { ToolActivityLive } from "./ToolActivity";
 
-export const MessageList = ({ messages, loading, sending, inputMode, onPlayAudio, onSetInput, inputRef }) => {
+export const MessageList = ({ messages, loading, sending, toolEvents, inputMode, onPlayAudio, onSetInput, inputRef }) => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
