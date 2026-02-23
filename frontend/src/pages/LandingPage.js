@@ -110,18 +110,18 @@ export default function LandingPage() {
             {/* Left - Text */}
             <div className="space-y-8 animate-fade-in">
               <Badge variant="outline" className="border-[#2F5233]/20 text-[#2F5233] bg-[#2F5233]/5 px-4 py-1.5 text-sm font-medium rounded-full">
-                AI-Powered English Tutor
+                AI-Powered Language Tutor  &middot;  50+ Languages
               </Badge>
               <h1
                 className="text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-tight text-[#1A1A1A]"
                 style={{ fontFamily: 'Playfair Display, serif' }}
               >
-                Speak English<br />
+                Speak any language<br />
                 <span className="text-[#2F5233]">with confidence</span>
               </h1>
               <p className="text-base md:text-lg leading-relaxed text-[#4A4A4A] max-w-lg">
                 Your personal AI tutor that listens, corrects, and helps you practice
-                real conversations. No judgment, just progress.
+                real conversations in 50+ languages. Voice-in, voice-out. No judgment, just progress.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
