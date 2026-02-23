@@ -91,6 +91,18 @@ class ProgressResponse(BaseModel):
     streak_days: int = 0
     recent_activity: List[dict] = []
 
+class CurriculumResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    conversation_id: str
+    proficiency_level: str
+    timeline: str = ""
+    goal: str = ""
+    lessons: List[dict] = []
+    current_lesson: int = 0
+    status: str = "active"
+    created_at: str
+
 
 # --- Conversations ---
 
