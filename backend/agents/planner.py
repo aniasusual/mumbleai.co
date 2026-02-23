@@ -35,7 +35,7 @@ class CurriculumPlannerAgent:
 
     def _build_system_prompt(self) -> str:
         level = self.proficiency_level or "unknown"
-        return f"""You are the Mumble AI Curriculum Planner — a friendly learning coach who helps create personalized study plans.
+        return f"""You are the mumble Curriculum Planner — a friendly learning coach who helps create personalized study plans.
 
 ## Language
 - Write EVERYTHING in **{self.native_name}** (the user's native language).
