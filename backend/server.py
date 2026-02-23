@@ -391,7 +391,9 @@ async def send_voice_message(
         target_language=target_lang,
         proficiency_level=conv.get("proficiency_level"),
         conversation_id=conv_id,
-        db=db
+        db=db,
+        phase=conv.get("phase", "learning"),
+        curriculum=await db.curricula.find_one({"conversation_id": conv_id}, {"_id": 0}) if conv.get("phase") == "learning" else None
     )
 
     result = await agent.process_message(
