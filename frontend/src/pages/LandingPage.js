@@ -65,67 +65,73 @@ function Reveal({ children, className, delay = 0 }) {
 }
 
 /* ═══════════════════════════════════════════════
-   LANGUAGE ORBIT — unified warm tones
+   GREETING SCROLL — dual columns, opposite directions
    ═══════════════════════════════════════════════ */
-const LANGS = [
-  "Spanish", "French", "Japanese", "Mandarin", "German", "Portuguese",
-  "Korean", "Italian", "Arabic", "Hindi", "Turkish", "Dutch",
-  "Russian", "Swedish", "Thai", "Vietnamese",
+const GREETINGS_A = [
+  { word: "Bonjour", lang: "French" },
+  { word: "Hola", lang: "Spanish" },
+  { word: "Ciao", lang: "Italian" },
+  { word: "Hej", lang: "Swedish" },
+  { word: "Merhaba", lang: "Turkish" },
+  { word: "Olá", lang: "Portuguese" },
+  { word: "Szia", lang: "Hungarian" },
+  { word: "Hallo", lang: "German" },
+  { word: "Salut", lang: "Romanian" },
+  { word: "Aloha", lang: "Hawaiian" },
 ];
 
-function LanguageOrbit() {
+const GREETINGS_B = [
+  { word: "こんにちは", lang: "Japanese" },
+  { word: "안녕하세요", lang: "Korean" },
+  { word: "مرحبا", lang: "Arabic" },
+  { word: "Привет", lang: "Russian" },
+  { word: "你好", lang: "Mandarin" },
+  { word: "नमस्ते", lang: "Hindi" },
+  { word: "สวัสดี", lang: "Thai" },
+  { word: "Xin chào", lang: "Vietnamese" },
+  { word: "Γεια σου", lang: "Greek" },
+  { word: "שלום", lang: "Hebrew" },
+];
+
+function ScrollColumn({ items, direction = "up", duration = 25 }) {
+  const doubled = [...items, ...items];
+  const h = items.length * 72;
   return (
-    <div className="relative w-[380px] h-[380px]">
-      {/* Center logo */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-        <motion.div
-          animate={{ scale: [1, 1.05, 1] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <WaveformLogo size={48} className="text-[#c8a97e]" />
-        </motion.div>
-      </div>
+    <div className="relative overflow-hidden h-[420px] w-[180px]">
+      {/* Fade masks */}
+      <div className="absolute inset-x-0 top-0 h-24 z-10 pointer-events-none"
+        style={{ background: `linear-gradient(to bottom, ${C.bg}, transparent)` }} />
+      <div className="absolute inset-x-0 bottom-0 h-24 z-10 pointer-events-none"
+        style={{ background: `linear-gradient(to top, ${C.bg}, transparent)` }} />
 
-      {/* Orbit rings */}
-      {[110, 150, 190].map((r) => (
-        <div
-          key={r}
-          className="absolute top-1/2 left-1/2 rounded-full"
-          style={{
-            width: r * 2, height: r * 2,
-            transform: "translate(-50%, -50%)",
-            border: `1px solid rgba(255,255,255,0.03)`,
-          }}
-        />
-      ))}
-
-      {/* Language labels */}
-      {LANGS.map((name, i) => {
-        const angle = (i / LANGS.length) * 360;
-        const radius = 110 + (i % 3) * 40;
-        const dur = 30 + (i % 4) * 8;
-        const opacity = 0.25 + (i % 3) * 0.15;
-        return (
-          <motion.div
-            key={name}
-            className="absolute top-1/2 left-1/2"
-            animate={{ rotate: [angle, angle + 360] }}
-            transition={{ duration: dur, repeat: Infinity, ease: "linear" }}
-            style={{ width: 0, height: 0 }}
-          >
+      <motion.div
+        className="flex flex-col"
+        animate={{ y: direction === "up" ? [0, -h] : [-h, 0] }}
+        transition={{ duration, repeat: Infinity, ease: "linear" }}
+      >
+        {doubled.map((g, i) => (
+          <div key={i} className="h-[72px] flex flex-col justify-center px-3">
             <span
-              className="absolute text-[11px] font-medium whitespace-nowrap tracking-wide"
-              style={{
-                transform: `translateX(${radius}px) rotate(-${angle}deg)`,
-                color: C.accent,
-                opacity,
-              }}
+              className="text-xl font-medium tracking-tight"
+              style={{ color: C.text, opacity: 0.85 }}
             >
-              {name}
+              {g.word}
             </span>
-          </motion.div>
-        );
-      })}
+            <span className="text-[10px] tracking-wider uppercase mt-0.5" style={{ color: C.dim }}>
+              {g.lang}
+            </span>
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+function GreetingScroll() {
+  return (
+    <div className="flex gap-3 items-center" data-testid="greeting-scroll">
+      <ScrollColumn items={GREETINGS_A} direction="up" duration={22} />
+      <ScrollColumn items={GREETINGS_B} direction="down" duration={26} />
     </div>
   );
 }
