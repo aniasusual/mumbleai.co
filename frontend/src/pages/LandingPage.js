@@ -77,7 +77,7 @@ export default function LandingPage() {
                 <span className="text-white font-bold text-sm" style={{ fontFamily: 'Playfair Display, serif' }}>L</span>
               </div>
               <span className="text-lg font-semibold tracking-tight" style={{ fontFamily: 'Playfair Display, serif' }}>
-                LinguaFlow
+                Mumble AI
               </span>
             </button>
             <div className="hidden md:flex items-center gap-8">
@@ -283,7 +283,7 @@ export default function LandingPage() {
             <div className="w-6 h-6 rounded bg-[#2F5233] flex items-center justify-center">
               <span className="text-white text-xs font-bold" style={{ fontFamily: 'Playfair Display, serif' }}>L</span>
             </div>
-            <span className="text-sm text-[#71717A]">LinguaFlow</span>
+            <span className="text-sm text-[#71717A]">Mumble AI</span>
           </div>
           <p className="text-sm text-[#71717A]">AI-powered language learning</p>
         </div>

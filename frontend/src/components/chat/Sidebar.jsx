@@ -33,7 +33,7 @@ export const Sidebar = ({
             <div className="w-7 h-7 rounded-lg bg-[#2F5233] flex items-center justify-center">
               <span className="text-white text-xs font-bold" style={{ fontFamily: 'Playfair Display, serif' }}>L</span>
             </div>
-            <span className="font-semibold text-sm" style={{ fontFamily: 'Playfair Display, serif' }}>LinguaFlow</span>
+            <span className="font-semibold text-sm" style={{ fontFamily: 'Playfair Display, serif' }}>Mumble AI</span>
           </button>
           <button onClick={onCloseSidebar} className="lg:hidden p-1" data-testid="close-sidebar-btn">
             <X className="w-5 h-5 text-gray-500" />
