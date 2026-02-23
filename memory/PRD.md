@@ -25,11 +25,12 @@ Build a conversational agent, "LinguaFlow," that acts as a personal language tut
 - [x] Chat deletion (individual + clear all)
 - [x] Backend refactor (modular: agents/, routes/, services/, models.py, config.py)
 - [x] Frontend refactor (ChatPage orchestrator + 7 child components + custom hook)
-- [x] Live Tool & Subagent Activity UI (SSE streaming, real-time spinners, collapsible summary) — Verified 2026-02-23
-- [x] **Streaming Text Response** — Agent text appears token-by-token via SSE text_delta events with a blinking cursor (StreamingBubble component). Both tutor and planner agents stream. — Implemented 2026-02-23
+- [x] Live Tool & Subagent Activity UI (SSE streaming, real-time spinners, collapsible summary)
+- [x] Streaming Text Response — Agent text appears token-by-token via SSE text_delta events
+- [x] **Karaoke Word Highlight + Waveform** — Word-by-word highlighting during TTS playback (current word highlighted, upcoming dimmed, spoken normal). Animated waveform bars + stop button during playback. Works on manual play, auto-speak after message send, and voice messages. — Implemented 2026-02-23
 
 ## Backlog
-- **P1**: Progress Journal — auto-generate weekly learning summaries (mistakes, improvements, new vocab, proficiency changes)
+- **P1**: Progress Journal — auto-generate weekly learning summaries
 - **P2**: Gamification — daily streaks, points, leaderboards
 - **P2**: Real-time Pronunciation Feedback — compare spoken transcription with target phrase
 
@@ -38,15 +39,22 @@ Build a conversational agent, "LinguaFlow," that acts as a personal language tut
 - `POST /api/conversations/{id}/messages/stream` — SSE streaming: tool events + text_delta tokens + done
 - `POST /api/conversations/{id}/voice-message` — voice input
 - `GET /api/conversations/{id}/messages` — message history (includes tool_activity)
-- `POST /api/tts` — text-to-speech
+- `POST /api/tts` — text-to-speech (returns audio_base64)
 
 ## SSE Event Types
 - `thinking` — agent is making an LLM call
-- `tool_start` — tool execution begins (label, tool name)
+- `tool_start` — tool execution begins
 - `substep` — sub-step within a tool
 - `tool_end` — tool execution done
 - `text_delta` — token chunk of the agent's text response
 - `done` — final event with user_message + ai_message payloads
+
+## Karaoke System
+- `playAudioWithKaraoke()` in `/app/frontend/src/lib/audio.js` — calculates word timings from audio duration weighted by character length
+- `speakingState: { messageId, wordIndex }` in ChatPage — tracks which message and word is active
+- CSS classes: `karaoke-word-current` (green bg), `karaoke-word-spoken` (normal), `karaoke-word-upcoming` (dimmed)
+- `AudioWaveform` component — 5 animated bars during playback
+- Stop button replaces play button during active playback
 
 ## DB Collections
 - `conversations`: id, title, scenario, native_language, target_language, proficiency_level, phase, message_count
