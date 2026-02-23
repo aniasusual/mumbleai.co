@@ -646,7 +646,12 @@ export default function ChatPage() {
                 data-testid={`conv-item-${conv.id}`}
               >
                 <MessageCircle className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                <span className="text-sm text-gray-700 truncate flex-1">{conv.title}</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm text-gray-700 truncate block">{conv.title}</span>
+                  {conv.language && conv.language !== "en" && (
+                    <span className="text-[10px] text-[#2F5233]/70">{languages.popular.concat(languages.others).find(l => l.code === conv.language)?.name || conv.language}</span>
+                  )}
+                </div>
                 <button
                   onClick={(e) => handleDeleteConv(conv.id, e)}
                   className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 rounded transition-opacity duration-150"
