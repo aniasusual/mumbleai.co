@@ -337,7 +337,10 @@ async def send_voice_message(
         api_key=EMERGENT_LLM_KEY,
         session_id=f"lingua_{conv_id}",
         native_language=native_lang,
-        target_language=target_lang
+        target_language=target_lang,
+        proficiency_level=conv.get("proficiency_level"),
+        conversation_id=conv_id,
+        db=db
     )
 
     result = await agent.process_message(
