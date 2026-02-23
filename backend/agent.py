@@ -144,6 +144,28 @@ MAIN_AGENT_TOOLS = [
                 "required": ["scenario_type"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "set_proficiency_level",
+            "description": "Set the user's proficiency level after assessing their language skills through conversation. Call this after you've had 2-3 exchanges and can determine their level. This saves the level for future sessions.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "level": {
+                        "type": "string",
+                        "enum": ["beginner", "intermediate", "advanced"],
+                        "description": "The assessed proficiency level"
+                    },
+                    "reasoning": {
+                        "type": "string",
+                        "description": "Brief explanation of why this level was chosen based on the conversation"
+                    }
+                },
+                "required": ["level", "reasoning"]
+            }
+        }
     }
 ]
 
