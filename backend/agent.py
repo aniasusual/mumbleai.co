@@ -547,6 +547,20 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
             "instruction": f"Level set to {level}. Now you MUST call the `plan_curriculum` tool to hand off to the Curriculum Planner. Pass proficiency_level='{level}'. The planner will create a personalized study plan with the user."
         })
 
+    elif tool_name == "plan_curriculum":
+        # Main agent is handing off to the Curriculum Planner subagent
+        level = arguments.get("proficiency_level", "beginner")
+        context = arguments.get("initial_context", "")
+        if db is not None and conversation_id:
+            await db.conversations.update_one(
+                {"id": conversation_id},
+                {"$set": {"phase": "planning"}}
+            )
+        return json.dumps({
+            "status": "handoff_to_planner",
+            "instruction": f"The Curriculum Planner subagent will now take over the conversation. Tell the user you're handing them to the learning plan designer who will help create their personalized study plan. Keep it brief and encouraging."
+        })
+
     elif tool_name == "save_curriculum":
         timeline = arguments.get("timeline", "")
         goal = arguments.get("goal", "")
