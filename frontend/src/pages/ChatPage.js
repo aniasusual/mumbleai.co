@@ -196,6 +196,10 @@ export default function ChatPage() {
   const [audioLevel, setAudioLevel] = useState(0);
   const [processingVoice, setProcessingVoice] = useState(false);
   const [inputMode, setInputMode] = useState("voice"); // "voice" or "text"
+  const [languages, setLanguages] = useState({ popular: [], others: [] });
+  const [selectedLang, setSelectedLang] = useState("en");
+  const [langSearch, setLangSearch] = useState("");
+  const [showLangPicker, setShowLangPicker] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
