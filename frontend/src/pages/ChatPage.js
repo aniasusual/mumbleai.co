@@ -322,6 +322,7 @@ export default function ChatPage() {
       setConversations(prev => [res.data, ...prev]);
       setCurrentConv(res.data);
       setMessages([]);
+      pendingTtsRef.current = true;
       navigate(`/chat/${res.data.id}`);
       setSidebarOpen(false);
       setShowLangPicker(null);
