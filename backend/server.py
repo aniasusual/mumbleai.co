@@ -112,32 +112,81 @@ async def create_conversation(data: ConversationCreate):
     await db.conversations.insert_one(conv)
     conv.pop("_id", None)
 
-    # Auto-start proficiency assessment for cross-language conversations
-    if native != target and not data.scenario:
-        target_name = get_language_name(target)
-        welcome_msg = {
-            "id": str(uuid.uuid4()),
-            "conversation_id": conv["id"],
-            "role": "assistant",
-            "content": (
-                f"Welcome to LinguaFlow! I'm your {target_name} tutor.\n\n"
-                f"Before we start, I'd like to understand your current {target_name} level so I can tailor our lessons perfectly.\n\n"
-                f"Let's do a quick check — just 3 short questions. Don't worry about being perfect, just try your best!\n\n"
-                f"**Question 1:** How would you introduce yourself in {target_name}? "
-                f"(Say your name, where you're from, and one thing you like)"
-            ),
-            "tools_used": [],
-            "created_at": now
-        }
-        await db.messages.insert_one(welcome_msg)
-        await db.conversations.update_one(
-            {"id": conv["id"]},
-            {"$set": {"message_count": 1, "title": f"Learning {target_name}"}}
-        )
-        conv["message_count"] = 1
-        conv["title"] = f"Learning {target_name}"
+    # Always generate an opening message from the agent
+    target_name = get_language_name(target)
+    native_name = get_language_name(native)
+    welcome_content = _build_welcome_message(native, target, native_name, target_name, data.scenario)
+    title = _build_conv_title(native, target, target_name, data.scenario)
+
+    welcome_msg = {
+        "id": str(uuid.uuid4()),
+        "conversation_id": conv["id"],
+        "role": "assistant",
+        "content": welcome_content,
+        "tools_used": [],
+        "created_at": now
+    }
+    await db.messages.insert_one(welcome_msg)
+    await db.conversations.update_one(
+        {"id": conv["id"]},
+        {"$set": {"message_count": 1, "title": title}}
+    )
+    conv["message_count"] = 1
+    conv["title"] = title
 
     return conv
+
+
+def _build_welcome_message(native: str, target: str, native_name: str, target_name: str, scenario: str = None) -> str:
+    scenario_openers = {
+        "job_interview": f"Alright, let's prep you for a job interview! I'll play the interviewer and you be the candidate.\n\nReady? Here goes:\n\n*\"Thanks for coming in today. So, tell me a little about yourself — what got you interested in this role?\"*",
+        "restaurant": f"Okay, picture this — you just walked into a nice restaurant and I'm your waiter.\n\n*\"Good evening! Welcome in. Table for one, or are you expecting someone? Here's the menu whenever you're ready.\"*\n\nWhat would you say?",
+        "travel": f"Let's do a travel scenario! You're in a new city and need to get around. I'll be a friendly local.\n\n*\"Hey! You look a little lost. Where are you trying to get to? I know this area pretty well.\"*",
+        "small_talk": f"Let's practice some casual small talk — the kind you'd have with a coworker or someone at a party.\n\nI'll start:\n\n*\"Hey! So, how's your week been? Done anything fun lately?\"*",
+        "business_meeting": f"Let's simulate a business meeting. I'll be your colleague and we're starting a project together.\n\n*\"Hey, glad we could finally sync up. So I had a look at the proposal — I think there are some solid ideas there. What's your take on the timeline?\"*",
+        "phone_call": f"Phone call time! I'm going to call you and you pick up. Ready?\n\n*ring ring*\n\n*\"Hi! Is this a good time to talk? I wanted to check in about the plans for this weekend.\"*",
+        "shopping": f"Shopping scenario! You just walked into a store and I work here.\n\n*\"Hey there! Welcome in. Let me know if you need help finding anything — we actually just got some new stuff in today.\"*",
+        "doctor_visit": f"Let's practice a doctor's visit. I'll be the doctor and you're the patient.\n\n*\"Hi, come on in, take a seat. So what brings you in today? How have you been feeling?\"*",
+    }
+
+    if scenario and scenario in scenario_openers:
+        opener = scenario_openers[scenario]
+        if native != target:
+            return f"{opener}\n\n_(Try answering in {target_name} — I'll help if you get stuck!)_"
+        return opener
+
+    if native != target:
+        return (
+            f"Hey! I'm excited to help you with {target_name}.\n\n"
+            f"First things first — let me figure out where you're at so I can match your level. "
+            f"Nothing formal, just a quick vibe check.\n\n"
+            f"**Try this:** How would you introduce yourself in {target_name}? "
+            f"Just your name, where you're from, and something you enjoy. No pressure, just give it a shot!"
+        )
+
+    return (
+        f"Hey! I'm your {target_name} practice buddy. What do you feel like working on today?\n\n"
+        f"We could chat freely, practice grammar, learn new vocabulary, or jump into a role-play scenario. "
+        f"Totally up to you — what sounds good?"
+    )
+
+
+def _build_conv_title(native: str, target: str, target_name: str, scenario: str = None) -> str:
+    if scenario:
+        labels = {
+            "job_interview": "Job Interview Practice",
+            "restaurant": "Restaurant Practice",
+            "travel": "Travel Practice",
+            "small_talk": "Small Talk Practice",
+            "business_meeting": "Business Meeting Practice",
+            "phone_call": "Phone Call Practice",
+            "shopping": "Shopping Practice",
+            "doctor_visit": "Doctor Visit Practice",
+        }
+        return labels.get(scenario, f"{scenario.replace('_', ' ').title()} Practice")
+    if native != target:
+        return f"Learning {target_name}"
+    return f"{target_name} Practice"
 
 @api_router.patch("/conversations/{conv_id}/proficiency")
 async def set_proficiency(conv_id: str, data: dict):
