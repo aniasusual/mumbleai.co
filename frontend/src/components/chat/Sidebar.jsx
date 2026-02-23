@@ -22,6 +22,12 @@ export const Sidebar = ({
   onDeleteConv, onClearAll, onCloseSidebar,
 }) => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <>
