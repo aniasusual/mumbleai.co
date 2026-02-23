@@ -55,7 +55,8 @@ export const MessageList = ({ messages, loading, sending, toolEvents, inputMode,
         {messages.map((msg, idx) => (
           <ChatBubble key={msg.id} message={msg} index={idx} onPlayAudio={onPlayAudio} />
         ))}
-        {sending && <TypingIndicator />}
+        {sending && toolEvents.length > 0 && <ToolActivityLive events={toolEvents} />}
+        {sending && toolEvents.length === 0 && <TypingIndicator />}
         <div ref={messagesEndRef} />
       </div>
     </div>
