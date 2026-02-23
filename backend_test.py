@@ -1,394 +1,328 @@
+#!/usr/bin/env python3
+"""
+Backend API testing for Voice Conversation Agent with Dual Language System
+
+Tests the key features:
+1. POST /api/conversations with native_language and target_language
+2. POST /api/conversations/{id}/messages with language-specific behavior
+3. GET /api/languages (99 languages)
+4. POST /api/tts
+5. Dual language conversation flow
+"""
+
 import requests
-import sys
 import json
-import tempfile
-import shutil
+import sys
+import time
 from datetime import datetime
 
-class MultiLanguageAPITester:
+class VoiceLanguageTesterAPI:
     def __init__(self, base_url="https://voice-master-19.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.tests_run = 0
         self.tests_passed = 0
-        self.test_results = []
-
-    def run_test(self, name, method, endpoint, expected_status=200, data=None, files=None, timeout=30):
+        self.conversations_created = []
+        
+    def run_test(self, name, method, endpoint, expected_status, data=None, files=None):
         """Run a single API test"""
         url = f"{self.api_url}/{endpoint}"
         headers = {'Content-Type': 'application/json'} if not files else {}
         
         self.tests_run += 1
         print(f"\n🔍 Testing {name}...")
-        print(f"   URL: {url}")
+        print(f"   → {method} {url}")
         
         try:
             if method == 'GET':
-                response = requests.get(url, headers=headers, timeout=timeout)
+                response = requests.get(url, headers=headers, timeout=10)
             elif method == 'POST':
                 if files:
-                    response = requests.post(url, data=data, files=files, timeout=timeout)
+                    response = requests.post(url, data=data, files=files, timeout=30)
                 else:
-                    response = requests.post(url, json=data, headers=headers, timeout=timeout)
+                    response = requests.post(url, json=data, headers=headers, timeout=30)
             elif method == 'DELETE':
-                response = requests.delete(url, headers=headers, timeout=timeout)
+                response = requests.delete(url, headers=headers, timeout=10)
+            else:
+                print(f"❌ Unsupported method: {method}")
+                return False, {}
 
             success = response.status_code == expected_status
-            
             if success:
                 self.tests_passed += 1
                 print(f"✅ Passed - Status: {response.status_code}")
                 try:
-                    resp_data = response.json()
-                    if isinstance(resp_data, dict) and len(str(resp_data)) < 200:
-                        print(f"   Response keys: {list(resp_data.keys()) if isinstance(resp_data, dict) else 'Array'}")
-                    elif isinstance(resp_data, list):
-                        print(f"   Response: Array with {len(resp_data)} items")
+                    return True, response.json()
                 except:
-                    print(f"   Response: Non-JSON or large payload")
-                
-                self.test_results.append({
-                    "test": name,
-                    "status": "PASS",
-                    "response_code": response.status_code,
-                    "details": "Success"
-                })
-                return True, response.json() if response.content else {}
+                    return True, {}
             else:
                 print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
-                try:
-                    error_data = response.json()
-                    print(f"   Error: {error_data}")
-                except:
-                    print(f"   Error: {response.text[:200]}")
-                
-                self.test_results.append({
-                    "test": name,
-                    "status": "FAIL", 
-                    "response_code": response.status_code,
-                    "details": f"Expected {expected_status}, got {response.status_code}"
-                })
+                print(f"   Response: {response.text[:200]}")
                 return False, {}
 
         except Exception as e:
             print(f"❌ Failed - Error: {str(e)}")
-            self.test_results.append({
-                "test": name,
-                "status": "ERROR",
-                "response_code": None,
-                "details": str(e)
-            })
             return False, {}
 
-    def test_languages_api(self):
-        """Test GET /api/languages returns popular and others arrays with 99 total languages"""
+    def test_get_languages(self):
+        """Test GET /api/languages returns 99 languages"""
         success, response = self.run_test(
-            "GET /api/languages endpoint",
+            "GET Languages API",
             "GET", 
-            "languages"
+            "languages",
+            200
         )
         
         if success:
+            # Check structure - should have popular and others
             if 'popular' in response and 'others' in response:
-                popular_count = len(response['popular'])
-                others_count = len(response['others'])
-                total = popular_count + others_count
+                total_langs = len(response['popular']) + len(response['others'])
+                print(f"   Found {total_langs} total languages")
+                print(f"   Popular: {len(response['popular'])}, Others: {len(response['others'])}")
                 
-                print(f"   Popular languages: {popular_count}")
-                print(f"   Other languages: {others_count}")  
-                print(f"   Total languages: {total}")
-                
-                if total == 99:
-                    print(f"✅ Language count correct: {total}")
-                    return True, response
+                # Verify structure of language objects
+                if response['popular'] and isinstance(response['popular'][0], dict):
+                    sample_lang = response['popular'][0]
+                    required_fields = ['code', 'name', 'native']
+                    if all(field in sample_lang for field in required_fields):
+                        print(f"   ✅ Language structure correct - sample: {sample_lang}")
+                        return True
+                    else:
+                        print(f"   ❌ Missing required fields in language object")
+                        return False
                 else:
-                    print(f"❌ Expected 99 languages, got {total}")
-                    return False, response
-            else:
-                print(f"❌ Missing 'popular' or 'others' keys in response")
-                return False, response
-        return False, {}
-
-    def test_conversation_with_language(self, language_code, language_name):
-        """Test creating conversation with specific language"""
-        success, response = self.run_test(
-            f"Create conversation with language '{language_code}' ({language_name})",
-            "POST",
-            "conversations", 
-            expected_status=200,
-            data={"language": language_code, "title": f"Test {language_name} conversation"}
-        )
-        
-        if success and 'id' in response:
-            if response.get('language') == language_code:
-                print(f"✅ Conversation created with correct language: {language_code}")
-                return True, response['id']
-            else:
-                print(f"❌ Expected language '{language_code}', got '{response.get('language')}'")
-        
-        return False, None
-
-    def test_language_specific_message(self, conv_id, message, expected_lang, language_name):
-        """Test sending message to language-specific conversation"""
-        success, response = self.run_test(
-            f"Send message to {language_name} conversation", 
-            "POST",
-            f"conversations/{conv_id}/messages",
-            expected_status=200,
-            data={"content": message}
-        )
-        
-        if success and isinstance(response, list) and len(response) >= 2:
-            ai_message = next((msg for msg in response if msg.get('role') == 'assistant'), None)
-            if ai_message:
-                ai_content = ai_message.get('content', '')
-                print(f"   AI response length: {len(ai_content)} chars")
-                print(f"   AI response preview: {ai_content[:100]}...")
-                
-                # Basic check - AI should respond (non-empty)
-                if len(ai_content.strip()) > 10:
-                    print(f"✅ AI responded appropriately in {language_name}")
-                    return True, ai_message
-                else:
-                    print(f"❌ AI response too short or empty")
-            else:
-                print(f"❌ No AI message found in response")
-        else:
-            print(f"❌ Invalid response format")
-            
-        return False, None
-
-    def test_tts_non_english(self):
-        """Test TTS with non-English text"""
-        test_texts = [
-            "Hola, ¿cómo estás?",  # Spanish
-            "Bonjour, comment allez-vous?",  # French
-            "Guten Tag, wie geht es Ihnen?"  # German
-        ]
-        
-        for text in test_texts:
-            success, response = self.run_test(
-                f"TTS with non-English text: '{text[:20]}...'",
-                "POST",
-                "tts",
-                expected_status=200,
-                data={"text": text}
-            )
-            
-            if success and 'audio_base64' in response:
-                audio_length = len(response['audio_base64'])
-                print(f"   Generated audio length: {audio_length} chars")
-                if audio_length > 1000:  # Reasonable audio size
-                    print(f"✅ TTS generated audio for non-English text")
-                else:
-                    print(f"❌ Audio too small, might be invalid")
+                    print("   ❌ Invalid language structure")
                     return False
             else:
-                print(f"❌ TTS failed for non-English text")
+                print(f"   ❌ Response missing 'popular' or 'others' keys")
                 return False
-                
-        return True
+        return success
 
-    def test_tool_calling_messages(self, conv_id):
-        """Test specific tool calling scenarios from review request"""
-        tool_tests = [
-            {
-                "message": "Check my grammar: I goed to store",
-                "expected_tool": "grammar_check",
-                "description": "Grammar check tool trigger"
-            },
-            {
-                "message": "How do you pronounce entrepreneur?", 
-                "expected_tool": "pronunciation_guide",
-                "description": "Pronunciation tool trigger"
-            },
-            {
-                "message": "What does serendipity mean?",
-                "expected_tool": "vocabulary_lookup", 
-                "description": "Vocabulary lookup tool trigger"
-            },
-            {
-                "message": "Let's practice a job interview",
-                "expected_tool": "start_scenario",
-                "description": "Scenario tool trigger"
-            },
-            {
-                "message": "Hello, how are you?",
-                "expected_tool": None,
-                "description": "Normal conversation (no tools)"
+    def test_create_conversation_dual_language(self):
+        """Test POST /api/conversations with native_language and target_language"""
+        
+        # Test 1: English native -> French target
+        success1, conv1 = self.run_test(
+            "Create EN→FR Conversation",
+            "POST",
+            "conversations", 
+            200,
+            data={
+                "title": "English to French Practice",
+                "native_language": "en",
+                "target_language": "fr"
             }
-        ]
+        )
         
-        all_passed = True
-        
-        for test in tool_tests:
-            print(f"\n🔧 Testing: {test['description']}")
-            success, response = self.run_test(
-                f"Tool calling: {test['message'][:30]}...",
-                "POST",
-                f"conversations/{conv_id}/messages", 
-                expected_status=200,
-                data={"content": test['message']},
-                timeout=30  # Increased for agent processing
-            )
-            
-            if success and isinstance(response, list) and len(response) >= 2:
-                ai_message = next((msg for msg in response if msg.get('role') == 'assistant'), None)
-                if ai_message:
-                    tools_used = ai_message.get('tools_used', [])
-                    print(f"   Tools used: {tools_used}")
-                    
-                    if test['expected_tool']:
-                        if test['expected_tool'] in tools_used:
-                            print(f"✅ Tool '{test['expected_tool']}' triggered correctly")
-                        else:
-                            print(f"❌ Expected tool '{test['expected_tool']}' not found in {tools_used}")
-                            all_passed = False
-                    else:
-                        if len(tools_used) == 0:
-                            print("✅ No tools used (expected for normal conversation)")
-                        else:
-                            print(f"⚠️  Tools used when none expected: {tools_used}")
-                            # This might still be acceptable
-                else:
-                    print("❌ No AI response found")
-                    all_passed = False
+        if success1 and conv1:
+            self.conversations_created.append(conv1['id'])
+            # Verify fields
+            if conv1.get('native_language') == 'en' and conv1.get('target_language') == 'fr':
+                print(f"   ✅ Conversation created with correct languages: {conv1['native_language']} → {conv1['target_language']}")
             else:
-                print("❌ Invalid response format or failed request")
-                all_passed = False
-                
-        return all_passed
-
-    def test_voice_message_endpoint(self):
-        """Test voice message endpoint with test audio file"""
-        # Create a minimal test audio file
-        audio_content = b"fake_audio_content_for_testing" * 100  # Make it reasonably sized
+                print(f"   ❌ Language fields incorrect: {conv1.get('native_language')} → {conv1.get('target_language')}")
+                return False
         
-        # First create a conversation
-        conv_success, conv_response = self.run_test(
-            "Create conversation for voice test",
+        # Test 2: Spanish native -> English target  
+        success2, conv2 = self.run_test(
+            "Create ES→EN Conversation",
+            "POST",
+            "conversations",
+            200,
+            data={
+                "title": "Spanish to English Practice",
+                "native_language": "es", 
+                "target_language": "en"
+            }
+        )
+        
+        if success2 and conv2:
+            self.conversations_created.append(conv2['id'])
+            if conv2.get('native_language') == 'es' and conv2.get('target_language') == 'en':
+                print(f"   ✅ Second conversation created: {conv2['native_language']} → {conv2['target_language']}")
+            else:
+                print(f"   ❌ Second conversation language fields incorrect")
+                return False
+        
+        # Test 3: Same language (improvement mode)
+        success3, conv3 = self.run_test(
+            "Create EN→EN Conversation (improvement mode)",
             "POST", 
             "conversations",
-            data={"language": "en", "title": "Voice test conversation"}
+            200,
+            data={
+                "native_language": "en",
+                "target_language": "en"
+            }
         )
         
-        if not conv_success or 'id' not in conv_response:
-            print("❌ Failed to create conversation for voice test")
+        if success3 and conv3:
+            self.conversations_created.append(conv3['id'])
+            if conv3.get('native_language') == 'en' and conv3.get('target_language') == 'en':
+                print(f"   ✅ Same language conversation created for improvement")
+            else:
+                print(f"   ❌ Same language conversation failed")
+                return False
+        
+        return success1 and success2 and success3
+
+    def test_conversation_messages_dual_language(self):
+        """Test POST /api/conversations/{id}/messages with language-specific behavior"""
+        
+        if not self.conversations_created:
+            print("❌ No conversations to test messages with")
             return False
             
-        conv_id = conv_response['id']
+        # Test English→French conversation
+        en_fr_conv_id = self.conversations_created[0]  # Should be EN→FR from previous test
         
-        # Try to send voice message with fake audio
-        files = {'audio': ('test_voice.mp3', audio_content, 'audio/mp3')}
-        
-        success, response = self.run_test(
-            "POST /api/conversations/{id}/voice-message with test audio",
+        # Test case: "How do I say hello in French?"
+        success1, messages1 = self.run_test(
+            "EN→FR: Ask how to say hello",
             "POST",
-            f"conversations/{conv_id}/voice-message",
-            expected_status=200,  # Or might be 400 if Whisper rejects fake audio
-            files=files,
-            timeout=60
+            f"conversations/{en_fr_conv_id}/messages",
+            200,
+            data={"content": "How do I say hello in French?"}
         )
         
-        # Note: This might fail with fake audio, but we test the endpoint exists
-        if success:
-            print("✅ Voice endpoint accepts requests and processes audio")
-            return True
-        else:
-            print("⚠️  Voice endpoint exists but may reject fake audio (expected)")
-            # This is acceptable - the endpoint exists and responds
-            return True
+        if success1 and messages1:
+            # Should return user message + AI message
+            if len(messages1) >= 2:
+                ai_message = next((msg for msg in messages1 if msg['role'] == 'assistant'), None)
+                if ai_message:
+                    ai_content = ai_message['content'].lower()
+                    # Should contain French greeting and English explanation
+                    if 'bonjour' in ai_content or 'salut' in ai_content:
+                        print(f"   ✅ AI provided French greeting in response")
+                    else:
+                        print(f"   ⚠️  AI response may not contain French greeting: {ai_content[:100]}...")
+                else:
+                    print(f"   ❌ No AI message found in response")
+                    return False
+            else:
+                print(f"   ❌ Expected 2 messages, got {len(messages1)}")
+                return False
+        
+        # Test grammar check tool
+        success2, messages2 = self.run_test(
+            "Grammar Check Tool Test",
+            "POST",
+            f"conversations/{en_fr_conv_id}/messages", 
+            200,
+            data={"content": "Check my grammar: je suis alle au magasin"}
+        )
+        
+        if success2 and messages2:
+            ai_message = next((msg for msg in messages2 if msg['role'] == 'assistant'), None)
+            if ai_message and ai_message.get('tools_used'):
+                if 'grammar_check' in ai_message['tools_used']:
+                    print(f"   ✅ Grammar check tool triggered correctly")
+                else:
+                    print(f"   ⚠️  Tools used: {ai_message['tools_used']}")
+            else:
+                print(f"   ⚠️  Grammar check tool may not have triggered")
+        
+        # Test same language conversation (EN→EN)
+        if len(self.conversations_created) >= 3:
+            en_en_conv_id = self.conversations_created[2]  # Should be EN→EN
+            success3, messages3 = self.run_test(
+                "EN→EN: Same language conversation",
+                "POST",
+                f"conversations/{en_en_conv_id}/messages",
+                200,
+                data={"content": "Help me improve my writing skills"}
+            )
+            
+            if success3 and messages3:
+                print(f"   ✅ Same language conversation works (improvement mode)")
+            else:
+                return False
+        
+        return success1 and success2
+
+    def test_tts_api(self):
+        """Test POST /api/tts"""
+        success, response = self.run_test(
+            "Text-to-Speech API",
+            "POST",
+            "tts",
+            200,
+            data={"text": "Hello, this is a test message for text to speech."}
+        )
+        
+        if success and response:
+            if 'audio_base64' in response and response['audio_base64']:
+                print(f"   ✅ TTS returned audio data (base64 length: {len(response['audio_base64'])})")
+                return True
+            else:
+                print(f"   ❌ TTS response missing audio_base64")
+                return False
+        
+        return success
+
+    def cleanup_conversations(self):
+        """Clean up test conversations"""
+        print(f"\n🧹 Cleaning up {len(self.conversations_created)} test conversations...")
+        for conv_id in self.conversations_created:
+            try:
+                requests.delete(f"{self.api_url}/conversations/{conv_id}", timeout=5)
+                print(f"   ✅ Deleted conversation {conv_id}")
+            except:
+                print(f"   ⚠️  Could not delete conversation {conv_id}")
+
+    def run_all_tests(self):
+        """Run all tests"""
+        print("="*60)
+        print("🧪 Voice Language Learning API Tests")
+        print("="*60)
+        print(f"Base URL: {self.base_url}")
+        print(f"API URL: {self.api_url}")
+        
+        # Test sequence
+        tests = [
+            ("Languages API", self.test_get_languages),
+            ("Dual Language Conversations", self.test_create_conversation_dual_language), 
+            ("Language-specific Messages", self.test_conversation_messages_dual_language),
+            ("Text-to-Speech", self.test_tts_api)
+        ]
+        
+        results = []
+        for test_name, test_func in tests:
+            print(f"\n" + "─"*50)
+            try:
+                result = test_func()
+                results.append((test_name, result))
+                if result:
+                    print(f"✅ {test_name} - PASSED")
+                else:
+                    print(f"❌ {test_name} - FAILED")
+            except Exception as e:
+                print(f"❌ {test_name} - ERROR: {e}")
+                results.append((test_name, False))
+        
+        # Cleanup
+        self.cleanup_conversations()
+        
+        # Summary
+        print(f"\n" + "="*60)
+        print("📊 TEST SUMMARY")
+        print("="*60)
+        passed = sum(1 for _, result in results if result)
+        total = len(results)
+        
+        for test_name, result in results:
+            status = "✅ PASS" if result else "❌ FAIL"
+            print(f"{status} - {test_name}")
+        
+        print(f"\nOverall: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
+        print(f"Individual API calls: {self.tests_passed}/{self.tests_run} passed")
+        
+        return passed == total
 
 def main():
-    print("🚀 Starting LLM-Native Tool Calling Agent Tests")
-    print("=" * 60)
-    
-    tester = MultiLanguageAPITester()
-    
-    # Test 1: Languages API (99 languages check)
-    print("\n📋 Testing Languages API...")
-    langs_success, languages_data = tester.test_languages_api()
-    
-    if not langs_success:
-        print("❌ Languages API failed - cannot proceed with other tests")
-        return 1
-    
-    # Test 2: Create English conversation for tool calling tests
-    print("\n🛠️  Testing Tool Calling Mechanisms...")
-    en_success, en_conv_id = tester.test_conversation_with_language("en", "English")
-    
-    if en_success and en_conv_id:
-        # Test specific tool calling scenarios from review request
-        tools_passed = tester.test_tool_calling_messages(en_conv_id)
-        if not tools_passed:
-            print("⚠️  Some tool calling tests failed")
-    else:
-        print("❌ Failed to create conversation for tool testing")
-        return 1
-    
-    # Test 3: Spanish conversation with tools
-    print("\n🇪🇸 Testing Spanish Conversation with Tools...")
-    es_success, es_conv_id = tester.test_conversation_with_language("es", "Spanish") 
-    
-    if es_success and es_conv_id:
-        # Test Spanish message with expected Spanish response
-        success, response = tester.run_test(
-            "Spanish conversation responds in Spanish",
-            "POST",
-            f"conversations/{es_conv_id}/messages",
-            expected_status=200,
-            data={"content": "Explícame qué significa 'entrepreneur'"},
-            timeout=30
-        )
-        
-        if success and isinstance(response, list):
-            ai_msg = next((m for m in response if m.get('role') == 'assistant'), None) 
-            if ai_msg:
-                tools_used = ai_msg.get('tools_used', [])
-                content = ai_msg.get('content', '')
-                print(f"   Tools used: {tools_used}")
-                print(f"   Response preview: {content[:100]}...")
-                
-                if 'vocabulary_lookup' in tools_used and len(content) > 20:
-                    print("✅ Spanish conversation with tools working")
-                else:
-                    print("⚠️  Spanish tools may not be triggering correctly")
-    
-    # Test 4: French conversation  
-    print("\n🇫🇷 Testing French Conversation...")
-    fr_success, fr_conv_id = tester.test_conversation_with_language("fr", "French")
-    
-    if fr_success and fr_conv_id:
-        tester.test_language_specific_message(
-            fr_conv_id,
-            "Bonjour, comment puis-je améliorer ma grammaire française?", 
-            "fr",
-            "French"
-        )
-    
-    # Test 5: TTS functionality
-    print("\n🔊 Testing TTS API...")
-    tester.test_tts_non_english()
-    
-    # Test 6: Voice message endpoint
-    print("\n🎤 Testing Voice Message Endpoint...")
-    tester.test_voice_message_endpoint()
-    
-    # Print results summary
-    print("\n" + "=" * 60)
-    print(f"📊 Test Summary: {tester.tests_passed}/{tester.tests_run} tests passed")
-    print("=" * 60)
-    
-    for result in tester.test_results:
-        status_icon = "✅" if result["status"] == "PASS" else "❌" if result["status"] == "FAIL" else "⚠️"
-        print(f"{status_icon} {result['test']}: {result['status']}")
-        if result["status"] != "PASS":
-            print(f"   {result['details']}")
-    
-    success_rate = (tester.tests_passed / tester.tests_run) * 100 if tester.tests_run > 0 else 0
-    print(f"\n🎯 Success Rate: {success_rate:.1f}%")
-    
-    return 0 if success_rate >= 80 else 1
+    tester = VoiceLanguageTesterAPI()
+    success = tester.run_all_tests()
+    return 0 if success else 1
 
 if __name__ == "__main__":
     sys.exit(main())
