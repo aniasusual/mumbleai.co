@@ -17,7 +17,7 @@ const StreamingBubble = ({ text }) => (
   </div>
 );
 
-export const MessageList = ({ messages, loading, sending, toolEvents, streamingText, inputMode, onPlayAudio, onSetInput, inputRef }) => {
+export const MessageList = ({ messages, loading, sending, toolEvents, streamingText, speakingState, onStopAudio, inputMode, onPlayAudio, onSetInput, inputRef }) => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
