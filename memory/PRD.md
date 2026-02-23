@@ -62,6 +62,24 @@ Build a conversational agent that acts as a personal tutor to help users improve
 - **vocabulary**: id, word, definition, example, context, created_at
 - **activity**: id, text_length, tools_used, scenario, created_at
 
+## Agent Architecture
+```
+Main Tutor Agent (phase: assessment / learning)
+  ├── tool: grammar_check      → Grammar Subagent (own loop + tools)
+  ├── tool: vocabulary_lookup   → Vocabulary Subagent (own loop + tools)
+  ├── tool: pronunciation_guide → Pronunciation Subagent (own loop + tools)
+  ├── tool: evaluate_response   → Evaluation Subagent (own loop + tools)
+  ├── tool: plan_curriculum     → hands off to Curriculum Planner Agent
+  │                               (sets phase="planning", planner takes over)
+  ├── tool: advance_lesson      → progresses through curriculum
+  ├── tool: set_proficiency_level → saves level, triggers plan_curriculum
+  └── tool: start_scenario      → returns scenario setup
+
+Curriculum Planner Agent (phase: planning, separate class + loop)
+  └── tool: save_curriculum → saves plan to DB, sets phase="learning"
+                              (control returns to Main Tutor Agent)
+```
+
 ## Agent Phases
 1. **Assessment** (cross-lang only): Agent asks 2-3 progressively harder questions to determine proficiency level
 2. **Planning** (auto-triggered): Curriculum planner asks about goals, timeline, preferences — HITL collaborative plan creation
