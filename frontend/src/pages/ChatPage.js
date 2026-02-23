@@ -11,6 +11,7 @@ import { ChatHeader } from "@/components/chat/ChatHeader";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
+import { useAuth } from "@/hooks/useAuth";
 import { playAudioBase64, playAudioWithKaraoke } from "@/lib/audio";
 import {
   createConversation, listConversations, getMessages, sendMessage,
