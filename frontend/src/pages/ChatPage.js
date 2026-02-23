@@ -285,11 +285,25 @@ export default function ChatPage() {
     }
   };
 
+  const pendingTtsRef = useRef(false);
+
   const loadMessages = async (convId) => {
     setLoading(true);
     try {
       const res = await getMessages(convId);
       setMessages(res.data);
+      // Auto-play TTS for the welcome message on new conversations
+      if (pendingTtsRef.current && res.data.length === 1 && res.data[0].role === "assistant") {
+        pendingTtsRef.current = false;
+        try {
+          const ttsRes = await textToSpeech(res.data[0].content);
+          if (ttsRes.data.audio_base64) {
+            await playAudioBase64(ttsRes.data.audio_base64);
+          }
+        } catch (e) {
+          console.error("Welcome TTS failed", e);
+        }
+      }
     } catch (e) {
       console.error("Failed to load messages", e);
     } finally {
