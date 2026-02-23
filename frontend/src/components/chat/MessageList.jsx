@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 import { Mic, Sparkles } from "lucide-react";
-import { ChatBubble, TypingIndicator } from "./ChatBubble";
+import { ChatBubble, TypingIndicator, MarkdownContent } from "./ChatBubble";
 import { ToolActivityLive } from "./ToolActivity";
 
 const StreamingBubble = ({ text }) => (
@@ -9,8 +9,8 @@ const StreamingBubble = ({ text }) => (
       <span className="text-xs font-bold text-[#2F5233]" style={{ fontFamily: 'Playfair Display, serif' }}>L</span>
     </div>
     <div className="chat-bubble-ai px-5 py-3 max-w-[75%]">
-      <div className="chat-content text-sm leading-relaxed whitespace-pre-wrap">
-        {text}
+      <div className="chat-content text-sm leading-relaxed">
+        <MarkdownContent content={text} />
         <span className="inline-block w-0.5 h-4 bg-[#2F5233] animate-pulse ml-0.5 align-text-bottom" />
       </div>
     </div>
