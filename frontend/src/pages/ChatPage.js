@@ -79,8 +79,11 @@ export default function ChatPage() {
       if (pendingTtsRef.current && res.data.length === 1 && res.data[0].role === "assistant") {
         pendingTtsRef.current = false;
         try {
-          const ttsRes = await textToSpeech(res.data[0].content);
-          if (ttsRes.data.audio_base64) await playAudioBase64(ttsRes.data.audio_base64);
+          const welcomeMsg = res.data[0];
+          const ttsRes = await textToSpeech(welcomeMsg.content);
+          if (ttsRes.data.audio_base64) {
+            playWithKaraoke(ttsRes.data.audio_base64, welcomeMsg.id, welcomeMsg.content);
+          }
         } catch (e) { console.error("Welcome TTS failed", e); }
       }
     } catch (e) { console.error("Failed to load messages", e); }
