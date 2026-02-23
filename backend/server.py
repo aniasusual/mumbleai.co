@@ -114,7 +114,6 @@ async def create_conversation(data: ConversationCreate):
 
     # Auto-start proficiency assessment for cross-language conversations
     if native != target and not data.scenario:
-        native_name = get_language_name(native)
         target_name = get_language_name(target)
         welcome_msg = {
             "id": str(uuid.uuid4()),
