@@ -230,9 +230,10 @@ async def send_voice_message(
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     now = datetime.now(timezone.utc).isoformat()
-    target_lang = conv.get("language", "en")
+    native_lang = conv.get("native_language", "en")
+    target_lang = conv.get("target_language", "en")
 
-    # Step 1: Transcribe audio with Whisper
+    # Step 1: Transcribe audio with Whisper (in the TARGET language the user is practicing)
     stt = OpenAISpeechToText(api_key=EMERGENT_LLM_KEY)
     audio_bytes = await audio.read()
 
