@@ -32,6 +32,7 @@ Build a conversational agent that acts as a personal tutor to help users improve
 - [x] Individual chat deletion (always-visible delete icon)
 - [x] "Clear All Chats" feature with confirmation dialog
 - [x] Human-like AI personality (casual, non-robotic prompts)
+- [x] Agent always initiates conversation (all cases: same-lang, cross-lang, scenarios)
 
 ## API Endpoints
 - `POST /api/conversations` - Create conversation
