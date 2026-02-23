@@ -11,10 +11,30 @@ Build a conversational agent that acts as a personal tutor to help users improve
 - **DB**: MongoDB (collections: conversations, messages, vocabulary, activity)
 
 ## Key Files
-- `/app/backend/agent.py` - Core agent logic, tool definitions, sub-agents, system prompts
-- `/app/backend/server.py` - FastAPI endpoints, DB logic
-- `/app/backend/tools.py` - Agent tool implementations
-- `/app/backend/languages.py` - 99+ supported languages
+```
+backend/
+├── server.py              # FastAPI app setup, middleware (36 lines)
+├── config.py              # DB connection, LLM key, logging
+├── models.py              # Pydantic request/response models
+├── scenarios.py           # Role-play scenario definitions
+├── languages.py           # 99+ supported language codes
+├── routes/
+│   ├── conversations.py   # Conversation CRUD + send message
+│   ├── voice.py           # Voice STT/TTS + voice messages
+│   ├── vocabulary.py      # Vocabulary CRUD
+│   ├── progress.py        # Progress/stats/streaks
+│   └── resources.py       # Languages + scenarios list
+├── agents/
+│   ├── llm.py             # LLM call helper (litellm + Emergent proxy)
+│   ├── tools.py           # Tool JSON schemas (main + planner)
+│   ├── tool_executor.py   # Tool router → subagent or direct execution
+│   ├── subagents.py       # Grammar, vocab, pronunciation, eval subagents
+│   ├── prompts.py         # System prompt builders
+│   ├── tutor.py           # LanguageTutorAgent class
+│   └── planner.py         # CurriculumPlannerAgent class
+└── services/
+    └── agent_factory.py   # Creates correct agent based on phase (DRY)
+```
 - `/app/frontend/src/pages/ChatPage.js` - Main chat UI
 - `/app/frontend/src/lib/api.js` - API helpers
 
