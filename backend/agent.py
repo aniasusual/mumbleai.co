@@ -509,21 +509,91 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
     elif tool_name == "set_proficiency_level":
         level = arguments.get("level", "beginner")
         reasoning = arguments.get("reasoning", "")
-        # Save to DB if available
+        # Save to DB and transition to planning phase
         if db is not None and conversation_id:
             await db.conversations.update_one(
                 {"id": conversation_id},
-                {"$set": {"proficiency_level": level}}
+                {"$set": {"proficiency_level": level, "phase": "planning"}}
             )
         return json.dumps({
             "status": "saved",
             "level": level,
             "reasoning": reasoning,
-            "instruction": f"Level set to {level}. Now adapt your teaching to this level. For {level}: "
-                + {"beginner": "use simple words, short sentences, lots of native language support, basic vocabulary",
-                   "intermediate": "mix of target and native language, introduce idioms, more complex grammar, encourage longer responses",
-                   "advanced": "mostly target language, complex topics, nuanced grammar, cultural references, minimal native language"}[level]
+            "instruction": f"Level set to {level}. IMPORTANT: The conversation will now transition to curriculum planning mode. In your FINAL response for this turn, tell the user their level has been assessed and that you'd now like to create a personalized learning plan together. Ask them ONE question: what is their goal for learning this language?"
         })
+
+    elif tool_name == "save_curriculum":
+        timeline = arguments.get("timeline", "")
+        goal = arguments.get("goal", "")
+        lessons = arguments.get("lessons", [])
+        if db is not None and conversation_id:
+            from datetime import datetime, timezone
+            import uuid as _uuid
+            curriculum_doc = {
+                "id": str(_uuid.uuid4()),
+                "conversation_id": conversation_id,
+                "proficiency_level": arguments.get("proficiency_level", "beginner"),
+                "timeline": timeline,
+                "goal": goal,
+                "lessons": [
+                    {**l, "status": "not_started"} for l in lessons
+                ],
+                "current_lesson": 0,
+                "status": "active",
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            # Mark first lesson as in_progress
+            if curriculum_doc["lessons"]:
+                curriculum_doc["lessons"][0]["status"] = "in_progress"
+            await db.curricula.insert_one(curriculum_doc)
+            curriculum_doc.pop("_id", None)
+            # Transition to learning phase
+            await db.conversations.update_one(
+                {"id": conversation_id},
+                {"$set": {"phase": "learning"}}
+            )
+        first_lesson = lessons[0] if lessons else {}
+        return json.dumps({
+            "status": "curriculum_saved",
+            "total_lessons": len(lessons),
+            "instruction": f"Curriculum saved! Now transition to teaching mode. Start with Lesson 1: {first_lesson.get('title', '')}. Topics: {', '.join(first_lesson.get('topics', []))}. Begin with ONE topic from this lesson."
+        })
+
+    elif tool_name == "advance_lesson":
+        summary = arguments.get("summary", "")
+        if db is not None and conversation_id:
+            curr = await db.curricula.find_one({"conversation_id": conversation_id}, {"_id": 0})
+            if curr:
+                current = curr.get("current_lesson", 0)
+                lessons = curr.get("lessons", [])
+                # Mark current as completed
+                if current < len(lessons):
+                    await db.curricula.update_one(
+                        {"conversation_id": conversation_id},
+                        {"$set": {f"lessons.{current}.status": "completed", f"lessons.{current}.summary": summary}}
+                    )
+                # Move to next
+                next_idx = current + 1
+                if next_idx < len(lessons):
+                    await db.curricula.update_one(
+                        {"conversation_id": conversation_id},
+                        {"$set": {"current_lesson": next_idx, f"lessons.{next_idx}.status": "in_progress"}}
+                    )
+                    next_lesson = lessons[next_idx]
+                    return json.dumps({
+                        "status": "advanced",
+                        "new_lesson": next_idx + 1,
+                        "title": next_lesson.get("title", ""),
+                        "topics": next_lesson.get("topics", []),
+                        "instruction": f"Great progress! Now start Lesson {next_idx + 1}: {next_lesson.get('title', '')}. Topics: {', '.join(next_lesson.get('topics', []))}. Begin with ONE topic."
+                    })
+                else:
+                    await db.curricula.update_one(
+                        {"conversation_id": conversation_id},
+                        {"$set": {"status": "completed"}}
+                    )
+                    return json.dumps({"status": "curriculum_completed", "instruction": "The user has completed all lessons! Congratulate them and suggest what to do next."})
+        return json.dumps({"status": "no_curriculum"})
 
     return f"Unknown tool: {tool_name}"
 
