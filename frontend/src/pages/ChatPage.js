@@ -22,6 +22,7 @@ import {
 export default function ChatPage() {
   const navigate = useNavigate();
   const { conversationId } = useParams();
+  const { user, logout } = useAuth();
 
   // Core state
   const [conversations, setConversations] = useState([]);
