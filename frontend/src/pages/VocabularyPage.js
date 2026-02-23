@@ -93,9 +93,9 @@ export default function VocabularyPage() {
               </button>
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-[#2F5233] flex items-center justify-center">
-                  <span className="text-white text-xs font-bold" style={{ fontFamily: 'Playfair Display, serif' }}>M</span>
+                  <span className="text-white text-xs font-bold" style={{ fontFamily: 'Sora, sans-serif' }}>M</span>
                 </div>
-                <span className="font-semibold" style={{ fontFamily: 'Playfair Display, serif' }}>Vocabulary</span>
+                <span className="font-semibold" style={{ fontFamily: 'Sora, sans-serif' }}>Vocabulary</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -123,7 +123,7 @@ export default function VocabularyPage() {
         {/* Title + Actions */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl md:text-4xl tracking-tight text-[#1A1A1A] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+            <h1 className="text-3xl md:text-4xl tracking-tight text-[#1A1A1A] mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
               Your Vocabulary
             </h1>
             <p className="text-base text-[#71717A]">
@@ -161,7 +161,7 @@ export default function VocabularyPage() {
               </DialogTrigger>
               <DialogContent className="sm:max-w-md" data-testid="add-word-dialog">
                 <DialogHeader>
-                  <DialogTitle style={{ fontFamily: 'Playfair Display, serif' }}>Add New Word</DialogTitle>
+                  <DialogTitle style={{ fontFamily: 'Sora, sans-serif' }}>Add New Word</DialogTitle>
                   <DialogDescription>Save a word to your vocabulary notebook</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
@@ -231,7 +231,7 @@ export default function VocabularyPage() {
                 data-testid={`vocab-card-${item.id}`}
               >
                 <div className="flex items-start justify-between mb-3">
-                  <h3 className="text-lg font-semibold text-[#1A1A1A] capitalize" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  <h3 className="text-lg font-semibold text-[#1A1A1A] capitalize" style={{ fontFamily: 'Sora, sans-serif' }}>
                     {item.word}
                   </h3>
                   <button
@@ -264,7 +264,7 @@ export default function VocabularyPage() {
         ) : (
           <div className="text-center py-20" data-testid="empty-vocabulary">
             <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-[#1A1A1A] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+            <h3 className="text-xl font-semibold text-[#1A1A1A] mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
               Your vocabulary is empty
             </h3>
             <p className="text-sm text-[#71717A] mb-6 max-w-sm mx-auto">

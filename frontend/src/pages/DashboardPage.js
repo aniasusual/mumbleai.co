@@ -88,9 +88,9 @@ export default function DashboardPage() {
               </button>
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-[#2F5233] flex items-center justify-center">
-                  <span className="text-white text-xs font-bold" style={{ fontFamily: 'Playfair Display, serif' }}>M</span>
+                  <span className="text-white text-xs font-bold" style={{ fontFamily: 'Sora, sans-serif' }}>M</span>
                 </div>
-                <span className="font-semibold" style={{ fontFamily: 'Playfair Display, serif' }}>Dashboard</span>
+                <span className="font-semibold" style={{ fontFamily: 'Sora, sans-serif' }}>Dashboard</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -117,7 +117,7 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {/* Title */}
         <div className="mb-10">
-          <h1 className="text-3xl md:text-4xl tracking-tight text-[#1A1A1A] mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
+          <h1 className="text-3xl md:text-4xl tracking-tight text-[#1A1A1A] mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
             Your Progress
           </h1>
           <p className="text-base text-[#71717A]">Track your English learning journey</p>
@@ -141,7 +141,7 @@ export default function DashboardPage() {
                   <div className={`w-10 h-10 rounded-xl ${stat.color} flex items-center justify-center mb-4`}>
                     <stat.icon className="w-5 h-5" />
                   </div>
-                  <p className="text-3xl font-bold text-[#1A1A1A]" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  <p className="text-3xl font-bold text-[#1A1A1A]" style={{ fontFamily: 'Sora, sans-serif' }}>
                     {stat.value}
                   </p>
                   <p className="text-sm text-[#71717A] mt-1">{stat.label}</p>
@@ -155,7 +155,7 @@ export default function DashboardPage() {
               <div className="bg-white border border-gray-100 rounded-xl p-6" data-testid="tools-usage-card">
                 <div className="flex items-center gap-2 mb-6">
                   <Wrench className="w-5 h-5 text-[#2F5233]" />
-                  <h3 className="text-lg font-semibold text-[#1A1A1A]" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  <h3 className="text-lg font-semibold text-[#1A1A1A]" style={{ fontFamily: 'Sora, sans-serif' }}>
                     Tools Used
                   </h3>
                 </div>
@@ -184,7 +184,7 @@ export default function DashboardPage() {
               <div className="bg-white border border-gray-100 rounded-xl p-6" data-testid="scenarios-practiced-card">
                 <div className="flex items-center gap-2 mb-6">
                   <Target className="w-5 h-5 text-[#2F5233]" />
-                  <h3 className="text-lg font-semibold text-[#1A1A1A]" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  <h3 className="text-lg font-semibold text-[#1A1A1A]" style={{ fontFamily: 'Sora, sans-serif' }}>
                     Scenarios Practiced
                   </h3>
                 </div>
@@ -219,7 +219,7 @@ export default function DashboardPage() {
             <div className="bg-white border border-gray-100 rounded-xl p-6" data-testid="recent-activity-card">
               <div className="flex items-center gap-2 mb-6">
                 <Calendar className="w-5 h-5 text-[#2F5233]" />
-                <h3 className="text-lg font-semibold text-[#1A1A1A]" style={{ fontFamily: 'Playfair Display, serif' }}>
+                <h3 className="text-lg font-semibold text-[#1A1A1A]" style={{ fontFamily: 'Sora, sans-serif' }}>
                   Recent Activity
                 </h3>
               </div>
