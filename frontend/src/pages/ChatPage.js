@@ -215,6 +215,7 @@ export default function ChatPage() {
   useEffect(() => {
     loadConversations();
     loadScenarios();
+    loadLanguages();
   }, []);
 
   useEffect(() => {
