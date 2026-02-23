@@ -47,6 +47,7 @@ class ConversationResponse(BaseModel):
     scenario: Optional[str] = None
     native_language: str = "en"
     target_language: str = "en"
+    proficiency_level: Optional[str] = None
     created_at: str
     updated_at: str
     message_count: int = 0
@@ -103,12 +104,40 @@ async def create_conversation(data: ConversationCreate):
         "scenario": data.scenario,
         "native_language": native,
         "target_language": target,
+        "proficiency_level": None,
         "created_at": now,
         "updated_at": now,
         "message_count": 0
     }
     await db.conversations.insert_one(conv)
     conv.pop("_id", None)
+
+    # Auto-start proficiency assessment for cross-language conversations
+    if native != target and not data.scenario:
+        native_name = get_language_name(native)
+        target_name = get_language_name(target)
+        welcome_msg = {
+            "id": str(uuid.uuid4()),
+            "conversation_id": conv["id"],
+            "role": "assistant",
+            "content": (
+                f"Welcome to LinguaFlow! I'm your {target_name} tutor.\n\n"
+                f"Before we start, I'd like to understand your current {target_name} level so I can tailor our lessons perfectly.\n\n"
+                f"Let's do a quick check — just 3 short questions. Don't worry about being perfect, just try your best!\n\n"
+                f"**Question 1:** How would you introduce yourself in {target_name}? "
+                f"(Say your name, where you're from, and one thing you like)"
+            ),
+            "tools_used": [],
+            "created_at": now
+        }
+        await db.messages.insert_one(welcome_msg)
+        await db.conversations.update_one(
+            {"id": conv["id"]},
+            {"$set": {"message_count": 1, "title": f"Learning {target_name}"}}
+        )
+        conv["message_count"] = 1
+        conv["title"] = f"Learning {target_name}"
+
     return conv
 
 @api_router.get("/conversations", response_model=List[ConversationResponse])
