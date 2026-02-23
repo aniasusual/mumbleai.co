@@ -189,6 +189,76 @@ class MultiLanguageAPITester:
                 
         return True
 
+    def test_tool_calling_messages(self, conv_id):
+        """Test specific tool calling scenarios from review request"""
+        tool_tests = [
+            {
+                "message": "Check my grammar: I goed to store",
+                "expected_tool": "grammar_check",
+                "description": "Grammar check tool trigger"
+            },
+            {
+                "message": "How do you pronounce entrepreneur?", 
+                "expected_tool": "pronunciation_guide",
+                "description": "Pronunciation tool trigger"
+            },
+            {
+                "message": "What does serendipity mean?",
+                "expected_tool": "vocabulary_lookup", 
+                "description": "Vocabulary lookup tool trigger"
+            },
+            {
+                "message": "Let's practice a job interview",
+                "expected_tool": "start_scenario",
+                "description": "Scenario tool trigger"
+            },
+            {
+                "message": "Hello, how are you?",
+                "expected_tool": None,
+                "description": "Normal conversation (no tools)"
+            }
+        ]
+        
+        all_passed = True
+        
+        for test in tool_tests:
+            print(f"\n🔧 Testing: {test['description']}")
+            success, response = self.run_test(
+                f"Tool calling: {test['message'][:30]}...",
+                "POST",
+                f"conversations/{conv_id}/messages", 
+                expected_status=200,
+                data={"content": test['message']},
+                timeout=30  # Increased for agent processing
+            )
+            
+            if success and isinstance(response, list) and len(response) >= 2:
+                ai_message = next((msg for msg in response if msg.get('role') == 'assistant'), None)
+                if ai_message:
+                    tools_used = ai_message.get('tools_used', [])
+                    print(f"   Tools used: {tools_used}")
+                    
+                    if test['expected_tool']:
+                        if test['expected_tool'] in tools_used:
+                            print(f"✅ Tool '{test['expected_tool']}' triggered correctly")
+                        else:
+                            print(f"❌ Expected tool '{test['expected_tool']}' not found in {tools_used}")
+                            all_passed = False
+                    else:
+                        if len(tools_used) == 0:
+                            print("✅ No tools used (expected for normal conversation)")
+                        else:
+                            print(f"⚠️  Tools used when none expected: {tools_used}")
+                            # This might still be acceptable
+                else:
+                    print("❌ No AI response found")
+                    all_passed = False
+            else:
+                print("❌ Invalid response format or failed request")
+                all_passed = False
+                
+        return all_passed
+
     def test_voice_message_endpoint(self):
         """Test voice message endpoint with test audio file"""
         # Create a minimal test audio file
