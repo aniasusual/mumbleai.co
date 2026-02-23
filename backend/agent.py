@@ -562,41 +562,9 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
         })
 
     elif tool_name == "save_curriculum":
-        timeline = arguments.get("timeline", "")
-        goal = arguments.get("goal", "")
-        lessons = arguments.get("lessons", [])
-        if db is not None and conversation_id:
-            from datetime import datetime, timezone
-            import uuid as _uuid
-            curriculum_doc = {
-                "id": str(_uuid.uuid4()),
-                "conversation_id": conversation_id,
-                "proficiency_level": arguments.get("proficiency_level", "beginner"),
-                "timeline": timeline,
-                "goal": goal,
-                "lessons": [
-                    {**l, "status": "not_started"} for l in lessons
-                ],
-                "current_lesson": 0,
-                "status": "active",
-                "created_at": datetime.now(timezone.utc).isoformat()
-            }
-            # Mark first lesson as in_progress
-            if curriculum_doc["lessons"]:
-                curriculum_doc["lessons"][0]["status"] = "in_progress"
-            await db.curricula.insert_one(curriculum_doc)
-            curriculum_doc.pop("_id", None)
-            # Transition to learning phase
-            await db.conversations.update_one(
-                {"id": conversation_id},
-                {"$set": {"phase": "learning"}}
-            )
-        first_lesson = lessons[0] if lessons else {}
-        return json.dumps({
-            "status": "curriculum_saved",
-            "total_lessons": len(lessons),
-            "instruction": f"Curriculum saved! Now transition to teaching mode. Start with Lesson 1: {first_lesson.get('title', '')}. Topics: {', '.join(first_lesson.get('topics', []))}. Begin with ONE topic from this lesson."
-        })
+        # This should not be called from the main agent — it's handled by the planner subagent.
+        # But as a safety fallback:
+        return json.dumps({"status": "error", "instruction": "save_curriculum is handled by the Curriculum Planner agent, not the main tutor."})
 
     elif tool_name == "advance_lesson":
         summary = arguments.get("summary", "")
