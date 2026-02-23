@@ -254,6 +254,13 @@ async def send_message(conv_id: str, data: MessageCreate):
     native_lang = conv.get("native_language", "en")
     target_lang = conv.get("target_language", "en")
     proficiency = conv.get("proficiency_level")
+    phase = conv.get("phase", "learning")
+
+    # Load curriculum if in learning phase
+    curriculum = None
+    if phase == "learning":
+        curriculum = await db.curricula.find_one({"conversation_id": conv_id}, {"_id": 0})
+
     agent = LanguageTutorAgent(
         api_key=EMERGENT_LLM_KEY,
         session_id=f"lingua_{conv_id}",
@@ -261,7 +268,9 @@ async def send_message(conv_id: str, data: MessageCreate):
         target_language=target_lang,
         proficiency_level=proficiency,
         conversation_id=conv_id,
-        db=db
+        db=db,
+        phase=phase,
+        curriculum=curriculum
     )
 
     result = await agent.process_message(
