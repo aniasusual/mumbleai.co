@@ -31,9 +31,7 @@ class FirstLessonOnboardingTester:
         url = f"{self.api_url}/{endpoint}"
         headers = {'Content-Type': 'application/json'} if not files else {}
         
-            else:
-                print(f"❌ Unsupported method: {method}")
-                return False, {}
+        self.tests_run += 1
         print(f"\n🔍 Testing {name}...")
         print(f"   → {method} {url}")
         
@@ -49,6 +47,9 @@ class FirstLessonOnboardingTester:
                 response = requests.patch(url, json=data, headers=headers, timeout=10)
             elif method == 'DELETE':
                 response = requests.delete(url, headers=headers, timeout=10)
+            else:
+                print(f"❌ Unsupported method: {method}")
+                return False, {}
 
             success = response.status_code == expected_status
             if success:
