@@ -236,6 +236,110 @@ class LinguaFlowAPITester:
         )
         return success
 
+    def test_tts_api(self):
+        """Test POST /api/tts - text-to-speech endpoint"""
+        test_data = {
+            "text": "Hello, this is a test of the text-to-speech functionality."
+        }
+        success, response = self.run_test(
+            "Text-to-Speech API",
+            "POST",
+            "tts",
+            200,
+            data=test_data
+        )
+        if success and isinstance(response, dict):
+            if 'audio_base64' in response and response['audio_base64']:
+                print(f"   ✓ TTS returned audio_base64 (length: {len(response['audio_base64'])} chars)")
+                # Basic validation of base64 audio
+                if len(response['audio_base64']) > 1000:  # Should be substantial audio data
+                    print(f"   ✓ Audio data appears substantial")
+                else:
+                    print(f"   ⚠️ Audio data seems small, might be empty")
+            else:
+                print(f"   ❌ TTS response missing audio_base64 field")
+                return False
+        return success
+
+    def test_voice_message_api(self):
+        """Test POST /api/conversations/{id}/voice-message - voice message with multipart form"""
+        if not self.created_conversation_id:
+            print("❌ Skipping voice message test - no conversation created")
+            return False
+            
+        # Create a minimal test audio file (empty WebM file header)
+        # This is just for API testing - real audio would be much larger
+        test_audio_data = b'\x1a\x45\xdf\xa3\x9f\x42\x86\x81\x01\x42\xf7\x81\x01\x42\xf2\x81\x04\x42\xf3\x81\x08\x42\x82\x84webm\x42\x87\x81\x02\x42\x85\x81\x02'
+        
+        url = f"{self.api_url}/conversations/{self.created_conversation_id}/voice-message"
+        
+        self.tests_run += 1
+        print(f"\n🔍 Testing Voice Message API...")
+        print(f"   URL: {url}")
+        
+        try:
+            # Create multipart form data
+            files = {
+                'audio': ('test.webm', test_audio_data, 'audio/webm')
+            }
+            data = {
+                'scenario_context': None
+            }
+            
+            response = requests.post(url, files=files, data=data, timeout=30)  # Longer timeout for AI processing
+            
+            success = response.status_code == 200
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                
+                try:
+                    json_response = response.json()
+                    
+                    # Check expected response structure
+                    required_fields = ['user_message', 'ai_message', 'transcribed_text']
+                    missing_fields = [f for f in required_fields if f not in json_response]
+                    
+                    if not missing_fields:
+                        print(f"   ✓ Voice message response structure valid")
+                        
+                        # Check transcribed text
+                        transcribed = json_response.get('transcribed_text', '')
+                        print(f"   ✓ Transcribed text: '{transcribed}'" if transcribed else "   ⚠️ No transcribed text (expected with minimal test audio)")
+                        
+                        # Check AI message
+                        ai_msg = json_response.get('ai_message', {})
+                        if ai_msg.get('content'):
+                            print(f"   ✓ AI response: {ai_msg['content'][:100]}...")
+                        
+                        # Check TTS audio (optional)
+                        ai_audio = json_response.get('ai_audio_base64')
+                        if ai_audio:
+                            print(f"   ✓ AI audio returned (length: {len(ai_audio)} chars)")
+                        else:
+                            print(f"   ⚠️ No AI audio returned (may be due to TTS failure with test audio)")
+                            
+                    else:
+                        print(f"   ⚠️ Missing fields in voice response: {missing_fields}")
+                    
+                    return True
+                    
+                except json.JSONDecodeError:
+                    print(f"   ❌ Invalid JSON response: {response.text[:200]}")
+                    return False
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                if response.text:
+                    print(f"   Response: {response.text[:400]}")
+                return False
+                
+        except requests.exceptions.Timeout:
+            print(f"❌ Failed - Request timeout after 30s (AI processing may be slow)")
+            return False
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            return False
+
     def test_delete_conversation(self):
         """Test DELETE /api/conversations/{id}"""
         if not self.created_conversation_id:
