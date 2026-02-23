@@ -337,6 +337,7 @@ export default function ChatPage() {
       const res = await createConversation({ title: null, native_language: nativeLang, target_language: targetLang });
       setConversations(prev => [res.data, ...prev]);
       setCurrentConv(res.data);
+      pendingTtsRef.current = true;
       navigate(`/chat/${res.data.id}`, { replace: true });
       return res.data.id;
     } catch (e) {
