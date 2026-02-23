@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 from emergentintegrations.llm.openai import OpenAISpeechToText, OpenAITextToSpeech
 from agent import LanguageTutorAgent
 from tools import SCENARIOS
+from languages import SUPPORTED_LANGUAGES, get_all_languages_sorted, get_language_name
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -36,12 +37,14 @@ api_router = APIRouter(prefix="/api")
 class ConversationCreate(BaseModel):
     title: Optional[str] = None
     scenario: Optional[str] = None
+    language: str = "en"
 
 class ConversationResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
     title: str
     scenario: Optional[str] = None
+    language: str = "en"
     created_at: str
     updated_at: str
     message_count: int = 0
@@ -90,10 +93,12 @@ class ProgressResponse(BaseModel):
 @api_router.post("/conversations", response_model=ConversationResponse)
 async def create_conversation(data: ConversationCreate):
     now = datetime.now(timezone.utc).isoformat()
+    lang_code = data.language if data.language in SUPPORTED_LANGUAGES else "en"
     conv = {
         "id": str(uuid.uuid4()),
         "title": data.title or "New Conversation",
         "scenario": data.scenario,
+        "language": lang_code,
         "created_at": now,
         "updated_at": now,
         "message_count": 0
