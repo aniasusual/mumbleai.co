@@ -757,3 +757,41 @@ class LanguageTutorAgent:
                 "tools_used": tools_used,
                 "type": "error"
             }
+
+    async def generate_welcome(self, scenario: str = None) -> str:
+        """Generate a welcome message in the user's native language."""
+        if scenario:
+            context = f"The user chose the '{scenario.replace('_', ' ')}' role-play scenario. Set the scene and start with one line of in-character dialogue. If this is a cross-language session, the role-play dialogue should be in {self.target_name}."
+        elif self.native_language != self.target_language:
+            context = f"This is the user's first message. You need to assess their {self.target_name} level. Ask them ONE simple thing: to introduce themselves in {self.target_name}."
+        else:
+            context = f"The user wants to practice {self.target_name}. Ask them ONE question: what they'd like to work on today."
+
+        prompt = (
+            f"You are starting a new conversation. Write your opening message.\n"
+            f"IMPORTANT: Write the message in {self.native_name} (the user's native language). "
+            f"Only use {self.target_name} for example phrases or practice material.\n"
+            f"Keep it to 2-3 short sentences. End with exactly ONE question or prompt.\n"
+            f"Context: {context}"
+        )
+
+        try:
+            response = await llm_call(
+                api_key=self.api_key,
+                messages=[{"role": "user", "content": prompt}],
+                system=self.system_prompt,
+                tools=None,
+                max_tokens=300
+            )
+            return response.choices[0].message.content or self._fallback_welcome(scenario)
+        except Exception as e:
+            logger.error(f"Welcome generation failed: {e}")
+            return self._fallback_welcome(scenario)
+
+    def _fallback_welcome(self, scenario: str = None) -> str:
+        """Static English fallback if LLM call fails."""
+        if scenario:
+            return f"Let's practice a {scenario.replace('_', ' ')} scenario! I'll start — just respond naturally."
+        if self.native_language != self.target_language:
+            return f"Hey! Let's figure out your {self.target_name} level. Try introducing yourself in {self.target_name}!"
+        return f"Hey! What would you like to work on today?"
