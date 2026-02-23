@@ -132,7 +132,12 @@ const ChatBubble = ({ message, index, onPlayAudio }) => {
           {message.tools_used && message.tools_used.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {message.tools_used.map((tool) => (
-                <span key={tool} className="tool-badge">{tool.replace("_", " ")}</span>
+                <span
+                  key={tool}
+                  className={`tool-badge ${tool === "set_proficiency_level" ? "!bg-emerald-100 !text-emerald-700 font-semibold" : ""}`}
+                >
+                  {tool === "set_proficiency_level" ? "level detected" : tool.replace(/_/g, " ")}
+                </span>
               ))}
             </div>
           )}
