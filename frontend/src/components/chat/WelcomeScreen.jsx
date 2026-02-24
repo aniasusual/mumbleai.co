@@ -75,18 +75,18 @@ export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targ
   const firstName = userName?.split(" ")[0] || "there";
 
   return (
-    <div className="flex-1 flex flex-col relative overflow-y-auto">
+    <div className="flex-1 overflow-y-auto relative">
       <MeshBlobs />
       <FloatingChars />
 
       {/* Minimal top bar for mobile sidebar toggle */}
-      <div className="px-4 py-3 flex items-center lg:hidden relative z-20 flex-shrink-0">
+      <div className="px-4 py-3 flex items-center lg:hidden relative z-20">
         <button onClick={onOpenSidebar} className="p-1.5 rounded-lg hover:bg-indigo-50 transition-colors" data-testid="welcome-open-sidebar-btn">
           <Menu className="w-5 h-5 text-slate-500" />
         </button>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10 py-8 min-h-0">
+      <div className="flex flex-col items-center px-6 relative z-10 py-6 md:py-12 min-h-full justify-center">
         {/* Logo + Greeting */}
         <motion.div
           className="text-center mb-6 md:mb-10"
