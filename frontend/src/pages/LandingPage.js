@@ -236,7 +236,7 @@ function HeroSection() {
   const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
 
   return (
-    <section ref={ref} className="relative min-h-screen flex flex-col justify-center overflow-hidden pt-24 pb-8" data-testid="hero-section">
+    <section ref={ref} className="relative min-h-screen flex flex-col justify-center overflow-hidden pt-24 pb-8" style={{ background: SECTIONS.hero }} data-testid="hero-section">
       <Particles count={40} color="#6366f1" />
 
       {/* Hero glow */}
