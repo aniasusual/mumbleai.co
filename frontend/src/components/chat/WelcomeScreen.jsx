@@ -174,7 +174,6 @@ export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targ
                   whileTap={{ scale: 0.97 }}
                   data-testid={`welcome-scenario-${s.id}`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
                   <span>{s.title}</span>
                 </motion.button>
               );
