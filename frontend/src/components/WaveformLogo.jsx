@@ -25,3 +25,5 @@ export const WaveformLogo = ({ size = 32, className = "" }) => {
     </svg>
   );
 };
+
+export const WaveformLogoSmall = WaveformLogo;
