@@ -37,9 +37,9 @@ export const ChatInput = ({
     <div
       className="px-4 py-4"
       style={{
-        background: "rgba(15, 23, 42, 0.8)",
+        background: "rgba(248,247,244,0.88)",
         backdropFilter: "blur(16px)",
-        borderTop: "1px solid rgba(255,255,255,0.06)",
+        borderTop: "1px solid rgba(0,0,0,0.06)",
       }}
       data-testid="chat-input-area"
     >
@@ -59,7 +59,7 @@ export const ChatInput = ({
             </AnimatePresence>
             {processingVoice && !isRecording && (
               <div className="flex items-center gap-2 text-sm text-slate-400 py-2">
-                <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+                <Loader2 className="w-4 h-4 animate-spin text-indigo-500" />
                 <span>Processing your voice...</span>
               </div>
             )}
@@ -75,10 +75,10 @@ export const ChatInput = ({
                     ? "linear-gradient(135deg, #dc2626, #ef4444)"
                     : "linear-gradient(135deg, #4338ca, #6366f1)",
                   boxShadow: isRecording
-                    ? "0 0 24px rgba(239,68,68,0.4)"
-                    : "0 0 24px rgba(99,102,241,0.3)",
+                    ? "0 4px 24px rgba(239,68,68,0.35)"
+                    : "0 4px 24px rgba(99,102,241,0.35)",
                 }}
-                whileHover={{ scale: 1.05, boxShadow: isRecording ? "0 0 32px rgba(239,68,68,0.5)" : "0 0 32px rgba(99,102,241,0.5)" }}
+                whileHover={{ scale: 1.05, boxShadow: isRecording ? "0 6px 32px rgba(239,68,68,0.45)" : "0 6px 32px rgba(99,102,241,0.45)" }}
                 whileTap={{ scale: 0.92 }}
                 data-testid="voice-record-btn"
               >
@@ -89,14 +89,14 @@ export const ChatInput = ({
                 )}
                 {isRecording && (
                   <motion.span
-                    className="absolute inset-0 rounded-full border-2 border-red-400"
+                    className="absolute inset-0 rounded-full border-2 border-red-300"
                     animate={{ scale: [1, 1.3], opacity: [0.6, 0] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
                   />
                 )}
               </motion.button>
             </div>
-            <p className="text-xs text-slate-500">{isRecording ? "Tap to stop & send" : "Tap to start speaking"}</p>
+            <p className="text-xs text-slate-400">{isRecording ? "Tap to stop & send" : "Tap to start speaking"}</p>
           </div>
         ) : (
           <div className="flex items-end gap-3">
@@ -105,7 +105,7 @@ export const ChatInput = ({
               animate={{
                 boxShadow: focused
                   ? "0 0 0 2px rgba(99,102,241,0.3), 0 4px 12px rgba(99,102,241,0.08)"
-                  : "0 0 0 1px rgba(255,255,255,0.08)",
+                  : "0 0 0 1px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)",
               }}
               transition={{ duration: 0.2 }}
             >
@@ -117,7 +117,7 @@ export const ChatInput = ({
                 onBlur={() => setFocused(false)}
                 placeholder="Type your message..."
                 rows={1}
-                className="w-full resize-none bg-white/5 border-0 focus:ring-0 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none"
+                className="w-full resize-none bg-white border-0 focus:ring-0 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder:text-slate-300 outline-none"
                 style={{ minHeight: '44px', maxHeight: '120px' }}
                 data-testid="chat-input"
               />
@@ -127,10 +127,11 @@ export const ChatInput = ({
               disabled={!input.trim() || sending}
               className="rounded-xl h-11 w-11 flex items-center justify-center text-white disabled:opacity-30 disabled:cursor-not-allowed"
               style={{
-                background: input.trim() && !sending ? "linear-gradient(135deg, #4338ca, #6366f1)" : "rgba(255,255,255,0.05)",
-                boxShadow: input.trim() && !sending ? "0 0 16px rgba(99,102,241,0.3)" : "none",
+                background: input.trim() && !sending ? "linear-gradient(135deg, #4338ca, #6366f1)" : "#e2e8f0",
+                boxShadow: input.trim() && !sending ? "0 2px 12px rgba(99,102,241,0.3)" : "none",
+                color: input.trim() && !sending ? "white" : "#94a3b8",
               }}
-              whileHover={input.trim() && !sending ? { scale: 1.05 } : {}}
+              whileHover={input.trim() && !sending ? { scale: 1.05, boxShadow: "0 4px 20px rgba(99,102,241,0.4)" } : {}}
               whileTap={input.trim() && !sending ? { scale: 0.92 } : {}}
               data-testid="send-message-btn"
             >
