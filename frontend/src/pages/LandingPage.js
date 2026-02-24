@@ -579,11 +579,17 @@ function CTASection() {
           </p>
         </Reveal>
         <Reveal delay={0.25}>
-          <Button onClick={() => navigate("/chat")}
-            className="rounded-full px-10 py-7 text-[15px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-all duration-200 border-0 shadow-lg shadow-indigo-200 hover:-translate-y-0.5"
+          <motion.button onClick={() => navigate("/chat")}
+            className="relative rounded-full px-11 py-5 text-[15px] font-semibold bg-indigo-600 text-white overflow-hidden group shadow-[0_6px_32px_rgba(99,102,241,0.35)]"
+            whileHover={{ scale: 1.05, boxShadow: "0 8px 40px rgba(99,102,241,0.5)" }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
             data-testid="cta-start-btn">
-            Begin your first lesson <ArrowRight className="ml-2 w-4 h-4" />
-          </Button>
+            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+            <span className="relative flex items-center gap-2">
+              Begin your first lesson <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+            </span>
+          </motion.button>
         </Reveal>
       </div>
     </section>
