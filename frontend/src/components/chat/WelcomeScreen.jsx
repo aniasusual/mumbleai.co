@@ -158,26 +158,24 @@ export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targ
           className="w-full max-w-2xl"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}
         >
-          <p className="text-xs font-semibold tracking-wider uppercase text-slate-400 text-center mb-4">Or pick a scenario</p>
-          <div className="flex flex-wrap gap-2.5 justify-center">
+          <p className="text-xs font-semibold tracking-wider uppercase text-slate-400 text-center mb-3">Or pick a scenario</p>
+          <div className="flex flex-wrap gap-2 justify-center">
             {scenarios.map((s, i) => {
-              const color = SCENARIO_COLORS[i % SCENARIO_COLORS.length];
               const Icon = ICON_MAP[s.icon] || MessageCircle;
               return (
                 <motion.button
                   key={s.id}
                   onClick={() => onNewConversation(s.id)}
-                  className="flex items-center gap-2.5 px-5 py-3 rounded-full border shadow-sm group overflow-hidden relative"
-                  style={{ background: color.bg, borderColor: `${color.icon}22` }}
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium text-slate-500 bg-white/70 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-200"
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.6 + i * 0.06, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                  whileHover={{ scale: 1.06, y: -2, boxShadow: "0 6px 20px rgba(0,0,0,0.06)" }}
+                  transition={{ delay: 0.6 + i * 0.04, duration: 0.3 }}
+                  whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.97 }}
                   data-testid={`welcome-scenario-${s.id}`}
                 >
-                  <Icon className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" style={{ color: color.icon }} />
-                  <span className="text-sm font-medium" style={{ color: color.text }}>{s.title}</span>
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{s.title}</span>
                 </motion.button>
               );
             })}
