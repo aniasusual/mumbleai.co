@@ -1,14 +1,10 @@
 import { useState, useEffect } from "react";
-import { Loader2, CheckCircle2, Wrench, Brain, ChevronDown, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, CheckCircle2, Wrench, ChevronDown, ChevronRight } from "lucide-react";
 
-/**
- * Live tool activity indicator — shows during message processing.
- * Displays which tools/subagents are running and completed.
- */
 export const ToolActivityLive = ({ events }) => {
   if (!events || events.length === 0) return null;
 
-  // Build tool state from events
   const tools = [];
   const toolMap = {};
 
@@ -37,22 +33,26 @@ export const ToolActivityLive = ({ events }) => {
   }
 
   return (
-    <div className="flex items-start gap-3 px-5 py-2 animate-slide-up">
-      <div className="w-8 h-8 rounded-full bg-[#F0F4F8] flex items-center justify-center flex-shrink-0 mt-0.5">
-        <Wrench className="w-3.5 h-3.5 text-[#2F5233]" />
+    <motion.div
+      className="flex items-start gap-3 px-5 py-2"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+        style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)" }}>
+        <Wrench className="w-3.5 h-3.5 text-indigo-400" />
       </div>
       <div className="flex flex-col gap-1.5 min-w-[200px]" data-testid="tool-activity-live">
         {tools.map((tool) => (
           <ToolRow key={tool.id} tool={tool} />
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
 const ToolRow = ({ tool }) => {
   const isRunning = tool.status === "running";
-  const isDone = tool.status === "done";
   const [expanded, setExpanded] = useState(true);
   const hasSubsteps = tool.substeps.length > 0;
 
@@ -60,27 +60,33 @@ const ToolRow = ({ tool }) => {
     <div className="text-xs">
       <div className="flex items-center gap-2 py-1">
         {isRunning ? (
-          <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2F5233] flex-shrink-0" />
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-400 flex-shrink-0" />
         ) : (
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
         )}
-        <span className={`font-medium ${isRunning ? "text-[#2F5233]" : "text-gray-500"}`}>
+        <span className={`font-medium ${isRunning ? "text-indigo-300" : "text-slate-500"}`}>
           {tool.label}
         </span>
-        {isRunning && <span className="text-[10px] text-[#2F5233]/60 animate-pulse">running</span>}
+        {isRunning && <span className="text-[10px] text-indigo-400/60 animate-pulse">running</span>}
         {hasSubsteps && (
-          <button onClick={() => setExpanded(!expanded)} className="p-0.5 rounded hover:bg-gray-100">
-            {expanded ? <ChevronDown className="w-3 h-3 text-gray-400" /> : <ChevronRight className="w-3 h-3 text-gray-400" />}
+          <button onClick={() => setExpanded(!expanded)} className="p-0.5 rounded hover:bg-white/5">
+            {expanded ? <ChevronDown className="w-3 h-3 text-slate-500" /> : <ChevronRight className="w-3 h-3 text-slate-500" />}
           </button>
         )}
       </div>
       {hasSubsteps && expanded && (
-        <div className="ml-6 border-l-2 border-gray-100 pl-3 space-y-0.5">
+        <div className="ml-6 border-l-2 border-white/8 pl-3 space-y-0.5">
           {tool.substeps.map((sub, i) => (
-            <div key={i} className="flex items-center gap-1.5 py-0.5 text-[11px] text-gray-400">
+            <motion.div
+              key={i}
+              className="flex items-center gap-1.5 py-0.5 text-[11px] text-slate-500"
+              initial={{ opacity: 0, x: -4 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.05 }}
+            >
               <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400 flex-shrink-0" />
               <span>{sub.label}</span>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}
@@ -88,9 +94,6 @@ const ToolRow = ({ tool }) => {
   );
 };
 
-/**
- * Tool activity summary — displayed on completed AI messages (collapsible).
- */
 export const ToolActivitySummary = ({ toolActivity }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -100,34 +103,41 @@ export const ToolActivitySummary = ({ toolActivity }) => {
     <div className="mt-1.5" data-testid="tool-activity-summary">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-1.5 text-[10px] text-[#2F5233]/60 hover:text-[#2F5233] transition-colors duration-150"
+        className="flex items-center gap-1.5 text-[10px] text-indigo-400/50 hover:text-indigo-400 transition-colors duration-150"
       >
         <Wrench className="w-2.5 h-2.5" />
         <span>{toolActivity.length} tool{toolActivity.length > 1 ? "s" : ""} used</span>
         {expanded ? <ChevronDown className="w-2.5 h-2.5" /> : <ChevronRight className="w-2.5 h-2.5" />}
       </button>
-      {expanded && (
-        <div className="mt-1 ml-1 space-y-1 animate-fade-in">
-          {toolActivity.map((tool, i) => (
-            <div key={i} className="text-[11px]">
-              <div className="flex items-center gap-1.5 text-gray-500">
-                <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400 flex-shrink-0" />
-                <span className="font-medium">{tool.label}</span>
-              </div>
-              {tool.substeps?.length > 0 && (
-                <div className="ml-4 space-y-0.5 mt-0.5">
-                  {tool.substeps.map((sub, j) => (
-                    <div key={j} className="flex items-center gap-1 text-[10px] text-gray-400">
-                      <span className="w-1 h-1 rounded-full bg-gray-300 flex-shrink-0" />
-                      <span>{sub.label}</span>
-                    </div>
-                  ))}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-1 ml-1 space-y-1 overflow-hidden"
+          >
+            {toolActivity.map((tool, i) => (
+              <div key={i} className="text-[11px]">
+                <div className="flex items-center gap-1.5 text-slate-500">
+                  <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400 flex-shrink-0" />
+                  <span className="font-medium">{tool.label}</span>
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+                {tool.substeps?.length > 0 && (
+                  <div className="ml-4 space-y-0.5 mt-0.5">
+                    {tool.substeps.map((sub, j) => (
+                      <div key={j} className="flex items-center gap-1 text-[10px] text-slate-600">
+                        <span className="w-1 h-1 rounded-full bg-slate-600 flex-shrink-0" />
+                        <span>{sub.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
