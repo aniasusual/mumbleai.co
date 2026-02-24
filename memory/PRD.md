@@ -7,8 +7,9 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - **Name**: mumble (lowercase)
 - **Logo**: SVG waveform forming letter M (WaveformLogo component)
 - **Font**: Sora (headings) + DM Sans (body)
-- **Landing theme**: Warm dark (#0a0a0a) with gold (#c8a97e) accent — "quiet luxury" aesthetic
-- **App theme**: Light (#F0F4F8 sidebar, white cards, #2F5233 primary)
+- **Landing theme**: Light (#f8f7f4 hero) with bold colorful sections (green, blue, violet, orange). Mesh gradients, floating chars, morphing hellos.
+- **Auth theme**: Split-screen — left panel indigo gradient with floating chars + morphing word, right panel light form
+- **App theme (Internal)**: Dark Neon-Noir (#0f172a bg) with indigo (#6366f1) primary, glassmorphism surfaces, Framer Motion animations
 
 ## Completed Features
 - [x] Voice-first interaction (STT + TTS)
@@ -26,27 +27,32 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - [x] Karaoke Word Highlight + Waveform during TTS playback
 - [x] Markdown Rendering (react-markdown + remark-gfm)
 - [x] Waveform M Logo + mumble branding (Sora font)
-- [x] **Advanced Dark Landing Page v2** — Word-by-word text reveals, language orbit (18 languages), 3D tilt tool icons, animated chat demo, parallax scenario scroll, scroll progress bar, alternating feature rows with gradient accent lines, hero parallax with scale/fade. — Implemented 2026-02-23
-- [x] **Landing Page v3 — Warm Gold Redesign** — Replaced rainbow/violet theme with refined warm-gold (#c8a97e) on near-black (#0a0a0a). Minimal navbar (no gradient button), unified monochrome orbit, simplified feature icons, clean CTA. Smooth animations retained. — Tested & verified 2026-02-23
-- [x] **Landing Page v4 — Neon-Noir Bioluminescent** — Complete rebuild with section-by-section color transitions (slate->emerald->blue->violet->stone->slate). Floating glass pill navbar, bento grid features with glassmorphism + mouse-tracking glow, floating particles per section, greeting ticker, animated chat demo, parallax scenarios. Heavy Framer Motion usage. — Tested & verified 2026-02-24
-- [x] **Landing Page v5 — No-Cards, Lighter Tones** — Removed all card patterns. Features: full-width inline strips with numbered items, colored icons, subtle dividers. How-it-works: vertical timeline with connecting gradient line. Demo: bare floating chat messages. Scenarios: floating pill tags with parallax drift. Lighter section backgrounds. — Tested 25/25 passed 2026-02-24
-- [x] **Landing Page v6 — Light Theme + New Logo** — Full light color scheme: #fafafa hero, soft green features, soft blue tools, soft violet demo, soft amber scenarios. New freehand tilted cursive M logo (SVG). Clean flat navbar. Auth page updated to light theme. — Tested 28/28 passed 2026-02-24
-- [x] **Landing Page v7 — Bold Colors + Creative Animations** — Saturated section colors (#d1fae5 green, #bfdbfe blue, #e9d5ff violet, #fed7aa orange). Animated mesh gradient (hero+CTA). MorphingHello cycling 10 languages with gradient text. SoundWave animated bars. FloatingChars drifting script characters. Dark indigo footer. — Tested 30/30 passed 2026-02-24
-- [x] **Hero Greeting Scroll** — Replaced rotating language orbit with dual-column greeting scroll (20 languages in Latin + non-Latin scripts, scrolling in opposite directions with fade masks). — Verified 2026-02-23
-- [x] **JWT Authentication** — Full email/password auth with signup/login/logout. Backend: PyJWT + bcrypt, user-scoped data (conversations, vocabulary, progress). Frontend: React context (useAuth), ProtectedRoute wrapper, AuthPage with Login/Signup tabs. Google login placeholder. — Tested & verified 2026-02-23
-- [x] **Bug Fix: Duplicate Chat Creation** — Fixed race condition in `ensureConversation` causing multiple chats when typing and submitting from `/chat` without an existing conversation. Added `creatingConvRef` to prevent duplicate API calls and `skipNextLoadRef` to prevent `loadMessages` from racing with active message send. — Fixed & verified 2026-02-23
+- [x] **Landing Page v7 — Bold Colors + Creative Animations** — Saturated section colors. Animated mesh gradient. MorphingHello. SoundWave. FloatingChars. Dark indigo footer.
+- [x] **Auth Page — Creative Split-Screen** — Indigo gradient left panel with floating script chars, morphing word, sound wave. Right panel with animated form inputs, shine-sweep submit button.
+- [x] **JWT Authentication** — Full email/password auth with signup/login/logout. Backend: PyJWT + bcrypt, user-scoped data. Frontend: React context (useAuth), ProtectedRoute, AuthPage.
+- [x] **Bug Fix: Duplicate Chat Creation** — Fixed race condition in `ensureConversation`.
+- [x] **Internal App UI Redesign — Dark Neon-Noir Theme** — Complete redesign of all internal app pages (Chat, Dashboard, Vocabulary) and components (Sidebar, ChatHeader, ChatInput, ChatBubble, MessageList, ToolActivity, LanguagePicker) from light theme to dark Neon-Noir. Features: #0f172a dark background, indigo (#6366f1) gradient primary, glassmorphism surfaces (blur+transparency), Framer Motion entrance animations, animated focus rings, glow effects on buttons. User bubbles = indigo gradient, AI bubbles = glass surface. Mobile responsive sidebar overlay. All 25 UI tests passed. — Completed 2026-02-24
 
 ## Backlog
 - **P1**: Progress Journal — auto-generate weekly learning summaries
 - **P2**: Gamification — daily streaks, points, leaderboards
 - **P2**: Real-time Pronunciation Feedback — compare spoken vs target
+- **Future**: Google OAuth integration (placeholder exists on Auth page)
 
-## Landing Page Animations
-- WordReveal: word-by-word with blur-to-sharp transition
-- LanguageOrbit: 18 language names rotating at different speeds/radii
-- TiltElement: 3D mouse-tracking tilt with spring physics
-- ChatDemo: auto-playing message sequence triggered by scroll into view
-- ScenariosScroll: parallax horizontal movement linked to vertical scroll
-- ScrollProgress: spring-physics progress bar at page top
-- Hero parallax: scale + opacity + translateY on scroll
-- FeatureRow: alternating left/right with animated gradient accent lines
+## Design System
+- **Background**: #0f172a (slate 900)
+- **Sidebar**: gradient #0c1222 -> #0f172a
+- **Primary**: #6366f1 (indigo) with gradient #4338ca -> #6366f1
+- **Surfaces**: rgba(255,255,255,0.05) with border rgba(255,255,255,0.08)
+- **Glass**: backdrop-blur-md, semi-transparent backgrounds
+- **Text**: white (headings), slate-200 (body), slate-400 (muted), slate-500 (caption)
+- **Accents**: indigo-300/400 for highlights, emerald-400 for success, red-400 for destructive
+- **Animations**: Framer Motion for all entrance, hover, and transition effects
+
+## Architecture
+- Backend: FastAPI + MongoDB (motor) + PyJWT
+- Frontend: React + TailwindCSS + Shadcn/UI + Framer Motion
+- Auth: JWT tokens, user-scoped data
+- Real-time: SSE for tool activity + text streaming
+- Voice: OpenAI Whisper (STT) + OpenAI TTS (via Emergent LLM Key)
+- AI: OpenAI GPT-5.2 (via Emergent LLM Key)
