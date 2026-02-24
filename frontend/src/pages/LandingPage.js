@@ -476,11 +476,17 @@ function DemoSection() {
               </p>
             </Reveal>
             <Reveal delay={0.25}>
-              <button onClick={() => navigate("/chat")}
-                className="inline-flex items-center gap-2 text-sm font-semibold text-violet-700 hover:text-violet-900 transition-colors duration-200 group"
+              <motion.button onClick={() => navigate("/chat")}
+                className="relative inline-flex items-center gap-2 text-sm font-semibold text-violet-700 px-6 py-3 rounded-full border-2 border-violet-300 bg-white/60 backdrop-blur-sm overflow-hidden group"
+                whileHover={{ scale: 1.05, borderColor: "#7c3aed", boxShadow: "0 4px 20px rgba(139,92,246,0.2)" }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 data-testid="demo-try-btn">
-                Try it yourself <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
-              </button>
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-violet-100 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                <span className="relative flex items-center gap-2">
+                  Try it yourself <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </span>
+              </motion.button>
             </Reveal>
           </div>
           <Reveal delay={0.15}>
