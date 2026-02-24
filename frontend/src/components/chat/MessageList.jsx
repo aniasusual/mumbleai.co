@@ -1,9 +1,52 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, Sparkles } from "lucide-react";
 import { ChatBubble, TypingIndicator, MarkdownContent } from "./ChatBubble";
 import { ToolActivityLive } from "./ToolActivity";
 import { WaveformLogoSmall } from "@/components/WaveformLogo";
+
+/** Floating mesh blobs for the empty state */
+function MeshBlobs() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <motion.div className="absolute w-[400px] h-[400px] rounded-full"
+        style={{ top: "5%", right: "10%", background: "radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 65%)" }}
+        animate={{ x: [0, 30, 0], y: [0, 20, 0] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }} />
+      <motion.div className="absolute w-[350px] h-[350px] rounded-full"
+        style={{ bottom: "10%", left: "5%", background: "radial-gradient(circle, rgba(236,72,153,0.08) 0%, transparent 65%)" }}
+        animate={{ x: [0, -20, 0], y: [0, -25, 0] }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }} />
+      <motion.div className="absolute w-[300px] h-[300px] rounded-full"
+        style={{ top: "40%", left: "40%", background: "radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 65%)" }}
+        animate={{ x: [0, 25, 0], y: [0, -15, 0] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }} />
+    </div>
+  );
+}
+
+/** Floating script chars for empty state */
+const CHARS = ["あ", "ñ", "ü", "한", "ç", "你", "θ", "ê"];
+
+function FloatingCharsSmall() {
+  const items = useMemo(() => CHARS.map((c, i) => ({
+    char: c, x: 10 + (i * 11) % 80, y: 10 + ((i * 14) % 75),
+    size: 14 + (i % 3) * 5, dur: 10 + (i % 4) * 4,
+  })), []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {items.map((item, i) => (
+        <motion.span key={i}
+          className="absolute font-bold select-none"
+          style={{ left: `${item.x}%`, top: `${item.y}%`, fontSize: item.size, color: "rgba(99,102,241,0.06)" }}
+          animate={{ y: [-8, 8, -8], x: [-4, 4, -4], rotate: [-5, 5, -5] }}
+          transition={{ duration: item.dur, repeat: Infinity, ease: "easeInOut", delay: i * 0.6 }}
+        >{item.char}</motion.span>
+      ))}
+    </div>
+  );
+}
 
 const StreamingBubble = ({ text }) => (
   <motion.div
@@ -12,15 +55,13 @@ const StreamingBubble = ({ text }) => (
     animate={{ opacity: 1, y: 0 }}
     data-testid="streaming-bubble"
   >
-    <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
-      style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.15), rgba(129,140,248,0.1))", border: "1px solid rgba(99,102,241,0.2)" }}>
-      <WaveformLogoSmall size={18} className="text-indigo-400" />
+    <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 bg-indigo-50 border border-indigo-100">
+      <WaveformLogoSmall size={18} className="text-indigo-500" />
     </div>
-    <div className="max-w-[75%] px-5 py-3 rounded-2xl rounded-tl-sm"
-      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-      <div className="text-sm leading-relaxed text-slate-200">
+    <div className="max-w-[75%] px-5 py-3 rounded-2xl rounded-tl-sm bg-white border border-slate-100 shadow-sm">
+      <div className="text-sm leading-relaxed text-slate-700">
         <MarkdownContent content={text} />
-        <span className="inline-block w-0.5 h-4 bg-indigo-400 animate-pulse ml-0.5 align-text-bottom" />
+        <span className="inline-block w-0.5 h-4 bg-indigo-500 animate-pulse ml-0.5 align-text-bottom" />
       </div>
     </div>
   </motion.div>
@@ -35,32 +76,30 @@ export const MessageList = ({ messages, loading, sending, toolEvents, streamingT
 
   if (messages.length === 0 && !loading) {
     return (
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto relative">
+        <MeshBlobs />
+        <FloatingCharsSmall />
         <motion.div
-          className="flex flex-col items-center justify-center h-full px-6"
+          className="flex flex-col items-center justify-center h-full px-6 relative z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           data-testid="empty-chat-state"
         >
           <motion.div
-            className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
-            style={{
-              background: "linear-gradient(135deg, rgba(99,102,241,0.15), rgba(129,140,248,0.08))",
-              border: "1px solid rgba(99,102,241,0.2)",
-            }}
+            className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6 bg-indigo-50 border border-indigo-100"
             animate={{ rotate: [0, 2, -2, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           >
             {inputMode === "voice"
-              ? <Mic className="w-10 h-10 text-indigo-400" />
-              : <Sparkles className="w-10 h-10 text-indigo-400" />
+              ? <Mic className="w-10 h-10 text-indigo-500" />
+              : <Sparkles className="w-10 h-10 text-indigo-500" />
             }
           </motion.div>
-          <h3 className="text-xl font-semibold text-white mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
+          <h3 className="text-xl font-semibold text-slate-800 mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>
             {inputMode === "voice" ? "Tap the mic to start talking" : "Start practicing"}
           </h3>
-          <p className="text-sm text-slate-400 text-center max-w-md mb-8 leading-relaxed">
+          <p className="text-sm text-slate-500 text-center max-w-md mb-8 leading-relaxed">
             {inputMode === "voice"
               ? "Speak naturally in English. I'll listen, respond with voice, and help you improve your pronunciation, grammar, and vocabulary."
               : "Type anything in English and I'll help you improve. Try asking me to check your grammar, practice a scenario, or explain a word."}
@@ -76,16 +115,7 @@ export const MessageList = ({ messages, loading, sending, toolEvents, streamingT
                 <motion.button
                   key={prompt}
                   onClick={() => { onSetInput(prompt); inputRef?.current?.focus(); }}
-                  className="text-xs text-left px-4 py-2.5 rounded-full text-slate-400 transition-all duration-200"
-                  style={{
-                    background: "rgba(255,255,255,0.03)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                  }}
-                  whileHover={{
-                    background: "rgba(99,102,241,0.1)",
-                    borderColor: "rgba(99,102,241,0.3)",
-                    color: "#a5b4fc",
-                  }}
+                  className="text-xs text-left px-4 py-2.5 rounded-full text-slate-500 bg-white border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 transition-all duration-200 shadow-sm"
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 + i * 0.08, duration: 0.3 }}
