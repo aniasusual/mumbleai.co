@@ -25,24 +25,6 @@ const SECTIONS = {
 };
 
 /* ═══════════════════════════════════════════════════
-   SCROLL-LINKED BACKGROUND
-   ═══════════════════════════════════════════════════ */
-function ScrollBackground() {
-  const { scrollYProgress } = useScroll();
-  const bg = useTransform(
-    scrollYProgress,
-    [0, 0.15, 0.3, 0.5, 0.7, 0.85],
-    [SECTIONS.hero, SECTIONS.features, SECTIONS.tools, SECTIONS.demo, SECTIONS.scenarios, SECTIONS.cta]
-  );
-  return (
-    <motion.div
-      className="fixed inset-0 -z-10 transition-colors"
-      style={{ backgroundColor: bg }}
-    />
-  );
-}
-
-/* ═══════════════════════════════════════════════════
    SCROLL PROGRESS BAR
    ═══════════════════════════════════════════════════ */
 function ScrollProgress() {
