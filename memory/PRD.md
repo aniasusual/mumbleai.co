@@ -39,6 +39,7 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - [x] JWT Authentication — email/password + user-scoped data
 - [x] Bug Fix: Duplicate Chat Creation (race condition)
 - [x] **Internal App UI Redesign — Light Colorful Theme** — Complete redesign of all internal pages and components to match landing page aesthetic. Warm #f8f7f4 bg, indigo gradient sidebar, mesh blobs + floating chars, colorful dashboard sections (green/blue/violet/amber), white chat bubbles with indigo user bubbles. 33/33 tests passed. — 2026-02-24
+- [x] **Welcome Screen** — When user lands on /chat with no active conversation, shows personalized greeting ("Hey {name}!"), animated sound wave, "Start a Free Conversation" CTA, and colorful scenario pills (green/blue/violet/amber/pink/teal). Clicking any option creates a conversation and navigates to chat view. 16/16 tests passed. — 2026-02-24
 
 ## Backlog
 - **P1**: Progress Journal — auto-generate weekly learning summaries
