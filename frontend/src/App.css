@@ -1,4 +1,4 @@
-/* LinguaFlow - Global Styles */
+/* mumble - Global Styles */
 
 /* Stagger animation delays for lists */
 .stagger-1 { animation-delay: 0.05s; }
@@ -8,35 +8,20 @@
 .stagger-5 { animation-delay: 0.25s; }
 .stagger-6 { animation-delay: 0.3s; }
 
-/* Chat bubble styles */
-.chat-bubble-user {
-  background-color: #2F5233;
-  color: white;
-  border-radius: 20px 20px 4px 20px;
-}
-
-.chat-bubble-ai {
-  background-color: white;
-  color: #1A1A1A;
-  border: 1px solid #e5e7eb;
-  border-radius: 20px 20px 20px 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-/* Glass header */
+/* Glass header — dark theme */
 .glass-header {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  background: rgba(255, 255, 255, 0.85);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(15, 23, 42, 0.85);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* Glass input bar */
+/* Glass input bar — dark theme */
 .glass-input {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  background: rgba(255, 255, 255, 0.9);
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(15, 23, 42, 0.9);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 /* Scenario card hover */
@@ -45,7 +30,7 @@
 }
 .scenario-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
 }
 
 /* Tool badge */
@@ -53,8 +38,8 @@
   font-size: 0.7rem;
   padding: 2px 8px;
   border-radius: 9999px;
-  background: #F0F4F8;
-  color: #2F5233;
+  background: rgba(99, 102, 241, 0.1);
+  color: #a5b4fc;
   font-weight: 500;
   letter-spacing: 0.02em;
 }
