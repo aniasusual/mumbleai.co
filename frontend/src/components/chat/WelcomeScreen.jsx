@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import { WaveformLogo } from "@/components/WaveformLogo";
 
+import { LanguagePicker } from "./LanguagePicker";
+
 const ICON_MAP = { Briefcase, Plane, UtensilsCrossed, MessageCircle, Phone, Users, ShoppingBag, Stethoscope };
 const CHARS = ["あ", "ñ", "ü", "한", "ç", "你", "θ", "ê", "ш", "ø"];
 
@@ -69,7 +71,7 @@ const SCENARIO_COLORS = [
   { bg: "#ccfbf1", text: "#115e59", icon: "#0d9488" },
 ];
 
-export const WelcomeScreen = ({ userName, scenarios, onNewConversation, onOpenSidebar }) => {
+export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targetLang, onSetNativeLang, onSetTargetLang, onNewConversation, onOpenSidebar }) => {
   const firstName = userName?.split(" ")[0] || "there";
 
   return (
@@ -106,10 +108,31 @@ export const WelcomeScreen = ({ userName, scenarios, onNewConversation, onOpenSi
         </motion.div>
 
         {/* Sound Wave */}
-        <motion.div className="mb-10"
+        <motion.div className="mb-8"
           initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}>
           <SoundWave />
+        </motion.div>
+
+        {/* Language Pickers */}
+        <motion.div
+          className="flex flex-col sm:flex-row items-center gap-3 mb-8 w-full max-w-md"
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+        >
+          <div className="flex-1 w-full">
+            <LanguagePicker
+              label="I speak" labelClass="text-slate-500"
+              btnClass="bg-white/80 hover:bg-white border border-slate-200 text-slate-700 shadow-sm"
+              value={nativeLang} languages={languages} onSelect={onSetNativeLang} testIdPrefix="welcome-native"
+            />
+          </div>
+          <div className="flex-1 w-full">
+            <LanguagePicker
+              label="Learn" labelClass="text-indigo-600"
+              btnClass="bg-indigo-50/80 hover:bg-indigo-50 border border-indigo-200 text-indigo-700 shadow-sm"
+              value={targetLang} languages={languages} onSelect={onSetTargetLang} testIdPrefix="welcome-target"
+            />
+          </div>
         </motion.div>
 
         {/* Primary CTA — Free Conversation */}
