@@ -94,17 +94,17 @@ export default function DashboardPage() {
                 <span className="font-semibold text-slate-800" style={{ fontFamily: 'Sora, sans-serif' }}>Dashboard</span>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Button variant="outline" onClick={() => navigate("/vocabulary")}
-                className="rounded-full border-slate-200 text-slate-600 hover:border-indigo-300 hover:text-indigo-600 text-sm transition-all" data-testid="nav-vocabulary-btn">
-                <BookOpen className="w-4 h-4 mr-1.5" /> Vocabulary
+                className="rounded-full border-slate-200 text-slate-600 hover:border-indigo-300 hover:text-indigo-600 text-sm transition-all px-2.5 sm:px-4" data-testid="nav-vocabulary-btn">
+                <BookOpen className="w-4 h-4 sm:mr-1.5" /> <span className="hidden sm:inline">Vocabulary</span>
               </Button>
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button onClick={() => navigate("/chat")}
-                  className="text-white rounded-full text-sm shadow-[0_2px_12px_rgba(99,102,241,0.3)] hover:shadow-[0_4px_20px_rgba(99,102,241,0.4)] transition-shadow"
+                  className="text-white rounded-full text-sm shadow-[0_2px_12px_rgba(99,102,241,0.3)] hover:shadow-[0_4px_20px_rgba(99,102,241,0.4)] transition-shadow px-2.5 sm:px-4"
                   style={{ background: "linear-gradient(135deg, #4338ca, #6366f1)" }}
                   data-testid="nav-practice-btn">
-                  <MessageCircle className="w-4 h-4 mr-1.5" /> Practice
+                  <MessageCircle className="w-4 h-4 sm:mr-1.5" /> <span className="hidden sm:inline">Practice</span>
                 </Button>
               </motion.div>
             </div>
@@ -125,7 +125,7 @@ export default function DashboardPage() {
         ) : progress ? (
           <>
             {/* Stats — each card has its own vibrant bg color matching landing page sections */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10" data-testid="stats-grid">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-10" data-testid="stats-grid">
               {stats.map((stat, idx) => (
                 <motion.div key={stat.label}
                   className="rounded-2xl p-6 relative overflow-hidden"

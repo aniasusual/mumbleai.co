@@ -115,17 +115,17 @@ export default function VocabularyPage() {
                 <span className="font-semibold text-slate-800" style={{ fontFamily: 'Sora, sans-serif' }}>Vocabulary</span>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Button variant="outline" onClick={() => navigate("/dashboard")}
-                className="rounded-full border-slate-200 text-slate-600 hover:border-indigo-300 hover:text-indigo-600 text-sm transition-all" data-testid="nav-dashboard-btn">
-                <BarChart3 className="w-4 h-4 mr-1.5" /> Dashboard
+                className="rounded-full border-slate-200 text-slate-600 hover:border-indigo-300 hover:text-indigo-600 text-sm transition-all px-2.5 sm:px-4" data-testid="nav-dashboard-btn">
+                <BarChart3 className="w-4 h-4 sm:mr-1.5" /> <span className="hidden sm:inline">Dashboard</span>
               </Button>
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button onClick={() => navigate("/chat")}
-                  className="text-white rounded-full text-sm shadow-[0_2px_12px_rgba(99,102,241,0.3)] hover:shadow-[0_4px_20px_rgba(99,102,241,0.4)] transition-shadow"
+                  className="text-white rounded-full text-sm shadow-[0_2px_12px_rgba(99,102,241,0.3)] hover:shadow-[0_4px_20px_rgba(99,102,241,0.4)] transition-shadow px-2.5 sm:px-4"
                   style={{ background: "linear-gradient(135deg, #4338ca, #6366f1)" }}
                   data-testid="nav-practice-btn">
-                  <MessageCircle className="w-4 h-4 mr-1.5" /> Practice
+                  <MessageCircle className="w-4 h-4 sm:mr-1.5" /> <span className="hidden sm:inline">Practice</span>
                 </Button>
               </motion.div>
             </div>
@@ -139,12 +139,12 @@ export default function VocabularyPage() {
             <h1 className="text-3xl md:text-4xl tracking-tight text-slate-900 font-bold mb-2" style={{ fontFamily: 'Sora, sans-serif' }}>Your Vocabulary</h1>
             <p className="text-base text-slate-500">{vocabulary.length} {vocabulary.length === 1 ? "word" : "words"} saved</p>
           </motion.div>
-          <div className="flex items-center gap-3">
-            <div className="relative">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-none">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search words..."
-                className="pl-9 pr-8 py-2 text-sm rounded-full border border-slate-200 bg-white text-slate-700 placeholder:text-slate-400 focus:border-indigo-300 focus:outline-none w-56 transition-colors shadow-sm"
+                className="pl-9 pr-8 py-2 text-sm rounded-full border border-slate-200 bg-white text-slate-700 placeholder:text-slate-400 focus:border-indigo-300 focus:outline-none w-full sm:w-56 transition-colors shadow-sm"
                 data-testid="vocab-search-input" />
               {search && (
                 <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2">
