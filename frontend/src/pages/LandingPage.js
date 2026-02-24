@@ -200,8 +200,11 @@ function Navbar() {
           ))}
         </div>
         <button onClick={() => navigate("/chat")}
-          className="text-[13px] font-semibold px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-all duration-200 hover:-translate-y-px shadow-sm"
-          data-testid="nav-start-btn">Get Started</button>
+          className="relative text-[13px] font-semibold px-5 py-2.5 rounded-full bg-indigo-600 text-white overflow-hidden group transition-all duration-300 hover:-translate-y-px shadow-[0_2px_12px_rgba(99,102,241,0.3)] hover:shadow-[0_4px_20px_rgba(99,102,241,0.5)]"
+          data-testid="nav-start-btn">
+          <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+          <span className="relative flex items-center gap-1.5">Get Started <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5" /></span>
+        </button>
       </div>
     </motion.nav>
   );
