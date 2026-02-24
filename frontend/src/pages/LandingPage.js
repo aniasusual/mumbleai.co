@@ -687,8 +687,7 @@ function Footer() {
    ═══════════════════════════════════════════════════ */
 export default function LandingPage() {
   return (
-    <div className="min-h-screen text-white" style={{ fontFamily: "DM Sans, sans-serif" }}>
-      <ScrollBackground />
+    <div className="min-h-screen text-white" style={{ fontFamily: "DM Sans, sans-serif", background: "#020617" }}>
       <ScrollProgress />
       <Navbar />
       <HeroSection />
