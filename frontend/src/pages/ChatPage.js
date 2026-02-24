@@ -291,7 +291,7 @@ export default function ChatPage() {
 
   // --- Render ---
   return (
-    <div className="h-screen flex" style={{ background: "#0f172a" }} data-testid="chat-page">
+    <div className="h-screen flex" style={{ background: "#f8f7f4" }} data-testid="chat-page">
       <Sidebar
         conversations={conversations} conversationId={conversationId}
         scenarios={scenarios} languages={languages}

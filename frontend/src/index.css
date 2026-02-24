@@ -70,7 +70,7 @@
   }
 }
 
-/* Custom scrollbar — dark theme */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -78,11 +78,11 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.1);
+  background: #c4c4c4;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.18);
+  background: #a0a0a0;
 }
 
 /* Noise texture overlay */
@@ -175,20 +175,20 @@
 .waveform-bar:nth-child(4) { animation-delay: 0.08s; }
 .waveform-bar:nth-child(5) { animation-delay: 0.18s; }
 
-/* Karaoke word highlight transition — dark theme */
+/* Karaoke word highlight transition */
 .karaoke-word {
   transition: color 0.15s ease, background-color 0.15s ease;
   border-radius: 2px;
 }
 .karaoke-word-current {
-  background-color: rgba(99, 102, 241, 0.2);
-  color: #a5b4fc;
+  background-color: rgba(99, 102, 241, 0.12);
+  color: #4338ca;
   padding: 1px 3px;
   border-radius: 3px;
 }
 .karaoke-word-spoken {
-  color: #e2e8f0;
+  color: #1e293b;
 }
 .karaoke-word-upcoming {
-  color: rgba(148, 163, 184, 0.4);
+  color: rgba(30, 41, 59, 0.3);
 }
