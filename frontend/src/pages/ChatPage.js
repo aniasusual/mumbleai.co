@@ -10,6 +10,7 @@ import { Sidebar } from "@/components/chat/Sidebar";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { MessageList } from "@/components/chat/MessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
+import { WelcomeScreen } from "@/components/chat/WelcomeScreen";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import { useAuth } from "@/hooks/useAuth";
 import { playAudioBase64, playAudioWithKaraoke } from "@/lib/audio";
@@ -303,26 +304,37 @@ export default function ChatPage() {
       />
 
       <main className="flex-1 flex flex-col min-w-0" data-testid="chat-main">
-        <ChatHeader
-          currentConv={currentConv} curriculum={curriculum} languages={languages}
-          inputMode={inputMode} onSetInputMode={setInputMode}
-          onOpenSidebar={() => setSidebarOpen(true)}
-        />
+        {!conversationId ? (
+          <WelcomeScreen
+            userName={user?.name}
+            scenarios={scenarios}
+            onNewConversation={handleNewConversation}
+            onOpenSidebar={() => setSidebarOpen(true)}
+          />
+        ) : (
+          <>
+            <ChatHeader
+              currentConv={currentConv} curriculum={curriculum} languages={languages}
+              inputMode={inputMode} onSetInputMode={setInputMode}
+              onOpenSidebar={() => setSidebarOpen(true)}
+            />
 
-        <MessageList
-          messages={messages} loading={loading} sending={sending}
-          toolEvents={toolEvents} streamingText={streamingText}
-          speakingState={speakingState} onStopAudio={stopAudio}
-          inputMode={inputMode} onPlayAudio={handlePlayMessage}
-          onSetInput={setInput} inputRef={inputRef}
-        />
+            <MessageList
+              messages={messages} loading={loading} sending={sending}
+              toolEvents={toolEvents} streamingText={streamingText}
+              speakingState={speakingState} onStopAudio={stopAudio}
+              inputMode={inputMode} onPlayAudio={handlePlayMessage}
+              onSetInput={setInput} inputRef={inputRef}
+            />
 
-        <ChatInput
-          inputMode={inputMode} input={input} sending={sending}
-          isRecording={isRecording} audioLevel={audioLevel} processingVoice={processingVoice}
-          onSetInput={setInput} onSendText={handleSendText}
-          onVoiceRecord={handleVoiceRecord} inputRef={inputRef}
-        />
+            <ChatInput
+              inputMode={inputMode} input={input} sending={sending}
+              isRecording={isRecording} audioLevel={audioLevel} processingVoice={processingVoice}
+              onSetInput={setInput} onSendText={handleSendText}
+              onVoiceRecord={handleVoiceRecord} inputRef={inputRef}
+            />
+          </>
+        )}
       </main>
     </div>
   );
