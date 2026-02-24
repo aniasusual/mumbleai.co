@@ -98,7 +98,7 @@ const DesktopSidebar = ({
               <Plus className="w-4 h-4" />
             </motion.button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" side="right" className="w-56 bg-white border-indigo-100 shadow-lg rounded-xl" data-testid="new-chat-dropdown-collapsed">
+          <DropdownMenuContent align="start" side="right" className="w-56 border-indigo-100 shadow-lg rounded-xl" style={{ backgroundColor: '#ffffff' }} data-testid="new-chat-dropdown-collapsed">
             <DropdownMenuItem onClick={() => onNewConversation()} className="text-slate-700 focus:bg-indigo-50 focus:text-indigo-700 rounded-lg" data-testid="new-freeform-chat-collapsed">
               <MessageCircle className="w-4 h-4 mr-2 text-indigo-500" /> Free Conversation
             </DropdownMenuItem>
@@ -218,7 +218,7 @@ const DesktopSidebar = ({
                 </Button>
               </motion.div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-64 bg-white border-indigo-100 shadow-lg rounded-xl" data-testid="new-chat-dropdown">
+            <DropdownMenuContent align="start" className="w-64 border-indigo-100 shadow-lg rounded-xl" style={{ backgroundColor: '#ffffff' }} data-testid="new-chat-dropdown">
               <DropdownMenuItem onClick={() => onNewConversation()} className="text-slate-700 focus:bg-indigo-50 focus:text-indigo-700 rounded-lg" data-testid="new-freeform-chat">
                 <MessageCircle className="w-4 h-4 mr-2 text-indigo-500" /> Free Conversation
               </DropdownMenuItem>
