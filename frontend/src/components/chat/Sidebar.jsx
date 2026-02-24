@@ -55,20 +55,16 @@ const CollapsedRail = ({
 
       {/* New Chat */}
       <DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <DropdownMenuTrigger asChild>
-              <button
-                className="p-2 my-1 rounded-xl text-white transition-all hover:shadow-md"
-                style={{ background: "linear-gradient(135deg, #4338ca, #6366f1)", boxShadow: "0 2px 8px rgba(99,102,241,0.3)" }}
-                data-testid="new-chat-btn-collapsed"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </DropdownMenuTrigger>
-          </TooltipTrigger>
-          <TooltipContent side="right"><span>New chat</span></TooltipContent>
-        </Tooltip>
+        <DropdownMenuTrigger asChild>
+          <button
+            className="p-2 my-1 rounded-xl text-white transition-all hover:shadow-md"
+            style={{ background: "linear-gradient(135deg, #4338ca, #6366f1)", boxShadow: "0 2px 8px rgba(99,102,241,0.3)" }}
+            data-testid="new-chat-btn-collapsed"
+            title="New chat"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </DropdownMenuTrigger>
         <DropdownMenuContent align="start" side="right" className="w-56 bg-white border-indigo-100 shadow-lg" data-testid="new-chat-dropdown-collapsed">
           <DropdownMenuItem onClick={() => onNewConversation()} className="text-slate-700 focus:bg-indigo-50 focus:text-indigo-700" data-testid="new-freeform-chat-collapsed">
             <MessageCircle className="w-4 h-4 mr-2 text-indigo-500" /> Free Conversation
