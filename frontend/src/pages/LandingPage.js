@@ -523,7 +523,7 @@ function ChatDemo() {
 function DemoSection() {
   const navigate = useNavigate();
   return (
-    <section className="relative py-28 md:py-36" data-testid="demo-section">
+    <section className="relative py-28 md:py-36" style={{ background: SECTIONS.demo }} data-testid="demo-section">
       <Particles count={15} color="#a78bfa" />
       <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] pointer-events-none"
         style={{ background: "radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 60%)" }} />
