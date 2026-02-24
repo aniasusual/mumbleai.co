@@ -44,7 +44,7 @@ export const LanguagePicker = ({ label, labelClass, btnClass, value, languages, 
             style={{ backgroundColor: '#ffffff' }}
             data-testid={`${testIdPrefix}-lang-dropdown`}
           >
-            <div className="p-2 border-b border-slate-100">
+            <div className="p-2 border-b border-slate-100" style={{ backgroundColor: '#ffffff' }}>
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                 <input
@@ -55,7 +55,7 @@ export const LanguagePicker = ({ label, labelClass, btnClass, value, languages, 
                 />
               </div>
             </div>
-            <div className="overflow-y-auto max-h-48">
+            <div className="overflow-y-auto max-h-48" style={{ backgroundColor: '#ffffff' }}>
               {filtered.map((lang) => (
                 <button
                   key={lang.code}
