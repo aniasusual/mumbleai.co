@@ -664,7 +664,7 @@ function CTASection() {
 function Footer() {
   const navigate = useNavigate();
   return (
-    <footer className="py-8 border-t border-white/5" data-testid="footer">
+    <footer className="py-8 border-t border-white/5" style={{ background: "#000" }} data-testid="footer">
       <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <WaveformLogo size={18} className="text-indigo-400 opacity-50" />
