@@ -333,7 +333,7 @@ const MobileSidebar = ({
             <Plus className="w-4 h-4 mr-2" /> New Chat <ChevronDown className="w-3 h-3 ml-auto opacity-60" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-64 bg-white border-indigo-100 shadow-lg rounded-xl" data-testid="new-chat-dropdown">
+        <DropdownMenuContent align="start" className="w-64 border-indigo-100 shadow-lg rounded-xl" style={{ backgroundColor: '#ffffff' }} data-testid="new-chat-dropdown">
           <DropdownMenuItem onClick={() => onNewConversation()} className="text-slate-700 focus:bg-indigo-50 focus:text-indigo-700 rounded-lg" data-testid="new-freeform-chat">
             <MessageCircle className="w-4 h-4 mr-2 text-indigo-500" /> Free Conversation
           </DropdownMenuItem>
