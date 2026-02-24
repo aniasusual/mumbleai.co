@@ -40,7 +40,8 @@ export const LanguagePicker = ({ label, labelClass, btnClass, value, languages, 
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-slate-200 shadow-xl z-50 max-h-64 overflow-hidden"
+            className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-slate-200 shadow-xl z-[100] max-h-64 overflow-hidden"
+            style={{ backgroundColor: '#ffffff' }}
             data-testid={`${testIdPrefix}-lang-dropdown`}
           >
             <div className="p-2 border-b border-slate-100">

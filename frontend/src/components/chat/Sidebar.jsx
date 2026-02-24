@@ -419,13 +419,14 @@ export const Sidebar = ({
       />
 
       {/* Mobile — overlay */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {sidebarOpen && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
               className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 lg:hidden" onClick={onCloseSidebar} />
             <motion.div initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              transition={{ type: "tween", duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
               className="fixed inset-y-0 left-0 z-40 lg:hidden">
               <MobileSidebar
                 conversations={conversations} conversationId={conversationId}
