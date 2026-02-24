@@ -160,9 +160,7 @@ export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targ
         >
           <p className="text-xs font-semibold tracking-wider uppercase text-slate-400 text-center mb-3">Or pick a scenario</p>
           <div className="flex flex-wrap gap-2 justify-center">
-            {scenarios.map((s, i) => {
-              const Icon = ICON_MAP[s.icon] || MessageCircle;
-              return (
+            {scenarios.map((s, i) => (
                 <motion.button
                   key={s.id}
                   onClick={() => onNewConversation(s.id)}
@@ -176,8 +174,7 @@ export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targ
                 >
                   <span>{s.title}</span>
                 </motion.button>
-              );
-            })}
+              ))}
           </div>
         </motion.div>
       </div>
