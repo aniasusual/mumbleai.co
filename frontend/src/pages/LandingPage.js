@@ -4,7 +4,6 @@ import {
   motion, useScroll, useTransform, useSpring, useInView,
   AnimatePresence,
 } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { WaveformLogo } from "@/components/WaveformLogo";
 import {
   Mic, ArrowRight, Brain, AudioLines, Target, Volume2,
