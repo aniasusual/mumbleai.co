@@ -40,20 +40,16 @@ export const LanguagePicker = ({ label, labelClass, btnClass, value, languages, 
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 right-0 mt-1 rounded-xl shadow-xl z-50 max-h-64 overflow-hidden"
-            style={{
-              background: "#1e293b",
-              border: "1px solid rgba(255,255,255,0.1)",
-            }}
+            className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-slate-200 shadow-xl z-50 max-h-64 overflow-hidden"
             data-testid={`${testIdPrefix}-lang-dropdown`}
           >
-            <div className="p-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <div className="p-2 border-b border-slate-100">
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                 <input
                   type="text" value={search} onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search..." autoFocus
-                  className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg bg-white/5 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/40 border border-white/8"
+                  className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-300 border border-slate-100"
                   data-testid={`${testIdPrefix}-lang-search`}
                 />
               </div>
@@ -65,14 +61,14 @@ export const LanguagePicker = ({ label, labelClass, btnClass, value, languages, 
                   onClick={() => { onSelect(lang.code); setOpen(false); setSearch(""); }}
                   className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors duration-100 ${
                     value === lang.code
-                      ? "bg-indigo-500/15 text-indigo-300 font-medium"
-                      : "text-slate-300 hover:bg-white/5"
+                      ? "bg-indigo-50 text-indigo-700 font-medium"
+                      : "text-slate-600 hover:bg-indigo-50/50"
                   }`}
                   data-testid={`${testIdPrefix}-lang-${lang.code}`}
                 >
                   <span className="flex-1 text-left">{lang.name}</span>
-                  <span className="text-xs text-slate-500">{lang.native}</span>
-                  {value === lang.code && <Check className="w-3.5 h-3.5 text-indigo-400" />}
+                  <span className="text-xs text-slate-400">{lang.native}</span>
+                  {value === lang.code && <Check className="w-3.5 h-3.5 text-indigo-500" />}
                 </button>
               ))}
             </div>
