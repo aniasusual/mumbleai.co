@@ -1,14 +1,11 @@
 import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Mic, Keyboard, ArrowRight, MessageCircle, Sparkles,
-  Briefcase, Plane, UtensilsCrossed, Phone, Users, ShoppingBag, Stethoscope, Menu
+  Mic, ArrowRight, Sparkles, Menu
 } from "lucide-react";
 import { WaveformLogo } from "@/components/WaveformLogo";
-
 import { LanguagePicker } from "./LanguagePicker";
 
-const ICON_MAP = { Briefcase, Plane, UtensilsCrossed, MessageCircle, Phone, Users, ShoppingBag, Stethoscope };
 const CHARS = ["あ", "ñ", "ü", "한", "ç", "你", "θ", "ê", "ш", "ø"];
 
 function MeshBlobs() {
