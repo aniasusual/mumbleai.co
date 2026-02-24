@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -19,61 +18,122 @@ import { WaveformLogo } from "@/components/WaveformLogo";
 
 const ICON_MAP = { Briefcase, Plane, UtensilsCrossed, MessageCircle, Phone, Users, ShoppingBag, Stethoscope };
 
+/* ─── Decorative mesh blobs ─── */
+const SidebarMesh = ({ compact }) => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-r-2xl">
+    <motion.div
+      className="absolute rounded-full"
+      style={{
+        width: compact ? 120 : 200, height: compact ? 120 : 200,
+        top: "8%", right: compact ? "-30%" : "-15%",
+        background: "radial-gradient(circle, rgba(129,140,248,0.25) 0%, transparent 70%)",
+      }}
+      animate={{ y: [0, 12, 0], x: [0, 5, 0] }}
+      transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+    />
+    <motion.div
+      className="absolute rounded-full"
+      style={{
+        width: compact ? 100 : 180, height: compact ? 100 : 180,
+        bottom: "15%", left: compact ? "-20%" : "5%",
+        background: "radial-gradient(circle, rgba(236,72,153,0.12) 0%, transparent 70%)",
+      }}
+      animate={{ y: [0, -10, 0], x: [0, -6, 0] }}
+      transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+    />
+    <motion.div
+      className="absolute rounded-full"
+      style={{
+        width: compact ? 80 : 140, height: compact ? 80 : 140,
+        top: "50%", left: compact ? "10%" : "40%",
+        background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)",
+      }}
+      animate={{ y: [0, 8, 0], x: [0, 4, 0] }}
+      transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+    />
+  </div>
+);
+
+/* ─── Animated icon wrapper ─── */
+const AnimIcon = ({ children, testId, onClick, active, className = "" }) => (
+  <motion.button
+    onClick={onClick}
+    className={`p-2 rounded-xl transition-colors duration-200 ${active ? "bg-white/70 shadow-sm text-indigo-600" : "text-slate-400 hover:text-indigo-600 hover:bg-white/40"} ${className}`}
+    whileHover={{ scale: 1.1 }}
+    whileTap={{ scale: 0.9 }}
+    data-testid={testId}
+  >
+    {children}
+  </motion.button>
+);
+
 /* ─── Collapsed Icon Rail (desktop only) ─── */
 const CollapsedRail = ({
   conversations, conversationId, scenarios, onNewConversation,
   onToggle, onLogout, navigate,
 }) => (
   <TooltipProvider delayDuration={200}>
-    <aside
-      className="hidden lg:flex flex-col items-center w-14 flex-shrink-0 py-3 gap-1"
+    <motion.aside
+      className="hidden lg:flex flex-col items-center w-14 flex-shrink-0 py-3 gap-1 relative rounded-r-2xl"
       style={{
-        background: "linear-gradient(180deg, #eef2ff 0%, #e0e7ff 50%, #c7d2fe 100%)",
-        borderRight: "1px solid rgba(99,102,241,0.12)",
+        background: "linear-gradient(165deg, #f0f0ff 0%, #e8ecff 40%, #e0d8f8 100%)",
+        borderRight: "none",
+        boxShadow: "2px 0 16px rgba(99,102,241,0.06)",
       }}
+      initial={{ x: -56, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 300, damping: 28 }}
       data-testid="chat-sidebar-collapsed"
     >
+      <SidebarMesh compact />
+
       {/* Logo */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <button onClick={() => navigate("/")} className="p-2 mb-1 rounded-lg hover:bg-white/50 transition-colors" data-testid="sidebar-logo-collapsed">
-            <WaveformLogo size={24} className="text-indigo-600" />
-          </button>
+          <div>
+            <AnimIcon testId="sidebar-logo-collapsed" onClick={() => navigate("/")}>
+              <WaveformLogo size={22} className="text-indigo-600" />
+            </AnimIcon>
+          </div>
         </TooltipTrigger>
-        <TooltipContent side="right"><span>mumble</span></TooltipContent>
+        <TooltipContent side="right">mumble</TooltipContent>
       </Tooltip>
 
       {/* Expand */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <button onClick={onToggle} className="p-2 rounded-lg hover:bg-white/50 transition-colors text-slate-400 hover:text-indigo-600" data-testid="expand-sidebar-btn">
-            <PanelLeftOpen className="w-4 h-4" />
-          </button>
+          <div>
+            <AnimIcon testId="expand-sidebar-btn" onClick={onToggle}>
+              <PanelLeftOpen className="w-4 h-4" />
+            </AnimIcon>
+          </div>
         </TooltipTrigger>
-        <TooltipContent side="right"><span>Expand sidebar</span></TooltipContent>
+        <TooltipContent side="right">Expand sidebar</TooltipContent>
       </Tooltip>
 
       {/* New Chat */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button
-            className="p-2 my-1 rounded-xl text-white transition-all hover:shadow-md"
-            style={{ background: "linear-gradient(135deg, #4338ca, #6366f1)", boxShadow: "0 2px 8px rgba(99,102,241,0.3)" }}
+          <motion.button
+            className="p-2 my-1 rounded-xl text-white relative z-10"
+            style={{ background: "linear-gradient(135deg, #4338ca, #6366f1)", boxShadow: "0 2px 10px rgba(99,102,241,0.35)" }}
+            whileHover={{ scale: 1.12, boxShadow: "0 4px 18px rgba(99,102,241,0.45)" }}
+            whileTap={{ scale: 0.9 }}
             data-testid="new-chat-btn-collapsed"
             title="New chat"
           >
             <Plus className="w-4 h-4" />
-          </button>
+          </motion.button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" side="right" className="w-56 bg-white border-indigo-100 shadow-lg" data-testid="new-chat-dropdown-collapsed">
-          <DropdownMenuItem onClick={() => onNewConversation()} className="text-slate-700 focus:bg-indigo-50 focus:text-indigo-700" data-testid="new-freeform-chat-collapsed">
+        <DropdownMenuContent align="start" side="right" className="w-56 bg-white border-indigo-100 shadow-lg rounded-xl" data-testid="new-chat-dropdown-collapsed">
+          <DropdownMenuItem onClick={() => onNewConversation()} className="text-slate-700 focus:bg-indigo-50 focus:text-indigo-700 rounded-lg" data-testid="new-freeform-chat-collapsed">
             <MessageCircle className="w-4 h-4 mr-2 text-indigo-500" /> Free Conversation
           </DropdownMenuItem>
           <div className="h-px bg-indigo-50 my-1" />
           {scenarios.map((s) => {
             const Icon = ICON_MAP[s.icon] || MessageCircle;
             return (
-              <DropdownMenuItem key={s.id} onClick={() => onNewConversation(s.id)} className="text-slate-700 focus:bg-indigo-50 focus:text-indigo-700">
+              <DropdownMenuItem key={s.id} onClick={() => onNewConversation(s.id)} className="text-slate-700 focus:bg-indigo-50 focus:text-indigo-700 rounded-lg">
                 <Icon className="w-4 h-4 mr-2 text-slate-400" /> {s.title}
               </DropdownMenuItem>
             );
@@ -81,25 +141,32 @@ const CollapsedRail = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <div className="h-px w-6 bg-indigo-200/50 my-1" />
+      <div className="h-px w-6 bg-indigo-200/40 my-1 relative z-10" />
 
       {/* Conversations */}
-      <ScrollArea className="flex-1 w-full px-1.5">
+      <ScrollArea className="flex-1 w-full px-1.5 relative z-10">
         <div className="flex flex-col items-center gap-0.5">
-          {conversations.map((conv) => (
+          {conversations.map((conv, i) => (
             <Tooltip key={conv.id}>
               <TooltipTrigger asChild>
-                <button
-                  onClick={() => navigate(`/chat/${conv.id}`)}
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 ${
-                    conv.id === conversationId
-                      ? "bg-white shadow-sm border border-indigo-100 text-indigo-500"
-                      : "text-indigo-300 hover:bg-white/50 hover:text-indigo-500"
-                  }`}
-                  data-testid={`conv-icon-${conv.id}`}
-                >
-                  <MessageCircle className="w-4 h-4" />
-                </button>
+                <div>
+                  <motion.button
+                    onClick={() => navigate(`/chat/${conv.id}`)}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-200 ${
+                      conv.id === conversationId
+                        ? "bg-white/70 shadow-sm text-indigo-500"
+                        : "text-indigo-300 hover:bg-white/40 hover:text-indigo-500"
+                    }`}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.03, type: "spring", stiffness: 400, damping: 20 }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    data-testid={`conv-icon-${conv.id}`}
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                  </motion.button>
+                </div>
               </TooltipTrigger>
               <TooltipContent side="right"><span className="max-w-[160px] truncate block">{conv.title}</span></TooltipContent>
             </Tooltip>
@@ -108,33 +175,39 @@ const CollapsedRail = ({
       </ScrollArea>
 
       {/* Footer */}
-      <div className="flex flex-col items-center gap-0.5 pt-1" style={{ borderTop: "1px solid rgba(99,102,241,0.1)" }}>
+      <div className="flex flex-col items-center gap-0.5 pt-1 relative z-10" style={{ borderTop: "1px solid rgba(99,102,241,0.08)" }}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <button onClick={() => navigate("/dashboard")} className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-white/50 transition-all" data-testid="sidebar-dashboard-collapsed">
-              <BarChart3 className="w-4 h-4" />
-            </button>
+            <div>
+              <AnimIcon testId="sidebar-dashboard-collapsed" onClick={() => navigate("/dashboard")}>
+                <BarChart3 className="w-4 h-4" />
+              </AnimIcon>
+            </div>
           </TooltipTrigger>
-          <TooltipContent side="right"><span>Dashboard</span></TooltipContent>
+          <TooltipContent side="right">Dashboard</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <button onClick={() => navigate("/vocabulary")} className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-white/50 transition-all" data-testid="sidebar-vocabulary-collapsed">
-              <BookOpen className="w-4 h-4" />
-            </button>
+            <div>
+              <AnimIcon testId="sidebar-vocabulary-collapsed" onClick={() => navigate("/vocabulary")}>
+                <BookOpen className="w-4 h-4" />
+              </AnimIcon>
+            </div>
           </TooltipTrigger>
-          <TooltipContent side="right"><span>Vocabulary</span></TooltipContent>
+          <TooltipContent side="right">Vocabulary</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <button onClick={onLogout} className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all" data-testid="sidebar-logout-collapsed">
-              <LogOut className="w-4 h-4" />
-            </button>
+            <div>
+              <AnimIcon testId="sidebar-logout-collapsed" onClick={onLogout} className="hover:text-red-500 hover:bg-red-50">
+                <LogOut className="w-4 h-4" />
+              </AnimIcon>
+            </div>
           </TooltipTrigger>
-          <TooltipContent side="right"><span>Logout</span></TooltipContent>
+          <TooltipContent side="right">Logout</TooltipContent>
         </Tooltip>
       </div>
-    </aside>
+    </motion.aside>
   </TooltipProvider>
 );
 
@@ -146,27 +219,42 @@ const ExpandedSidebar = ({
   onDeleteConv, onClearAll, onToggle, onLogout, onCloseMobile, isMobile, navigate,
 }) => (
   <aside
-    className={`${isMobile ? "fixed inset-y-0 left-0 z-40" : "relative"} w-72 flex flex-col flex-shrink-0`}
+    className={`${isMobile ? "fixed inset-y-0 left-0 z-40" : "relative"} w-72 flex flex-col flex-shrink-0 ${!isMobile ? "rounded-r-2xl" : ""}`}
     style={{
-      background: "linear-gradient(180deg, #eef2ff 0%, #e0e7ff 50%, #c7d2fe 100%)",
-      borderRight: "1px solid rgba(99,102,241,0.12)",
+      background: "linear-gradient(165deg, #f0f0ff 0%, #e8ecff 40%, #e0d8f8 100%)",
+      borderRight: "none",
+      boxShadow: isMobile ? "4px 0 24px rgba(0,0,0,0.08)" : "2px 0 16px rgba(99,102,241,0.06)",
     }}
     data-testid="chat-sidebar"
   >
+    <SidebarMesh />
+
     {/* Header */}
-    <div className="p-4 flex items-center justify-between">
-      <button onClick={() => navigate("/")} className="flex items-center gap-2 group" data-testid="sidebar-logo">
+    <div className="p-4 flex items-center justify-between relative z-10">
+      <motion.button
+        onClick={() => navigate("/")}
+        className="flex items-center gap-2 group"
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.97 }}
+        data-testid="sidebar-logo"
+      >
         <WaveformLogo size={28} className="text-indigo-600 transition-transform duration-300 group-hover:scale-110" />
         <span className="font-semibold text-sm text-slate-800 tracking-tight" style={{ fontFamily: 'Sora, sans-serif' }}>mumble</span>
-      </button>
+      </motion.button>
       <div className="flex items-center gap-1">
         {!isMobile && (
-          <button onClick={onToggle} className="p-1.5 rounded-lg hover:bg-white/50 transition-colors text-slate-400 hover:text-indigo-600" data-testid="collapse-sidebar-btn">
+          <motion.button
+            onClick={onToggle}
+            className="p-1.5 rounded-xl hover:bg-white/50 transition-colors text-slate-400 hover:text-indigo-600"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            data-testid="collapse-sidebar-btn"
+          >
             <PanelLeftClose className="w-4 h-4" />
-          </button>
+          </motion.button>
         )}
         {isMobile && (
-          <button onClick={onCloseMobile} className="p-1.5 rounded-lg hover:bg-white/50 transition-colors" data-testid="close-sidebar-btn">
+          <button onClick={onCloseMobile} className="p-1.5 rounded-xl hover:bg-white/50 transition-colors" data-testid="close-sidebar-btn">
             <X className="w-5 h-5 text-slate-500" />
           </button>
         )}
@@ -174,16 +262,16 @@ const ExpandedSidebar = ({
     </div>
 
     {/* Language Pickers + New Chat */}
-    <div className="px-3 pb-3">
+    <div className="px-3 pb-3 relative z-10">
       <div className="space-y-1.5 mb-3">
         <LanguagePicker
           label="I speak" labelClass="text-slate-500"
-          btnClass="bg-white/60 hover:bg-white/80 border border-indigo-100 text-slate-700"
+          btnClass="bg-white/60 hover:bg-white/80 border border-indigo-100/60 text-slate-700 rounded-xl"
           value={nativeLang} languages={languages} onSelect={onSetNativeLang} testIdPrefix="native"
         />
         <LanguagePicker
           label="Learn" labelClass="text-indigo-600"
-          btnClass="bg-indigo-50/80 hover:bg-indigo-50 border border-indigo-200 text-indigo-700"
+          btnClass="bg-indigo-50/60 hover:bg-indigo-50/80 border border-indigo-200/60 text-indigo-700 rounded-xl"
           value={targetLang} languages={languages} onSelect={onSetTargetLang} testIdPrefix="target"
         />
       </div>
@@ -200,15 +288,15 @@ const ExpandedSidebar = ({
             </Button>
           </motion.div>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-64 bg-white border-indigo-100 shadow-lg" data-testid="new-chat-dropdown">
-          <DropdownMenuItem onClick={() => onNewConversation()} className="text-slate-700 focus:bg-indigo-50 focus:text-indigo-700" data-testid="new-freeform-chat">
+        <DropdownMenuContent align="start" className="w-64 bg-white border-indigo-100 shadow-lg rounded-xl" data-testid="new-chat-dropdown">
+          <DropdownMenuItem onClick={() => onNewConversation()} className="text-slate-700 focus:bg-indigo-50 focus:text-indigo-700 rounded-lg" data-testid="new-freeform-chat">
             <MessageCircle className="w-4 h-4 mr-2 text-indigo-500" /> Free Conversation
           </DropdownMenuItem>
           <div className="h-px bg-indigo-50 my-1" />
           {scenarios.map((s) => {
             const Icon = ICON_MAP[s.icon] || MessageCircle;
             return (
-              <DropdownMenuItem key={s.id} onClick={() => onNewConversation(s.id)} className="text-slate-700 focus:bg-indigo-50 focus:text-indigo-700" data-testid={`scenario-${s.id}`}>
+              <DropdownMenuItem key={s.id} onClick={() => onNewConversation(s.id)} className="text-slate-700 focus:bg-indigo-50 focus:text-indigo-700 rounded-lg" data-testid={`scenario-${s.id}`}>
                 <Icon className="w-4 h-4 mr-2 text-slate-400" /> {s.title}
               </DropdownMenuItem>
             );
@@ -218,7 +306,7 @@ const ExpandedSidebar = ({
     </div>
 
     {/* Conversation List */}
-    <ScrollArea className="flex-1 px-3">
+    <ScrollArea className="flex-1 px-3 relative z-10">
       {conversations.length > 0 && (
         <div className="flex items-center justify-between px-1 mb-2 pt-1">
           <span className="text-[10px] uppercase tracking-wider text-indigo-400 font-medium">Conversations</span>
@@ -229,18 +317,20 @@ const ExpandedSidebar = ({
       )}
       <div className="space-y-0.5">
         <AnimatePresence>
-          {conversations.map((conv) => (
+          {conversations.map((conv, i) => (
             <motion.div
               key={conv.id}
-              initial={{ opacity: 0, x: -12 }}
+              initial={{ opacity: 0, x: -16 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -12 }}
+              exit={{ opacity: 0, x: -16 }}
+              transition={{ delay: i * 0.03, type: "spring", stiffness: 400, damping: 25 }}
               className={`group flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 ${
                 conv.id === conversationId
-                  ? "bg-white shadow-sm border border-indigo-100"
-                  : "hover:bg-white/50 border border-transparent"
+                  ? "bg-white/70 shadow-sm border border-indigo-100/50"
+                  : "hover:bg-white/40 border border-transparent"
               }`}
               onClick={() => { navigate(`/chat/${conv.id}`); if (isMobile) onCloseMobile(); }}
+              whileHover={{ x: 3 }}
               data-testid={`conv-item-${conv.id}`}
             >
               <MessageCircle className={`w-4 h-4 flex-shrink-0 ${conv.id === conversationId ? "text-indigo-500" : "text-indigo-300"}`} />
@@ -270,14 +360,24 @@ const ExpandedSidebar = ({
     </ScrollArea>
 
     {/* Footer */}
-    <div className="p-3 space-y-0.5" style={{ borderTop: "1px solid rgba(99,102,241,0.1)" }}>
-      <button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-500 hover:text-indigo-600 hover:bg-white/50 rounded-lg transition-all duration-200" data-testid="sidebar-dashboard-link">
+    <div className="p-3 space-y-0.5 relative z-10" style={{ borderTop: "1px solid rgba(99,102,241,0.08)" }}>
+      <motion.button
+        onClick={() => navigate("/dashboard")}
+        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-500 hover:text-indigo-600 hover:bg-white/40 rounded-xl transition-all duration-200"
+        whileHover={{ x: 3 }}
+        data-testid="sidebar-dashboard-link"
+      >
         <BarChart3 className="w-4 h-4" /> Dashboard
-      </button>
-      <button onClick={() => navigate("/vocabulary")} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-500 hover:text-indigo-600 hover:bg-white/50 rounded-lg transition-all duration-200" data-testid="sidebar-vocabulary-link">
+      </motion.button>
+      <motion.button
+        onClick={() => navigate("/vocabulary")}
+        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-500 hover:text-indigo-600 hover:bg-white/40 rounded-xl transition-all duration-200"
+        whileHover={{ x: 3 }}
+        data-testid="sidebar-vocabulary-link"
+      >
         <BookOpen className="w-4 h-4" /> Vocabulary
-      </button>
-      <div className="h-px bg-indigo-100 my-1.5" />
+      </motion.button>
+      <div className="h-px bg-indigo-100/50 my-1.5" />
       <div className="flex items-center justify-between px-3 py-1.5">
         <span className="text-xs text-slate-400 truncate max-w-[140px]" data-testid="sidebar-user-email">{userEmail}</span>
         <button onClick={onLogout} className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors duration-200" data-testid="sidebar-logout-btn">
@@ -305,27 +405,37 @@ export const Sidebar = ({
   return (
     <>
       {/* Desktop: collapsed icon rail OR expanded sidebar */}
-      {collapsed ? (
-        <CollapsedRail
-          conversations={conversations} conversationId={conversationId}
-          scenarios={scenarios} onNewConversation={onNewConversation}
-          onToggle={onToggleCollapse} onLogout={handleLogout} navigate={navigate}
-        />
-      ) : (
-        <div className="hidden lg:flex">
-          <ExpandedSidebar
+      <AnimatePresence mode="wait">
+        {collapsed ? (
+          <CollapsedRail
+            key="collapsed"
             conversations={conversations} conversationId={conversationId}
-            scenarios={scenarios} languages={languages}
-            nativeLang={nativeLang} targetLang={targetLang} userEmail={userEmail}
-            onSetNativeLang={onSetNativeLang} onSetTargetLang={onSetTargetLang}
-            onNewConversation={onNewConversation} onDeleteConv={onDeleteConv}
-            onClearAll={onClearAll} onToggle={onToggleCollapse}
-            onLogout={handleLogout} isMobile={false} navigate={navigate}
+            scenarios={scenarios} onNewConversation={onNewConversation}
+            onToggle={onToggleCollapse} onLogout={handleLogout} navigate={navigate}
           />
-        </div>
-      )}
+        ) : (
+          <motion.div
+            key="expanded"
+            className="hidden lg:flex"
+            initial={{ width: 56, opacity: 0.8 }}
+            animate={{ width: 288, opacity: 1 }}
+            exit={{ width: 56, opacity: 0.8 }}
+            transition={{ type: "spring", stiffness: 300, damping: 28 }}
+          >
+            <ExpandedSidebar
+              conversations={conversations} conversationId={conversationId}
+              scenarios={scenarios} languages={languages}
+              nativeLang={nativeLang} targetLang={targetLang} userEmail={userEmail}
+              onSetNativeLang={onSetNativeLang} onSetTargetLang={onSetTargetLang}
+              onNewConversation={onNewConversation} onDeleteConv={onDeleteConv}
+              onClearAll={onClearAll} onToggle={onToggleCollapse}
+              onLogout={handleLogout} isMobile={false} navigate={navigate}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Mobile: overlay sidebar (always uses expanded) */}
+      {/* Mobile: overlay sidebar */}
       <AnimatePresence>
         {sidebarOpen && (
           <>
