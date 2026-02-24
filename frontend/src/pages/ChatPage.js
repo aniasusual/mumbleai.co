@@ -308,6 +308,11 @@ export default function ChatPage() {
           <WelcomeScreen
             userName={user?.name}
             scenarios={scenarios}
+            languages={languages}
+            nativeLang={nativeLang}
+            targetLang={targetLang}
+            onSetNativeLang={setNativeLang}
+            onSetTargetLang={setTargetLang}
             onNewConversation={handleNewConversation}
             onOpenSidebar={() => setSidebarOpen(true)}
           />
