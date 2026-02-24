@@ -395,7 +395,7 @@ const STEPS = [
 
 function HowItWorksSection() {
   return (
-    <section id="how-it-works" className="relative py-28 md:py-36" data-testid="tools-section">
+    <section id="how-it-works" className="relative py-28 md:py-36" style={{ background: SECTIONS.tools }} data-testid="tools-section">
       <Particles count={15} color="#3b82f6" />
       <div className="absolute top-1/3 right-0 w-[500px] h-[500px] pointer-events-none"
         style={{ background: "radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 60%)" }} />
