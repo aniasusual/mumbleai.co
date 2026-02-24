@@ -35,6 +35,7 @@ export default function ChatPage() {
   const [processingVoice, setProcessingVoice] = useState(false);
   const [inputMode, setInputMode] = useState("voice");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [curriculum, setCurriculum] = useState(null);
   const [toolEvents, setToolEvents] = useState([]);
   const [streamingText, setStreamingText] = useState("");
@@ -296,11 +297,13 @@ export default function ChatPage() {
       <Sidebar
         conversations={conversations} conversationId={conversationId}
         scenarios={scenarios} languages={languages}
-        nativeLang={nativeLang} targetLang={targetLang} sidebarOpen={sidebarOpen}
+        nativeLang={nativeLang} targetLang={targetLang}
+        sidebarOpen={sidebarOpen} collapsed={sidebarCollapsed}
         userEmail={user?.email} onLogout={logout}
         onSetNativeLang={setNativeLang} onSetTargetLang={setTargetLang}
         onNewConversation={handleNewConversation} onDeleteConv={handleDeleteConv}
         onClearAll={handleClearAll} onCloseSidebar={() => setSidebarOpen(false)}
+        onToggleCollapse={() => setSidebarCollapsed(c => !c)}
       />
 
       <main className="flex-1 flex flex-col min-w-0" data-testid="chat-main">
