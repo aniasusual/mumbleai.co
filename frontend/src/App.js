@@ -11,7 +11,7 @@ import VocabularyPage from "@/pages/VocabularyPage";
 
 function App() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       <BrowserRouter>
         <AuthProvider>
           <Routes>
