@@ -9,14 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react";
 
 const C = {
-  bg: "#0a0a0a",
-  surface: "#141414",
-  border: "rgba(255,255,255,0.06)",
-  text: "#ededed",
-  muted: "#737373",
-  dim: "#525252",
-  accent: "#c8a97e",
-  accentSoft: "rgba(200,169,126,0.12)",
+  bg: "#020617",
+  surface: "rgba(255,255,255,0.04)",
+  border: "rgba(255,255,255,0.1)",
+  text: "#f8fafc",
+  muted: "#94a3b8",
+  dim: "#64748b",
+  accent: "#6366f1",
+  accentSoft: "rgba(99,102,241,0.12)",
 };
 
 export default function AuthPage() {
