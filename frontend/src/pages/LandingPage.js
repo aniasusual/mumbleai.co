@@ -252,16 +252,29 @@ function HeroSection() {
           <SoundWave barCount={32} color="#6366f1" height={40} />
         </motion.div>
 
-        <motion.div className="flex flex-col sm:flex-row gap-3 justify-center"
+        <motion.div className="flex flex-col sm:flex-row gap-4 justify-center"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1 }}>
-          <Button onClick={() => navigate("/chat")}
-            className="rounded-full px-8 py-6 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-all duration-200 border-0 shadow-lg shadow-indigo-200 hover:-translate-y-0.5"
+          <motion.button onClick={() => navigate("/chat")}
+            className="relative rounded-full px-9 py-4 text-sm font-semibold bg-indigo-600 text-white overflow-hidden group shadow-[0_4px_24px_rgba(99,102,241,0.35)]"
+            whileHover={{ scale: 1.04, boxShadow: "0 6px 32px rgba(99,102,241,0.5)" }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
             data-testid="hero-start-btn">
-            Start a conversation <ArrowRight className="ml-2 w-4 h-4" />
-          </Button>
-          <Button variant="outline" onClick={() => navigate("/dashboard")}
-            className="rounded-full px-8 py-6 text-sm font-medium text-slate-600 border-slate-200 hover:bg-white transition-all duration-200"
-            data-testid="hero-dashboard-btn">View Dashboard</Button>
+            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+            <span className="relative flex items-center gap-2">
+              Start a conversation <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </span>
+          </motion.button>
+          <motion.button onClick={() => navigate("/dashboard")}
+            className="rounded-full px-9 py-4 text-sm font-medium text-slate-600 border-2 border-slate-200 bg-white/70 backdrop-blur-sm group overflow-hidden relative"
+            whileHover={{ scale: 1.04, borderColor: "#818cf8" }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            data-testid="hero-dashboard-btn">
+            <span className="relative flex items-center gap-2 transition-colors duration-300 group-hover:text-indigo-600">
+              View Dashboard <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+            </span>
+          </motion.button>
         </motion.div>
       </motion.div>
 
