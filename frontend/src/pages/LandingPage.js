@@ -341,7 +341,7 @@ const FEATURES = [
 
 function FeaturesSection() {
   return (
-    <section id="features" className="relative py-28 md:py-36" data-testid="features-section">
+    <section id="features" className="relative py-28 md:py-36" style={{ background: SECTIONS.features }} data-testid="features-section">
       <Particles count={20} color="#34d399" />
       <div className="absolute top-0 left-0 w-[600px] h-[600px] pointer-events-none"
         style={{ background: "radial-gradient(circle, rgba(52,211,153,0.08) 0%, transparent 60%)" }} />
