@@ -613,7 +613,7 @@ function ScenariosSection() {
 function CTASection() {
   const navigate = useNavigate();
   return (
-    <section className="relative py-36 md:py-48 overflow-hidden" data-testid="cta-section">
+    <section className="relative py-36 md:py-48 overflow-hidden" style={{ background: SECTIONS.cta }} data-testid="cta-section">
       {/* Multi-color glow */}
       <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[400px] h-[400px] pointer-events-none"
         style={{ background: "radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 60%)" }} />
