@@ -582,7 +582,7 @@ function ScenariosSection() {
   const x = useTransform(scrollYProgress, [0, 1], [80, -200]);
 
   return (
-    <section id="scenarios" className="relative py-28 md:py-36 overflow-hidden" ref={containerRef} data-testid="scenarios-section">
+    <section id="scenarios" className="relative py-28 md:py-36 overflow-hidden" ref={containerRef} style={{ background: SECTIONS.scenarios }} data-testid="scenarios-section">
       <div className="max-w-6xl mx-auto px-6 mb-12">
         <Reveal>
           <span className="text-sm font-medium tracking-wider uppercase text-amber-400 mb-3 block">Practice Scenarios</span>
