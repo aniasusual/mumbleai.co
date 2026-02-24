@@ -89,7 +89,7 @@ export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targ
       <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10 py-8 min-h-0">
         {/* Logo + Greeting */}
         <motion.div
-          className="text-center mb-10"
+          className="text-center mb-6 md:mb-10"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -108,7 +108,7 @@ export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targ
         </motion.div>
 
         {/* Sound Wave */}
-        <motion.div className="mb-8"
+        <motion.div className="mb-5 md:mb-8"
           initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}>
           <SoundWave />
@@ -116,7 +116,7 @@ export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targ
 
         {/* Language Pickers */}
         <motion.div
-          className="flex flex-col sm:flex-row items-center gap-3 mb-8 w-full max-w-md"
+          className="flex flex-col sm:flex-row items-center gap-3 mb-5 md:mb-8 w-full max-w-md"
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
         >
           <div className="flex-1 w-full">
@@ -136,7 +136,7 @@ export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targ
         </motion.div>
 
         {/* Primary CTA — Free Conversation */}
-        <motion.div className="flex flex-col sm:flex-row gap-3 mb-10"
+        <motion.div className="flex flex-col sm:flex-row gap-3 mb-6 md:mb-10"
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <motion.button
             onClick={() => onNewConversation()}
