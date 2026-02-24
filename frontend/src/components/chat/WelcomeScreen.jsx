@@ -59,14 +59,6 @@ function SoundWave() {
   );
 }
 
-const SCENARIO_COLORS = [
-  { bg: "#d1fae5", text: "#065f46", icon: "#059669" },
-  { bg: "#bfdbfe", text: "#1e40af", icon: "#2563eb" },
-  { bg: "#e9d5ff", text: "#5b21b6", icon: "#7c3aed" },
-  { bg: "#fed7aa", text: "#92400e", icon: "#d97706" },
-  { bg: "#fecdd3", text: "#9f1239", icon: "#e11d48" },
-  { bg: "#ccfbf1", text: "#115e59", icon: "#0d9488" },
-];
 
 export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targetLang, onSetNativeLang, onSetTargetLang, onNewConversation, onOpenSidebar }) => {
   const firstName = userName?.split(" ")[0] || "there";
