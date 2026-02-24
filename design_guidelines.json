@@ -1,156 +1,159 @@
 {
-  "brand_identity": {
-    "name": "LinguaFlow",
-    "archetype": "The Organic Tutor",
-    "tone": "Encouraging, Sophisticated, Patient, Clear",
-    "theme_mode": "light",
-    "visual_mood": "Calm, text-rich, high-legibility, warm",
-    "primary_philosophy": "Fusion of Botanical Warmth + Tech Precision"
+  "project_name": "mumble_redesign",
+  "design_philosophy": {
+    "theme": "Neon-Noir / Bioluminescent",
+    "core_concept": "Voice is Fluid & Vibrant. Learning is a Journey into Color.",
+    "emotional_tone": "Energetic, Immersive, Futuristic yet Human, Global",
+    "visual_style": "Dark mode base with explosive neon accents, glassmorphism, and fluid motion."
   },
   "typography": {
     "headings": {
-      "font_family": "Playfair Display, serif",
-      "weight": "600",
-      "usage": "H1, H2, Hero Sections",
-      "description": "Sophisticated, editorial feel that implies 'knowledge' and 'literature'."
+      "family": "Sora, sans-serif",
+      "weights": ["600", "700"],
+      "usage": "Use for all H1-H6. H1/H2 must have `tracking-tight`.",
+      "styles": {
+        "h1": "text-5xl md:text-7xl font-bold tracking-tighter leading-tight text-white",
+        "h2": "text-4xl md:text-5xl font-bold tracking-tight text-white",
+        "h3": "text-2xl md:text-3xl font-semibold tracking-tight text-slate-100"
+      }
     },
     "body": {
-      "font_family": "DM Sans, sans-serif",
-      "usage": "UI text, Chat bubbles, Buttons",
-      "description": "Clean, geometric but human. High readability for language learners."
-    },
-    "mono": {
-      "font_family": "JetBrains Mono, monospace",
-      "usage": "Phonetics, Grammar rules",
-      "description": "For technical language details."
-    },
-    "scale": {
-      "h1": "text-4xl md:text-6xl tracking-tight leading-tight",
-      "h2": "text-3xl md:text-4xl tracking-tight",
-      "h3": "text-2xl font-medium",
-      "p": "text-base md:text-lg leading-relaxed",
-      "caption": "text-sm text-muted-foreground uppercase tracking-wider"
+      "family": "DM Sans, sans-serif",
+      "weights": ["400", "500"],
+      "usage": "Use for all paragraphs, labels, and buttons.",
+      "styles": {
+        "body-lg": "text-lg md:text-xl leading-relaxed text-slate-300",
+        "body-base": "text-base leading-relaxed text-slate-400",
+        "caption": "text-sm font-medium tracking-wider uppercase text-slate-500"
+      }
     }
   },
   "colors": {
-    "palette_name": "Sage & Sand",
-    "primary": {
-      "hex": "#2F5233",
-      "tailwind": "bg-[#2F5233] text-white",
-      "usage": "Primary Buttons, Active States, Key Icons"
+    "palette": {
+      "background": "#020617",
+      "foreground": "#f8fafc",
+      "primary": "#6366f1",
+      "secondary": "#34d399",
+      "accent": "#f472b6",
+      "neutral": "#94a3b8",
+      "surface": "rgba(255, 255, 255, 0.05)",
+      "surface_hover": "rgba(255, 255, 255, 0.1)",
+      "border": "rgba(255, 255, 255, 0.1)"
     },
-    "secondary": {
-      "hex": "#F0F4F8",
-      "tailwind": "bg-[#F0F4F8]",
-      "usage": "Page Backgrounds, Chat Bubbles (AI)"
+    "gradients": {
+      "hero_glow": "radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.15), transparent 70%)",
+      "card_surface": "linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%)",
+      "text_gradient": "linear-gradient(to right, #c084fc, #6366f1)"
     },
-    "accent": {
-      "hex": "#D97706",
-      "tailwind": "text-amber-600 bg-amber-50",
-      "usage": "Corrections, Warnings, Highlights"
-    },
-    "background": {
-      "hex": "#FFFFFF",
-      "tailwind": "bg-white",
-      "usage": "Card Backgrounds, Chat Input Area"
-    },
-    "text": {
-      "primary": "#1A1A1A",
-      "secondary": "#4A4A4A",
-      "muted": "#71717A"
-    },
-    "semantic": {
-      "user_bubble": "bg-[#2F5233] text-white",
-      "ai_bubble": "bg-white border border-gray-100 text-gray-800 shadow-sm",
-      "correction": "bg-red-50 text-red-700 border-red-100",
-      "suggestion": "bg-amber-50 text-amber-700 border-amber-100"
-    }
+    "section_transitions": [
+      {
+        "id": "hero",
+        "bg_color": "#020617",
+        "description": "Deep Midnight Blue (Slate 950)"
+      },
+      {
+        "id": "features",
+        "bg_color": "#022c22",
+        "description": "Dark Emerald (Emerald 950)"
+      },
+      {
+        "id": "how-it-works",
+        "bg_color": "#172554",
+        "description": "Deep Ocean (Blue 950)"
+      },
+      {
+        "id": "demo",
+        "bg_color": "#2e1065",
+        "description": "Deep Violet (Violet 950)"
+      },
+      {
+        "id": "cta",
+        "bg_color": "#000000",
+        "description": "Pure Black"
+      }
+    ]
   },
-  "layout_strategy": {
-    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
-    "spacing_scale": "Generous (p-6, p-8, p-12)",
-    "grid_system": "Bento Grid (Mode A for Marketing, Mode B for Dashboard)",
-    "mobile_constraints": "Images max-h-[50vh], Touch targets min 44px",
-    "chat_layout": {
-      "width": "max-w-3xl mx-auto",
-      "style": "Floating bubbles, distinct separation, central focus"
-    }
+  "layout": {
+    "grid_system": "Use 'Bento Grid' (Mode A) for features. Use 'Container' (max-w-7xl mx-auto px-4) for standard sections.",
+    "spacing": "Use 'py-24' or 'py-32' for section vertical padding. Use 'gap-8' or 'gap-12' for grids.",
+    "glassmorphism": "Use `backdrop-blur-md bg-white/5 border border-white/10` for cards and floating elements."
   },
   "components": {
     "buttons": {
-      "style": "Pill-shaped (rounded-full)",
-      "primary": "bg-[#2F5233] hover:bg-[#1E3524] text-white shadow-md transition-transform hover:-translate-y-0.5",
-      "secondary": "bg-white border border-gray-200 text-gray-800 hover:bg-gray-50"
+      "primary": "rounded-full bg-primary text-white font-semibold px-8 py-4 shadow-[0_0_20px_rgba(99,102,241,0.5)] hover:shadow-[0_0_30px_rgba(99,102,241,0.7)] transition-all transform hover:-translate-y-1",
+      "secondary": "rounded-full bg-white/10 text-white font-medium px-6 py-3 hover:bg-white/20 backdrop-blur-sm transition-all border border-white/10"
     },
     "cards": {
-      "style": "Flat, 1px border, no shadow or subtle ambient shadow",
-      "classes": "bg-white border border-border rounded-xl p-6"
+      "feature": "rounded-3xl bg-white/5 border border-white/10 p-8 hover:bg-white/10 transition-colors group relative overflow-hidden"
     },
-    "inputs": {
-      "style": "Minimal, underline or soft background",
-      "classes": "bg-gray-50 border-transparent focus:border-[#2F5233] focus:ring-0 rounded-lg"
-    }
-  },
-  "visual_enhancers": {
-    "textures": "Subtle noise overlay on solid backgrounds",
-    "shadows": "Soft, diffused ambient shadows (shadow-[0_8px_30px_rgb(0,0,0,0.04)])",
-    "borders": "1px solid border-gray-100 for separation",
-    "glassmorphism": "Used sparingly on sticky headers (backdrop-blur-md bg-white/80)"
-  },
-  "image_urls": {
-    "hero": {
-      "url": "https://images.pexels.com/photos/6593768/pexels-photo-6593768.jpeg",
-      "alt": "Smiling woman relaxed learning on phone",
-      "usage": "Landing Page Hero, right side"
-    },
-    "scenario_social": {
-      "url": "https://images.pexels.com/photos/9789454/pexels-photo-9789454.jpeg",
-      "alt": "Friends talking in coffee shop",
-      "usage": "Scenario Selector Card"
-    },
-    "scenario_business": {
-      "url": "https://images.pexels.com/photos/5439143/pexels-photo-5439143.jpeg",
-      "alt": "Job interview professional setting",
-      "usage": "Scenario Selector Card"
-    },
-    "scenario_travel": {
-      "url": "https://images.pexels.com/photos/7235606/pexels-photo-7235606.jpeg",
-      "alt": "Travelers reading map",
-      "usage": "Scenario Selector Card"
+    "navigation": {
+      "style": "Floating pill navbar. Fixed at top or bottom. Glassmorphism effect."
     }
   },
   "motion": {
-    "page_transition": "opacity-0 to opacity-100 duration-500",
-    "chat_message": "slide-up-fade",
-    "hover": "scale-105 transition-transform duration-200",
-    "loading": "Pulse or minimal spinner (no robots)"
+    "library": "framer-motion",
+    "required_effects": [
+      {
+        "name": "Scroll-Linked Background",
+        "description": "The page background color must smoothly interpolate based on scroll position using `useScroll` and `useTransform` on a fixed background layer."
+      },
+      {
+        "name": "Staggered Reveal",
+        "description": "Text and cards should slide up and fade in with a staggered delay."
+      },
+      {
+        "name": "Parallax",
+        "description": "Images should move slightly slower than scroll speed."
+      },
+      {
+        "name": "Hover Glow",
+        "description": "Buttons and cards should emit a glow or border-shine on hover."
+      }
+    ]
   },
-  "instructions_to_main_agent": [
-    "Use 'Playfair Display' via Google Fonts for all Headings.",
-    "Do NOT use default Shadcn slate colors. Use the defined Sage & Sand palette.",
-    "Implement the 'Bento Grid' for the dashboard stats.",
-    "Ensure chat bubbles have high contrast and clear distinction between User (Dark) and AI (Light).",
-    "Use the provided image URLs for the respective sections.",
-    "Install 'lucide-react' for icons.",
-    "For the chat interface, ensure the input field is sticky at the bottom with a glassmorphism effect.",
-    "Do not use generic AI avatars. Use initials or abstract geometric shapes for the AI persona."
+  "assets": {
+    "images": [
+      {
+        "id": "hero_main",
+        "url": "https://images.pexels.com/photos/7022157/pexels-photo-7022157.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "alt": "Diverse group of friends talking and laughing in a modern night setting",
+        "usage": "Hero section main visual or background overlay"
+      },
+      {
+        "id": "abstract_wave",
+        "url": "https://images.pexels.com/photos/29708309/pexels-photo-29708309.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "alt": "Abstract 3D sound wave visualization",
+        "usage": "Background for 'How it works' or 'Features' section"
+      },
+      {
+        "id": "tokyo_night",
+        "url": "https://images.pexels.com/photos/31002100/pexels-photo-31002100.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "alt": "Vibrant Tokyo neon street at night",
+        "usage": "Context/Travel section background or card image"
+      },
+      {
+        "id": "lanterns",
+        "url": "https://images.pexels.com/photos/31002078/pexels-photo-31002078.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "alt": "Japanese lanterns glowing",
+        "usage": "Cultural context accent"
+      }
+    ],
+    "icons": "Use 'lucide-react' for UI icons (Chevron, Menu, Play, Mic). Use 'WaveformLogo' component for brand."
+  },
+  "implementation_steps": [
+    "1. Setup 'Neon-Noir' theme in tailwind.config.js (extend colors).",
+    "2. Create a 'ScrollBackground' wrapper component that uses `useScroll` to interpolate background colors.",
+    "3. Build the Hero section with split layout: Left text, Right image with 'blob' or gradient backdrop.",
+    "4. Build 'Features' using a Bento Grid layout with glassmorphism cards.",
+    "5. Build 'Interactive Demo' section - simulate a chat interface.",
+    "6. Ensure `WaveformLogo` is used in the Header.",
+    "7. Apply Framer Motion to all sections (fade-in, slide-up)."
   ],
-  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
-    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
-    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
-    "Create depth through layered design elements with z-index hierarchy",
-    "Use glass-morphism effects with backdrop filters (12-24px blur)",
-    "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
-    "You MUST NOT center align the app container, ie do not add .App { text-align: center; } in the css file. This disrupts the human natural reading flow of text",
-    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style",
-    "NEVER: use AI assistant Emoji characters like 🤖🧠 etc for icons.",
-    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
-    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
-    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
-    "Main agent relies on these image URLs. Missing categories = main agent will use placeholder text which is FORBIDDEN",
-    "Prioritize using pre-existing components from src/components/ui when applicable",
-    "Components MUST use named exports (export const ComponentName = ...)",
-    "Pages MUST use default exports (export default function PageName() {...})",
-    "Use 'sonner' for toasts"
+  "universal_guidelines": [
+    "Do NOT use gradients for text unless it's a very large headline.",
+    "Ensure contrast ratios are met. Light text on dark backgrounds.",
+    "Use 'tracking-tight' for all large headings to make them look modern.",
+    "Don't clutter. Use negative space.",
+    "All interactive elements must have `data-testid`."
   ]
 }
