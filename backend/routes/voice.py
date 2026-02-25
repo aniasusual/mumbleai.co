@@ -83,21 +83,20 @@ async def send_voice_message(
     if not user_text or not user_text.strip():
         raise HTTPException(status_code=400, detail="Could not understand the audio. Please try speaking again.")
 
-    # Save user message
+    # Save user message tagged with current phase
+    current_phase = conv.get("phase", "learning")
     user_msg = {
         "id": str(uuid.uuid4()),
         "conversation_id": conv_id,
         "role": "user",
         "content": user_text.strip(),
         "tools_used": [],
+        "phase": current_phase,
         "created_at": now
     }
     await db.messages.insert_one(user_msg)
 
-    # Step 2: Process through agent
-    current_phase = conv.get("phase", "learning")
-    user_msg["phase"] = current_phase
-
+    # Step 2: Process through agent — load only this agent's phase history
     history = await db.messages.find(
         {"conversation_id": conv_id, "phase": current_phase}, {"_id": 0}
     ).sort("created_at", 1).to_list(50)
@@ -112,13 +111,14 @@ async def send_voice_message(
 
     ai_text = result["response"]
 
-    # Save AI message
+    # Save AI message tagged with current phase
     ai_msg = {
         "id": str(uuid.uuid4()),
         "conversation_id": conv_id,
         "role": "assistant",
         "content": ai_text,
         "tools_used": result.get("tools_used", []),
+        "phase": current_phase,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.messages.insert_one(ai_msg)
@@ -138,6 +138,13 @@ async def send_voice_message(
     )
 
     await _track_activity(user_text, result.get("tools_used", []), conv.get("scenario"))
+
+    # Phase transition: if planner saved curriculum, switch to learning
+    if "save_curriculum" in result.get("tools_used", []) and current_phase == "planning":
+        await db.conversations.update_one(
+            {"id": conv_id},
+            {"$set": {"phase": "learning"}}
+        )
 
     user_msg.pop("_id", None)
     ai_msg.pop("_id", None)
