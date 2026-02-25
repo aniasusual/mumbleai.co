@@ -140,6 +140,97 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
     elif tool_name == "save_curriculum":
         return json.dumps({"status": "error", "instruction": "save_curriculum is handled by the Curriculum Planner agent, not the main tutor."})
 
+    elif tool_name == "revise_curriculum":
+        change_request = arguments.get("change_request", "")
+        if db is not None and conversation_id:
+            # Switch phase back to planning
+            await db.conversations.update_one(
+                {"id": conversation_id},
+                {"$set": {"phase": "planning"}}
+            )
+
+            # Load the existing curriculum to give the planner context
+            existing = await db.curricula.find_one({"conversation_id": conversation_id}, {"_id": 0})
+            curriculum_context = ""
+            if existing:
+                lesson_summaries = [f"{i+1}. {l.get('title', '')}" for i, l in enumerate(existing.get("lessons", []))]
+                curriculum_context = (
+                    f"Current plan: Goal={existing.get('goal', '')}, "
+                    f"Timeline={existing.get('timeline', '')}, "
+                    f"Lessons: {'; '.join(lesson_summaries)}"
+                )
+
+            # Save the change request into the planner's context so it knows what to modify
+            change_msg = f"[Curriculum revision requested] {curriculum_context}. User wants to change: {change_request}"
+            await db.messages.insert_one({
+                "id": str(uuid.uuid4()),
+                "conversation_id": conversation_id,
+                "role": "user",
+                "content": change_msg,
+                "tools_used": [],
+                "phase": "planning",
+                "is_internal": True,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+
+            # Run the planner to respond to the change request
+            conv = await db.conversations.find_one({"id": conversation_id}, {"_id": 0})
+            if conv:
+                from agents.planner import CurriculumPlannerAgent
+                planner = CurriculumPlannerAgent(
+                    api_key=api_key,
+                    session_id=f"lingua_planner_{conversation_id}",
+                    native_language=conv.get("native_language", "en"),
+                    target_language=conv.get("target_language", "en"),
+                    proficiency_level=conv.get("proficiency_level", "beginner"),
+                    conversation_id=conversation_id,
+                    db=db
+                )
+                # Get planner's context and generate its response to the change
+                history = await db.messages.find(
+                    {"conversation_id": conversation_id, "phase": "planning"}, {"_id": 0}
+                ).sort("created_at", 1).to_list(50)
+                history_for_planner = [{"role": m["role"], "content": m["content"]} for m in history]
+
+                planner_result = await planner.process_message(
+                    user_text=change_request,
+                    conversation_history=history_for_planner
+                )
+                planner_response = planner_result.get("response", "")
+
+                # Save the planner's response into planner context (internal)
+                await db.messages.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "conversation_id": conversation_id,
+                    "role": "assistant",
+                    "content": planner_response,
+                    "tools_used": planner_result.get("tools_used", []),
+                    "phase": "planning",
+                    "is_internal": True,
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                })
+
+                # If the planner already saved the revised curriculum, switch back
+                if "save_curriculum" in planner_result.get("tools_used", []):
+                    await db.conversations.update_one(
+                        {"id": conversation_id},
+                        {"$set": {"phase": "learning"}}
+                    )
+
+                return json.dumps({
+                    "status": "planner_revision",
+                    "planner_message": planner_response,
+                    "instruction": (
+                        f"The planner has responded to the revision request. "
+                        f"Relay the planner's message to the user: \"{planner_response}\""
+                    )
+                })
+
+        return json.dumps({
+            "status": "handoff_to_planner",
+            "instruction": "Phase switched to planning for curriculum revision."
+        })
+
     elif tool_name == "advance_lesson":
         summary = arguments.get("summary", "")
         if db is not None and conversation_id:
