@@ -84,14 +84,34 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
         })
 
     elif tool_name == "plan_curriculum":
+        proficiency = arguments.get("proficiency_level", "beginner")
         if db is not None and conversation_id:
             await db.conversations.update_one(
                 {"id": conversation_id},
                 {"$set": {"phase": "planning"}}
             )
+            # Run the planner as a real subagent — generate its welcome immediately
+            conv = await db.conversations.find_one({"id": conversation_id}, {"_id": 0})
+            if conv:
+                from agents.planner import CurriculumPlannerAgent
+                planner = CurriculumPlannerAgent(
+                    api_key=api_key,
+                    session_id=f"lingua_planner_{conversation_id}",
+                    native_language=conv.get("native_language", "en"),
+                    target_language=conv.get("target_language", "en"),
+                    proficiency_level=proficiency,
+                    conversation_id=conversation_id,
+                    db=db
+                )
+                planner_welcome = await planner.generate_welcome()
+                return json.dumps({
+                    "status": "planner_started",
+                    "planner_message": planner_welcome,
+                    "instruction": f"The Curriculum Planner is now active and says: \"{planner_welcome}\". Relay this message to the user. Add a brief transition but DO include the planner's question verbatim."
+                })
         return json.dumps({
             "status": "handoff_to_planner",
-            "instruction": "The Curriculum Planner subagent will now take over the conversation. Tell the user you're handing them to the learning plan designer who will help create their personalized study plan. Keep it brief and encouraging."
+            "instruction": "Phase switched to planning. Tell the user you're connecting them with the learning plan designer."
         })
 
     elif tool_name == "save_curriculum":
