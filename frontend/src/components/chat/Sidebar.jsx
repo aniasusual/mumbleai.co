@@ -203,10 +203,10 @@ const DesktopSidebar = ({
         <div className="px-3 pb-3">
           <div className="space-y-1.5 mb-3">
             <LanguagePicker label="I speak" labelClass="text-slate-500"
-              btnClass="bg-white/60 hover:bg-white/80 border border-indigo-100/60 text-slate-700 rounded-xl"
+              btnClass="bg-white hover:bg-slate-50 border border-indigo-100 text-slate-700 rounded-xl"
               value={nativeLang} languages={languages} onSelect={onSetNativeLang} testIdPrefix="native" />
             <LanguagePicker label="Learn" labelClass="text-indigo-600"
-              btnClass="bg-indigo-50/60 hover:bg-indigo-50/80 border border-indigo-200/60 text-indigo-700 rounded-xl"
+              btnClass="bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 rounded-xl"
               value={targetLang} languages={languages} onSelect={onSetTargetLang} testIdPrefix="target" />
           </div>
           <DropdownMenu>
