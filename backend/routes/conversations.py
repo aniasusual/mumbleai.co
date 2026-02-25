@@ -15,6 +15,7 @@ from agents.tutor import LanguageTutorAgent
 from services.agent_factory import create_agent_for_conversation
 from auth import get_current_user
 from languages import SUPPORTED_LANGUAGES, get_language_name
+from routes.voice import generate_tts
 
 router = APIRouter()
 
