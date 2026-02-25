@@ -78,8 +78,8 @@ Have a short conversation with the user to understand their needs, then build a 
             goal = arguments.get("goal", "")
             lessons = arguments.get("lessons", [])
             if self.db is not None and self.conversation_id:
+                # Upsert: replace any existing curriculum for this conversation
                 curriculum_doc = {
-                    "id": str(_uuid.uuid4()),
                     "conversation_id": self.conversation_id,
                     "proficiency_level": self.proficiency_level or "beginner",
                     "timeline": timeline,
@@ -91,16 +91,20 @@ Have a short conversation with the user to understand their needs, then build a 
                 }
                 if curriculum_doc["lessons"]:
                     curriculum_doc["lessons"][0]["status"] = "in_progress"
-                await self.db.curricula.insert_one(curriculum_doc)
 
-                # Switch phase back to "learning"
-                await self.db.conversations.update_one(
-                    {"id": self.conversation_id},
-                    {"$set": {"phase": "learning"}}
-                )
+                existing = await self.db.curricula.find_one({"conversation_id": self.conversation_id})
+                if existing:
+                    await self.db.curricula.update_one(
+                        {"conversation_id": self.conversation_id},
+                        {"$set": curriculum_doc}
+                    )
+                else:
+                    curriculum_doc["id"] = str(_uuid.uuid4())
+                    await self.db.curricula.insert_one(curriculum_doc)
+
+                # Phase stays "planning" — the route handler will switch it after SSE completes
 
                 # Inject the curriculum result into the TUTOR's context window
-                # so the tutor knows the plan when it resumes
                 lesson_summaries = [f"{i+1}. {l.get('title', 'Untitled')}" for i, l in enumerate(lessons)]
                 result_summary = (
                     f"[Curriculum Plan Complete] Goal: {goal}. Timeline: {timeline}. "
