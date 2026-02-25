@@ -22,7 +22,7 @@ export const LanguagePicker = ({ label, labelClass, btnClass, value, languages, 
   }, []);
 
   return (
-    <div className="relative" ref={ref}>
+    <div className={`relative ${open ? "z-[200]" : "z-10"}`} ref={ref}>
       <button
         onClick={() => setOpen(!open)}
         className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${btnClass}`}
@@ -40,7 +40,7 @@ export const LanguagePicker = ({ label, labelClass, btnClass, value, languages, 
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-slate-200 shadow-xl z-[100] max-h-64 overflow-hidden"
+            className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-slate-200 shadow-xl z-[200] max-h-64 overflow-hidden"
             style={{ backgroundColor: '#ffffff' }}
             data-testid={`${testIdPrefix}-lang-dropdown`}
           >
@@ -63,8 +63,9 @@ export const LanguagePicker = ({ label, labelClass, btnClass, value, languages, 
                   className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors duration-100 ${
                     value === lang.code
                       ? "bg-indigo-50 text-indigo-700 font-medium"
-                      : "text-slate-600 hover:bg-indigo-50/50"
+                      : "text-slate-600 hover:bg-indigo-50"
                   }`}
+                  style={{ backgroundColor: value === lang.code ? undefined : '#ffffff' }}
                   data-testid={`${testIdPrefix}-lang-${lang.code}`}
                 >
                   <span className="flex-1 text-left">{lang.name}</span>
