@@ -69,11 +69,13 @@ Build a conversational agent called "mumble" that acts as a personal language tu
 - Fixed dropdown transparency issue (solid #ffffff backgrounds)
 - Fixed hero text layout (Say / Hello / in every language on separate lines, auto-sizing)
 - Changed onboarding flow: agent asks comfort level instead of testing user
-- **Fixed agent handoff bugs:**
-  - Removed duplicate user messages in tutor + planner agent loops
-  - `plan_curriculum` now runs planner as inline subagent (welcome generated immediately, no extra user input)
-  - Planner maintains full context across multi-turn HITL conversation
-  - `save_curriculum` transitions cleanly back to tutor with lesson 1
+- **Rebuilt agent context architecture:**
+  - Each agent (tutor, planner) now has its own separate context window via `phase` field on messages
+  - Main tutor only sees phase="learning" messages; planner only sees phase="planning" messages
+  - On handoff (tutor→planner): planner welcome saved to planner's context, relayed in tutor's response
+  - On completion (planner→tutor): curriculum result injected into tutor's context as internal message
+  - Internal context messages hidden from frontend via `is_internal` flag + filtered GET endpoint
+  - No duplicate user messages; no cross-contamination of agent contexts
 
 ### P1
 - Progress Journal: Auto-generate weekly learning summaries
