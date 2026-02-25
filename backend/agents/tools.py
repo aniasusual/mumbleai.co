@@ -139,6 +139,20 @@ MAIN_AGENT_TOOLS = [
                 "required": ["proficiency_level"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "revise_curriculum",
+            "description": "Hand back to the Curriculum Planner to modify the existing learning plan. Call this when the user wants to change, update, or adjust their curriculum/study plan. The planner will resume with the user's change request.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "change_request": {"type": "string", "description": "What the user wants to change about the curriculum"}
+                },
+                "required": ["change_request"]
+            }
+        }
     }
 ]
 
