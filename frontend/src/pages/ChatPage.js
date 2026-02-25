@@ -204,14 +204,9 @@ export default function ChatPage() {
       setToolEvents([]); setStreamingText("");
       setSending(false);
       refreshConversations();
-      const aiMsg = result.ai_message;
-      if (aiMsg) {
-        try {
-          const ttsRes = await textToSpeech(aiMsg.content);
-          if (ttsRes.data.audio_base64) {
-            playWithKaraoke(ttsRes.data.audio_base64, aiMsg.id, aiMsg.content);
-          }
-        } catch (e) { console.error("TTS failed", e); }
+      // Audio arrives with the SSE done event — no extra round-trip
+      if (result.ai_audio_base64 && result.ai_message) {
+        playWithKaraoke(result.ai_audio_base64, result.ai_message.id, result.ai_message.content);
       }
     } catch (e) {
       toast.error("Failed to send message.");
