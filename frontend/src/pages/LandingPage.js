@@ -150,10 +150,10 @@ function MorphingHello() {
   }, []);
 
   return (
-    <div className="inline-block relative h-[1.15em] overflow-hidden align-bottom min-w-[200px]">
+    <div className="inline-block relative h-[1.35em] overflow-hidden align-bottom min-w-[180px] md:min-w-[300px]">
       <AnimatePresence mode="wait">
         <motion.span key={idx}
-          className="absolute left-0 bg-gradient-to-r from-indigo-600 via-pink-500 to-emerald-500 bg-clip-text text-transparent"
+          className="absolute left-0 whitespace-nowrap bg-gradient-to-r from-indigo-600 via-pink-500 to-emerald-500 bg-clip-text text-transparent"
           initial={{ y: 40, opacity: 0, filter: "blur(4px)" }}
           animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
           exit={{ y: -40, opacity: 0, filter: "blur(4px)" }}
