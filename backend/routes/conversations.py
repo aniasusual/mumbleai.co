@@ -91,6 +91,7 @@ async def create_conversation(data: ConversationCreate, user: dict = Depends(get
         "role": "assistant",
         "content": welcome_content,
         "tools_used": [],
+        "phase": conv["phase"],
         "created_at": now
     }
     await db.messages.insert_one(welcome_msg)
@@ -158,8 +159,9 @@ async def get_curriculum(conv_id: str, user: dict = Depends(get_current_user)):
 
 @router.get("/conversations/{conv_id}/messages", response_model=List[MessageResponse])
 async def get_messages(conv_id: str, user: dict = Depends(get_current_user)):
+    """Return all visible messages (exclude internal handoff messages)."""
     return await db.messages.find(
-        {"conversation_id": conv_id}, {"_id": 0}
+        {"conversation_id": conv_id, "is_internal": {"$ne": True}}, {"_id": 0}
     ).sort("created_at", 1).to_list(500)
 
 
@@ -170,21 +172,23 @@ async def send_message(conv_id: str, data: MessageCreate, user: dict = Depends(g
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     now = datetime.now(timezone.utc).isoformat()
+    current_phase = conv.get("phase", "learning")
 
-    # Save user message
+    # Save user message tagged with the current phase
     user_msg = {
         "id": str(uuid.uuid4()),
         "conversation_id": conv_id,
         "role": "user",
         "content": data.content,
         "tools_used": [],
+        "phase": current_phase,
         "created_at": now
     }
     await db.messages.insert_one(user_msg)
 
-    # Get history and create agent
+    # Load history ONLY for the current agent's phase (separate context window)
     history = await db.messages.find(
-        {"conversation_id": conv_id}, {"_id": 0}
+        {"conversation_id": conv_id, "phase": current_phase}, {"_id": 0}
     ).sort("created_at", 1).to_list(50)
     history_for_agent = [{"role": m["role"], "content": m["content"]} for m in history]
 
@@ -195,13 +199,14 @@ async def send_message(conv_id: str, data: MessageCreate, user: dict = Depends(g
         scenario_context=data.scenario_context or conv.get("scenario")
     )
 
-    # Save AI response
+    # Save AI response with the same phase as the user's message
     ai_msg = {
         "id": str(uuid.uuid4()),
         "conversation_id": conv_id,
         "role": "assistant",
         "content": result["response"],
         "tools_used": result.get("tools_used", []),
+        "phase": current_phase,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.messages.insert_one(ai_msg)
@@ -232,14 +237,16 @@ async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = De
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     now = datetime.now(timezone.utc).isoformat()
+    current_phase = conv.get("phase", "learning")
 
-    # Save user message
+    # Save user message tagged with the current phase
     user_msg = {
         "id": str(uuid.uuid4()),
         "conversation_id": conv_id,
         "role": "user",
         "content": data.content,
         "tools_used": [],
+        "phase": current_phase,
         "created_at": now
     }
     await db.messages.insert_one(user_msg)
@@ -251,8 +258,9 @@ async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = De
             await event_queue.put(event)
 
         async def run_agent():
+            # Load history ONLY for the current agent's phase (separate context window)
             history = await db.messages.find(
-                {"conversation_id": conv_id}, {"_id": 0}
+                {"conversation_id": conv_id, "phase": current_phase}, {"_id": 0}
             ).sort("created_at", 1).to_list(50)
             history_for_agent = [{"role": m["role"], "content": m["content"]} for m in history]
 
@@ -281,7 +289,7 @@ async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = De
 
         result = task.result()
 
-        # Save AI response
+        # Save AI response with the same phase as the user's message
         ai_msg = {
             "id": str(uuid.uuid4()),
             "conversation_id": conv_id,
@@ -289,6 +297,7 @@ async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = De
             "content": result["response"],
             "tools_used": result.get("tools_used", []),
             "tool_activity": result.get("tool_activity", []),
+            "phase": current_phase,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.messages.insert_one(ai_msg)
