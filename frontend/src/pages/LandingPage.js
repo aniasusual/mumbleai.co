@@ -234,10 +234,10 @@ function HeroSection() {
           <Sparkles className="w-3 h-3" /> AI Language Tutor
         </motion.span>
 
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-[1.08] text-slate-900 mb-6" style={{ fontFamily: "Sora" }}>
-          <WordReveal text="Say " as="span" className="inline" />
-          <MorphingHello />{" "}
-          <WordReveal text="in every language" as="span" className="inline" />
+        <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-slate-900 mb-6" style={{ fontFamily: "Sora", lineHeight: 1.15 }}>
+          <WordReveal text="Say" as="span" className="block" />
+          <span className="block"><MorphingHello /></span>
+          <WordReveal text="in every language" as="span" className="block" />
         </h1>
 
         <motion.p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto mb-10"
