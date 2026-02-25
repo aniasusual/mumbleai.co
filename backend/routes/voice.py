@@ -95,8 +95,11 @@ async def send_voice_message(
     await db.messages.insert_one(user_msg)
 
     # Step 2: Process through agent
+    current_phase = conv.get("phase", "learning")
+    user_msg["phase"] = current_phase
+
     history = await db.messages.find(
-        {"conversation_id": conv_id}, {"_id": 0}
+        {"conversation_id": conv_id, "phase": current_phase}, {"_id": 0}
     ).sort("created_at", 1).to_list(50)
     history_for_agent = [{"role": m["role"], "content": m["content"]} for m in history]
 
