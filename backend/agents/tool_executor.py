@@ -5,7 +5,9 @@ Passes on_event callback to subagents for real-time activity tracking.
 """
 
 import json
+import uuid
 import logging
+from datetime import datetime, timezone
 from agents.subagents import (
     run_grammar_subagent,
     run_vocabulary_subagent,
@@ -86,11 +88,13 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
     elif tool_name == "plan_curriculum":
         proficiency = arguments.get("proficiency_level", "beginner")
         if db is not None and conversation_id:
+            # 1) Switch conversation phase to "planning"
             await db.conversations.update_one(
                 {"id": conversation_id},
                 {"$set": {"phase": "planning"}}
             )
-            # Run the planner as a real subagent — generate its welcome immediately
+
+            # 2) Run the planner as a real subagent — generate its welcome
             conv = await db.conversations.find_one({"id": conversation_id}, {"_id": 0})
             if conv:
                 from agents.planner import CurriculumPlannerAgent
@@ -104,11 +108,30 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
                     db=db
                 )
                 planner_welcome = await planner.generate_welcome()
+
+                # 3) Save the planner's welcome into the PLANNER's context window
+                #    (phase="planning", is_internal=True so frontend doesn't double-show it)
+                await db.messages.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "conversation_id": conversation_id,
+                    "role": "assistant",
+                    "content": planner_welcome,
+                    "tools_used": [],
+                    "phase": "planning",
+                    "is_internal": True,
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                })
+
                 return json.dumps({
                     "status": "planner_started",
                     "planner_message": planner_welcome,
-                    "instruction": f"The Curriculum Planner is now active and says: \"{planner_welcome}\". Relay this message to the user. Add a brief transition but DO include the planner's question verbatim."
+                    "instruction": (
+                        f"The Curriculum Planner is now active. "
+                        f"Relay the planner's message to the user naturally: \"{planner_welcome}\" "
+                        f"You can add a brief transition (1 sentence max), but include the planner's question verbatim."
+                    )
                 })
+
         return json.dumps({
             "status": "handoff_to_planner",
             "instruction": "Phase switched to planning. Tell the user you're connecting them with the learning plan designer."
