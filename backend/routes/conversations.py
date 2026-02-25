@@ -311,7 +311,7 @@ async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = De
 
         # Generate TTS in parallel with saving the message
         ai_text = result["response"]
-        tts_task = asyncio.create_task(generate_tts(ai_text))
+        tts_task = asyncio.create_task(_generate_tts(ai_text))
 
         # Save AI response with the same phase as the user's message
         ai_msg = {
