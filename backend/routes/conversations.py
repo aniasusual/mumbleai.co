@@ -290,12 +290,16 @@ async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = De
 
         result = task.result()
 
+        # Generate TTS in parallel with saving the message
+        ai_text = result["response"]
+        tts_task = asyncio.create_task(generate_tts(ai_text))
+
         # Save AI response with the same phase as the user's message
         ai_msg = {
             "id": str(uuid.uuid4()),
             "conversation_id": conv_id,
             "role": "assistant",
-            "content": result["response"],
+            "content": ai_text,
             "tools_used": result.get("tools_used", []),
             "tool_activity": result.get("tool_activity", []),
             "phase": current_phase,
@@ -313,9 +317,15 @@ async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = De
         )
         await _track_activity(data.content, result.get("tools_used", []), conv.get("scenario"))
 
+        # Wait for TTS to finish (was running in parallel with DB writes)
+        audio_base64 = await tts_task
+
         user_msg_out = {k: v for k, v in user_msg.items() if k != "_id"}
         ai_msg_out = {k: v for k, v in ai_msg.items() if k != "_id"}
 
-        yield f"data: {json.dumps({'type': 'done', 'user_message': user_msg_out, 'ai_message': ai_msg_out})}\n\n"
+        done_event = {'type': 'done', 'user_message': user_msg_out, 'ai_message': ai_msg_out}
+        if audio_base64:
+            done_event['ai_audio_base64'] = audio_base64
+        yield f"data: {json.dumps(done_event)}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
