@@ -319,8 +319,8 @@ const MobileSidebar = ({
         <X className="w-5 h-5 text-slate-500" />
       </button>
     </div>
-    <div className="px-3 pb-3 relative z-20" style={{ backgroundColor: 'transparent' }}>
-      <div className="space-y-1.5 mb-3 relative z-20">
+    <div className="px-3 pb-3 relative z-10">
+      <div className="space-y-1.5 mb-3">
         <LanguagePicker label="I speak" labelClass="text-slate-500" btnClass="bg-white hover:bg-slate-50 border border-indigo-100 text-slate-700 rounded-xl"
           value={nativeLang} languages={languages} onSelect={onSetNativeLang} testIdPrefix="native" />
         <LanguagePicker label="Learn" labelClass="text-indigo-600" btnClass="bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 rounded-xl"
