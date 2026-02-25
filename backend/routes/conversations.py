@@ -244,6 +244,13 @@ async def send_message(conv_id: str, data: MessageCreate, user: dict = Depends(g
 
     await _track_activity(data.content, result.get("tools_used", []), conv.get("scenario"))
 
+    # Phase transition: if planner saved curriculum, switch to learning
+    if "save_curriculum" in result.get("tools_used", []) and current_phase == "planning":
+        await db.conversations.update_one(
+            {"id": conv_id},
+            {"$set": {"phase": "learning"}}
+        )
+
     user_msg.pop("_id", None)
     ai_msg.pop("_id", None)
     return [user_msg, ai_msg]
