@@ -92,10 +92,32 @@ Have a short conversation with the user to understand their needs, then build a 
                 if curriculum_doc["lessons"]:
                     curriculum_doc["lessons"][0]["status"] = "in_progress"
                 await self.db.curricula.insert_one(curriculum_doc)
+
+                # Switch phase back to "learning"
                 await self.db.conversations.update_one(
                     {"id": self.conversation_id},
                     {"$set": {"phase": "learning"}}
                 )
+
+                # Inject the curriculum result into the TUTOR's context window
+                # so the tutor knows the plan when it resumes
+                lesson_summaries = [f"{i+1}. {l.get('title', 'Untitled')}" for i, l in enumerate(lessons)]
+                result_summary = (
+                    f"[Curriculum Plan Complete] Goal: {goal}. Timeline: {timeline}. "
+                    f"Level: {self.proficiency_level or 'beginner'}. "
+                    f"Lessons: {'; '.join(lesson_summaries)}"
+                )
+                await self.db.messages.insert_one({
+                    "id": str(_uuid.uuid4()),
+                    "conversation_id": self.conversation_id,
+                    "role": "assistant",
+                    "content": result_summary,
+                    "tools_used": [],
+                    "phase": "learning",
+                    "is_internal": True,
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                })
+
             first_lesson = lessons[0] if lessons else {}
             return json.dumps({
                 "status": "curriculum_saved",
