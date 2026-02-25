@@ -194,7 +194,7 @@ export default function ChatPage() {
         { content: userText, scenario_context: currentConv?.scenario },
         (event) => {
           if (event.type === "text_delta") {
-            setStreamingText(prev => prev + event.content);
+            // Don't show streaming text — we'll reveal it in sync with audio
           } else {
             setToolEvents(prev => [...prev, event]);
           }
@@ -204,7 +204,7 @@ export default function ChatPage() {
       setToolEvents([]); setStreamingText("");
       setSending(false);
       refreshConversations();
-      // Audio arrives with the SSE done event — no extra round-trip
+      // Audio arrives with the SSE done event — play in sync with text
       if (result.ai_audio_base64 && result.ai_message) {
         playWithKaraoke(result.ai_audio_base64, result.ai_message.id, result.ai_message.content);
       }
