@@ -27,6 +27,7 @@ TOOL_LABELS = {
     "start_scenario": "Setting up scenario",
     "set_proficiency_level": "Assessing your level",
     "plan_curriculum": "Handing off to planner",
+    "revise_curriculum": "Revising your learning plan",
     "advance_lesson": "Advancing to next lesson",
     "save_curriculum": "Saving your learning plan",
 }
