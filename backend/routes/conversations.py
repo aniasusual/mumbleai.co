@@ -336,6 +336,14 @@ async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = De
         )
         await _track_activity(data.content, result.get("tools_used", []), conv.get("scenario"))
 
+        # Phase transition: if planner saved curriculum, switch to learning
+        tools_used = result.get("tools_used", [])
+        if "save_curriculum" in tools_used and current_phase == "planning":
+            await db.conversations.update_one(
+                {"id": conv_id},
+                {"$set": {"phase": "learning"}}
+            )
+
         # Wait for TTS to finish (was running in parallel with DB writes)
         audio_base64 = await tts_task
 
