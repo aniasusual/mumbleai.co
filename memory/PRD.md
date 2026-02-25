@@ -62,13 +62,19 @@ Build a conversational agent called "mumble" that acts as a personal language tu
 - Fast mobile sidebar close animation
 - Opaque dropdown backgrounds (no transparency issues)
 
-## Completed (Latest Session - Feb 2026)
+## Completed (Latest Session — Feb 2026)
 - Fixed Dashboard page mobile responsiveness (1->2->4 column grid)
 - Fixed Vocabulary page mobile responsiveness (full-width search, icon-only nav buttons)
 - Fixed mobile sidebar closing delay (spring -> tween 0.2s)
 - Fixed dropdown transparency issue (solid #ffffff backgrounds)
+- Fixed hero text layout (Say / Hello / in every language on separate lines, auto-sizing)
+- Changed onboarding flow: agent asks comfort level instead of testing user
+- **Fixed agent handoff bugs:**
+  - Removed duplicate user messages in tutor + planner agent loops
+  - `plan_curriculum` now runs planner as inline subagent (welcome generated immediately, no extra user input)
+  - Planner maintains full context across multi-turn HITL conversation
+  - `save_curriculum` transitions cleanly back to tutor with lesson 1
 
-## Backlog
 ### P1
 - Progress Journal: Auto-generate weekly learning summaries
 
@@ -78,4 +84,3 @@ Build a conversational agent called "mumble" that acts as a personal language tu
 
 ### Future
 - Google OAuth login
-- Curriculum Planner e2e testing
