@@ -18,6 +18,26 @@ from languages import SUPPORTED_LANGUAGES, get_language_name
 
 router = APIRouter()
 
+import base64
+import logging
+from emergentintegrations.llm.openai import OpenAITextToSpeech
+
+_tts_logger = logging.getLogger(__name__)
+
+async def _generate_tts(text: str):
+    """Generate TTS audio, returns base64 string or None."""
+    try:
+        tts = OpenAITextToSpeech(api_key=EMERGENT_LLM_KEY)
+        tts_text = text[:4000]
+        audio = await tts.generate_speech(
+            text=tts_text, model="tts-1", voice="nova",
+            response_format="mp3", speed=1.0
+        )
+        return base64.b64encode(audio).decode("utf-8")
+    except Exception as e:
+        _tts_logger.error(f"TTS failed: {e}")
+        return None
+
 
 # --- Helpers ---
 
