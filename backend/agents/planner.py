@@ -100,7 +100,9 @@ Have a short conversation with the user to understand their needs, then build a 
             return json.dumps({
                 "status": "curriculum_saved",
                 "total_lessons": len(lessons),
-                "instruction": f"Curriculum saved! Now transition to teaching. Tell the user the plan is set and you're about to start Lesson 1: {first_lesson.get('title', '')}. Keep it brief and excited."
+                "first_lesson_title": first_lesson.get("title", ""),
+                "first_lesson_topics": first_lesson.get("topics", []),
+                "instruction": f"Curriculum saved with {len(lessons)} lessons! Summarize the learning plan briefly for the user. Then tell them Lesson 1 is '{first_lesson.get('title', '')}' and ask them if they're ready to start. The tutor will take over from here."
             })
         return f"Unknown planner tool: {tool_name}"
 
