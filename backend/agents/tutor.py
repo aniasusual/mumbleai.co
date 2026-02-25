@@ -140,7 +140,12 @@ class LanguageTutorAgent:
         if scenario:
             context = f"The user chose the '{scenario.replace('_', ' ')}' role-play scenario. Set the scene and start with one line of in-character dialogue. If this is a cross-language session, the role-play dialogue should be in {self.target_name}."
         elif self.native_language != self.target_language:
-            context = f"This is the user's first message. You need to assess their {self.target_name} level. Ask them ONE simple thing: to introduce themselves in {self.target_name}."
+            context = (
+                f"This is the user's first message. Introduce yourself as mumble, their friendly {self.target_name} tutor. "
+                f"Then ask ONE casual question: how confident or comfortable do they feel with {self.target_name}? "
+                f"Give them simple options like: complete beginner, know some basics, can hold a conversation, or pretty comfortable. "
+                f"Do NOT ask them to write or speak in {self.target_name} yet."
+            )
         else:
             context = f"The user wants to practice {self.target_name}. Ask them ONE question: what they'd like to work on today."
 
@@ -166,5 +171,5 @@ class LanguageTutorAgent:
         if scenario:
             return f"Let's practice a {scenario.replace('_', ' ')} scenario! I'll start — just respond naturally."
         if self.native_language != self.target_language:
-            return f"Hey! Let's figure out your {self.target_name} level. Try introducing yourself in {self.target_name}!"
+            return f"Hey! I'm mumble, your {self.target_name} tutor. How comfortable are you with {self.target_name} — complete beginner, know some basics, can hold a conversation, or pretty comfortable?"
         return "Hey! What would you like to work on today?"
