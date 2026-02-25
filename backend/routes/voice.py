@@ -68,7 +68,7 @@ async def send_voice_message(
     try:
         with open(tmp_path, "rb") as f:
             transcript_response = await stt.transcribe(
-                file=f, model="whisper-1", language=target_lang,
+                file=f, model="whisper-1",
                 response_format="json", temperature=0.0
             )
         user_text = transcript_response.text
