@@ -150,17 +150,19 @@ function MorphingHello() {
   }, []);
 
   return (
-    <div className="inline-block relative h-[1.35em] overflow-hidden align-bottom" style={{ minWidth: '5.5em' }}>
+    <span className="inline-block relative h-[1.35em] overflow-hidden align-bottom">
+      {/* Invisible sizer — gives the container the exact width of the current word */}
+      <span className="invisible whitespace-nowrap">{HELLOS[idx]}</span>
       <AnimatePresence mode="wait">
         <motion.span key={idx}
-          className="absolute left-0 whitespace-nowrap bg-gradient-to-r from-indigo-600 via-pink-500 to-emerald-500 bg-clip-text text-transparent"
+          className="absolute inset-0 whitespace-nowrap bg-gradient-to-r from-indigo-600 via-pink-500 to-emerald-500 bg-clip-text text-transparent"
           initial={{ y: 40, opacity: 0, filter: "blur(4px)" }}
           animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
           exit={{ y: -40, opacity: 0, filter: "blur(4px)" }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >{HELLOS[idx]}</motion.span>
       </AnimatePresence>
-    </div>
+    </span>
   );
 }
 
