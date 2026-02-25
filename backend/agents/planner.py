@@ -105,12 +105,12 @@ Have a short conversation with the user to understand their needs, then build a 
         return f"Unknown planner tool: {tool_name}"
 
     async def process_message(self, user_text: str, conversation_history: list, on_event=None, **kwargs) -> dict:
-        """The planner's own agent loop with streaming."""
+        """The planner's own agent loop with streaming.
+        conversation_history already includes the current user message from DB."""
         messages = [
             {"role": m.get("role", "user"), "content": m.get("content", "")}
             for m in conversation_history[-10:]
         ]
-        messages.append({"role": "user", "content": user_text})
 
         tools_used = []
         tool_activity = []

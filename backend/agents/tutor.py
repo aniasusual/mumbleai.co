@@ -45,7 +45,8 @@ class LanguageTutorAgent:
                               scenario_context: Optional[str] = None, on_event=None) -> dict:
         """
         The agent loop with streaming:
-          user message -> streaming LLM call -> if tools, execute & loop -> else stream text to client.
+          conversation history (already includes user message) -> streaming LLM call
+          -> if tools, execute & loop -> else stream text to client.
         on_event: async callback for real-time tool/text activity tracking.
         """
         messages = [
@@ -53,8 +54,9 @@ class LanguageTutorAgent:
             for m in conversation_history[-10:]
         ]
 
-        user_content = f"[Active scenario: {scenario_context}]\n{user_text}" if scenario_context else user_text
-        messages.append({"role": "user", "content": user_content})
+        # Add scenario context to the last user message if needed (don't duplicate it)
+        if scenario_context and messages and messages[-1]["role"] == "user":
+            messages[-1]["content"] = f"[Active scenario: {scenario_context}]\n{messages[-1]['content']}"
 
         tools_used = []
         tool_activity = []
