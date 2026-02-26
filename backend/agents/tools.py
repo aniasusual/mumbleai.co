@@ -129,28 +129,14 @@ MAIN_AGENT_TOOLS = [
         "type": "function",
         "function": {
             "name": "plan_curriculum",
-            "description": "Hand off to the Curriculum Planner subagent to create a personalized learning plan. Call this AFTER setting the user's proficiency level. The planner will take over the conversation to ask the user about their goals and timeline, then build a curriculum together.",
+            "description": "Hand off to the Curriculum Planner subagent. Call this to create a NEW learning plan (after setting proficiency) OR when the user wants to CHANGE, UPDATE, or REVISE their existing plan. The planner will take over the conversation.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "proficiency_level": {"type": "string", "description": "The user's assessed proficiency level"},
-                    "initial_context": {"type": "string", "description": "Any context about the user's goals gathered so far"}
+                    "proficiency_level": {"type": "string", "description": "The user's proficiency level"},
+                    "context": {"type": "string", "description": "Context for the planner: why the handoff is happening (e.g. 'initial planning' or 'user wants to add a shopping lesson')"}
                 },
-                "required": ["proficiency_level"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "revise_curriculum",
-            "description": "Hand back to the Curriculum Planner to modify the existing learning plan. Call this when the user wants to change, update, or adjust their curriculum/study plan. The planner will resume with the user's change request.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "change_request": {"type": "string", "description": "What the user wants to change about the curriculum"}
-                },
-                "required": ["change_request"]
+                "required": ["proficiency_level", "context"]
             }
         }
     }
@@ -162,7 +148,7 @@ PLANNER_TOOLS = [
         "type": "function",
         "function": {
             "name": "save_curriculum",
-            "description": "Save the finalized curriculum/learning plan after the user has agreed to it. Call this ONLY after the user confirms they're happy with the plan.",
+            "description": "Save a NEW curriculum/learning plan after the user has agreed to it. Call this ONLY after the user confirms they're happy with the plan.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -181,6 +167,35 @@ PLANNER_TOOLS = [
                             "required": ["lesson_number", "title", "topics", "objective"]
                         },
                         "description": "Ordered list of lessons in the curriculum"
+                    }
+                },
+                "required": ["timeline", "goal", "lessons"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "revise_curriculum",
+            "description": "Revise and save an UPDATED version of the existing curriculum. Use this when the user wants to modify, add, remove, or reorganize lessons in their current plan. Provide the FULL updated lesson list (not just the changes).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "timeline": {"type": "string", "description": "The (possibly updated) timeline"},
+                    "goal": {"type": "string", "description": "The (possibly updated) learning goal"},
+                    "lessons": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "lesson_number": {"type": "integer"},
+                                "title": {"type": "string"},
+                                "topics": {"type": "array", "items": {"type": "string"}},
+                                "objective": {"type": "string"}
+                            },
+                            "required": ["lesson_number", "title", "topics", "objective"]
+                        },
+                        "description": "The FULL updated list of lessons"
                     }
                 },
                 "required": ["timeline", "goal", "lessons"]
