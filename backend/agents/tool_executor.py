@@ -116,10 +116,6 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
                 )
 
                 if is_revision:
-                    # Emit tool event for the revision
-                    if on_event:
-                        await on_event({"type": "tool_start", "tool": "revise_curriculum", "label": "Revising your learning plan"})
-
                     # Inject the existing curriculum + change request into planner's context
                     lesson_summaries = [f"{i+1}. {l.get('title', '')}" for i, l in enumerate(existing.get("lessons", []))]
                     revision_context = (
@@ -140,46 +136,35 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
                         "created_at": datetime.now(timezone.utc).isoformat()
                     })
 
-                    # Let the planner process the revision
-                    history = await db.messages.find(
-                        {"conversation_id": conversation_id, "phase": "planning"}, {"_id": 0}
-                    ).sort("created_at", 1).to_list(50)
-                    history_for_planner = [{"role": m["role"], "content": m["content"]} for m in history]
+                    # Generate the planner's revision proposal (NOT saving yet — user must confirm)
+                    if on_event:
+                        await on_event({"type": "tool_start", "tool": "revise_curriculum", "label": "Revising your learning plan"})
 
-                    planner_result = await planner.process_message(
-                        user_text=context,
-                        conversation_history=history_for_planner
-                    )
-                    planner_response = planner_result.get("response", "")
-                    planner_tools = planner_result.get("tools_used", [])
+                    planner_welcome = await planner.generate_revision_proposal(context, existing)
 
-                    # Emit tool end event
                     if on_event:
                         await on_event({"type": "tool_end", "tool": "revise_curriculum", "label": "Revising your learning plan"})
 
-                    # Save planner's response into its context
+                    # Save planner's proposal into its context (user will interact with planner next)
                     await db.messages.insert_one({
                         "id": str(uuid.uuid4()),
                         "conversation_id": conversation_id,
                         "role": "assistant",
-                        "content": planner_response,
-                        "tools_used": planner_tools,
+                        "content": planner_welcome,
+                        "tools_used": [],
                         "phase": "planning",
                         "is_internal": True,
                         "created_at": datetime.now(timezone.utc).isoformat()
                     })
 
-                    # If planner saved the revision, switch back to learning
-                    if "save_curriculum" in planner_tools or "revise_curriculum" in planner_tools:
-                        await db.conversations.update_one(
-                            {"id": conversation_id},
-                            {"$set": {"phase": "learning"}}
-                        )
-
                     return json.dumps({
-                        "status": "revision_complete" if ("save_curriculum" in planner_tools or "revise_curriculum" in planner_tools) else "planner_revision_started",
-                        "planner_message": planner_response,
-                        "instruction": f"The Curriculum Planner has responded. Relay the planner's message to the user: \"{planner_response}\""
+                        "status": "planner_revision_started",
+                        "planner_message": planner_welcome,
+                        "instruction": (
+                            f"The Curriculum Planner is now active for revision. "
+                            f"Relay the planner's message to the user: \"{planner_welcome}\" "
+                            f"The planner will handle the rest — the user will interact with it directly."
+                        )
                     })
 
                 else:
