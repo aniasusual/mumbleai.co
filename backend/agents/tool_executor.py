@@ -116,6 +116,10 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
                 )
 
                 if is_revision:
+                    # Emit tool event for the revision
+                    if on_event:
+                        await on_event({"type": "tool_start", "tool": "revise_curriculum", "label": "Revising your learning plan"})
+
                     # Inject the existing curriculum + change request into planner's context
                     lesson_summaries = [f"{i+1}. {l.get('title', '')}" for i, l in enumerate(existing.get("lessons", []))]
                     revision_context = (
@@ -148,6 +152,10 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
                     )
                     planner_response = planner_result.get("response", "")
                     planner_tools = planner_result.get("tools_used", [])
+
+                    # Emit tool end event
+                    if on_event:
+                        await on_event({"type": "tool_end", "tool": "revise_curriculum", "label": "Revising your learning plan"})
 
                     # Save planner's response into its context
                     await db.messages.insert_one({
