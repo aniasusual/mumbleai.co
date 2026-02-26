@@ -66,8 +66,10 @@ Gather the user's needs quickly and build a curriculum. You need to know:
 3. Let the user tweak if needed
 4. Call `save_curriculum` when confirmed
 
-## Tool
-- `save_curriculum`: Call this to save the finalized plan. Only call it when the user says they're happy with it."""
+## Tools
+- `save_curriculum`: Save a NEW curriculum. Use when creating a plan for the first time.
+- `revise_curriculum`: Save a REVISED curriculum. Use when modifying an existing plan. Provide the FULL updated lesson list (not just the changes).
+- When revising, if you receive context about the current plan and what the user wants changed, make the changes and call `revise_curriculum` immediately. Don't ask unnecessary questions — just revise and save."""
 
     async def _execute_tool(self, tool_name: str, arguments: dict) -> str:
         """Execute the planner's own tools."""
