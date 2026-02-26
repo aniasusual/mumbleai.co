@@ -48,25 +48,6 @@ function FloatingCharsSmall() {
   );
 }
 
-const StreamingBubble = ({ text }) => (
-  <motion.div
-    className="flex items-start gap-3 px-5 py-2"
-    initial={{ opacity: 0, y: 8 }}
-    animate={{ opacity: 1, y: 0 }}
-    data-testid="streaming-bubble"
-  >
-    <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 bg-indigo-50 border border-indigo-100">
-      <WaveformLogoSmall size={18} className="text-indigo-500" />
-    </div>
-    <div className="max-w-[75%] px-5 py-3 rounded-2xl rounded-tl-sm bg-white border border-slate-100 shadow-sm">
-      <div className="text-sm leading-relaxed text-slate-700">
-        <MarkdownContent content={text} />
-        <span className="inline-block w-0.5 h-4 bg-indigo-500 animate-pulse ml-0.5 align-text-bottom" />
-      </div>
-    </div>
-  </motion.div>
-);
-
 export const MessageList = ({ messages, loading, sending, toolEvents, streamingText, speakingState, onStopAudio, inputMode, onPlayAudio, onSetInput, inputRef }) => {
   const messagesEndRef = useRef(null);
 
