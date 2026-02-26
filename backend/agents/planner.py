@@ -210,11 +210,15 @@ Gather the user's needs quickly and build a curriculum. You need to know:
             }
 
     async def generate_welcome(self, **kwargs) -> str:
-        """Generate the planner's opening question in the user's native language."""
+        """Generate the planner's opening — asks all planning questions at once."""
         prompt = (
             f"You are starting the curriculum planning conversation. The user's {self.target_name} level is {self.proficiency_level or 'unknown'}.\n"
             f"Write a SHORT opening (1-2 sentences) in {self.native_name} introducing yourself as the learning plan designer. "
-            f"Then ask ONE question: what is their goal for learning {self.target_name}?"
+            f"Then ask ALL THREE questions in a brief numbered list: "
+            f"1) What's their goal for learning {self.target_name}? "
+            f"2) What's their timeline and how often can they practice? "
+            f"3) Any specific topics they want to focus on? "
+            f"Keep it casual and concise — no more than 4-5 lines total."
         )
         try:
             response = await llm_call(
