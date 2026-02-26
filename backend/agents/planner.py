@@ -230,3 +230,29 @@ Gather the user's needs quickly and build a curriculum. You need to know:
         except Exception as e:
             logger.error(f"Planner welcome failed: {e}")
             return f"Let's plan your {self.target_name} learning journey! What's your main goal?"
+
+
+    async def generate_revision_proposal(self, change_request: str, existing_curriculum: dict) -> str:
+        """Generate a revision proposal — present the changes and ask user to confirm."""
+        lesson_summaries = [f"{i+1}. {l.get('title', '')}" for i, l in enumerate(existing_curriculum.get("lessons", []))]
+        prompt = (
+            f"The user has an existing curriculum:\n"
+            f"Goal: {existing_curriculum.get('goal', '')}\n"
+            f"Timeline: {existing_curriculum.get('timeline', '')}\n"
+            f"Lessons: {'; '.join(lesson_summaries)}\n\n"
+            f"They want to change: {change_request}\n\n"
+            f"Write a SHORT response in {self.native_name}:\n"
+            f"1. Show the REVISED plan with numbered lessons (incorporate their change)\n"
+            f"2. Highlight what changed\n"
+            f"3. Ask if they're happy with this or want more tweaks\n"
+            f"Do NOT save it yet — wait for user confirmation."
+        )
+        try:
+            response = await llm_call(
+                api_key=self.api_key, messages=[{"role": "user", "content": prompt}],
+                system=self.system_prompt, tools=None, max_tokens=600
+            )
+            return response.choices[0].message.content or "Here's the revised plan — let me know if this works!"
+        except Exception as e:
+            logger.error(f"Planner revision proposal failed: {e}")
+            return "Here's what I'd change — let me know if you'd like to adjust anything!"
