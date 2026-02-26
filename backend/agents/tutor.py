@@ -110,10 +110,10 @@ class LanguageTutorAgent:
                         await on_event({"type": "tool_start", "tool": tool_name, "label": tool_entry["label"]})
 
                     async def substep_callback(evt, _entry=tool_entry):
-                        if evt.get("type") == "substep":
-                            _entry["substeps"].append({"substep": evt["substep"], "label": evt["label"]})
-                            if on_event:
-                                await on_event(evt)
+                        if on_event:
+                            if evt.get("type") == "substep":
+                                _entry["substeps"].append({"substep": evt["substep"], "label": evt["label"]})
+                            await on_event(evt)
 
                     result = await execute_tool(self.api_key, tool_name, arguments, self.conversation_id, self.db, on_event=substep_callback)
                     messages.append({"role": "tool", "tool_call_id": tc["id"], "content": result or "Tool completed."})
