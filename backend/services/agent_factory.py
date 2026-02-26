@@ -32,6 +32,13 @@ async def create_agent_for_conversation(conv: dict, conv_id: str):
     curriculum = None
     if phase == "learning":
         curriculum = await db.curricula.find_one({"conversation_id": conv_id}, {"_id": 0})
+        if not curriculum and native_lang != target_lang:
+            # No curriculum yet — force back to assessment so the tutor hands off to planner
+            phase = "assessment"
+            await db.conversations.update_one(
+                {"id": conv_id},
+                {"$set": {"phase": "assessment"}}
+            )
 
     return LanguageTutorAgent(
         api_key=EMERGENT_LLM_KEY,
