@@ -1,9 +1,8 @@
 import { useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, Sparkles } from "lucide-react";
-import { ChatBubble, TypingIndicator, MarkdownContent } from "./ChatBubble";
+import { ChatBubble, TypingIndicator } from "./ChatBubble";
 import { ToolActivityLive } from "./ToolActivity";
-import { WaveformLogoSmall } from "@/components/WaveformLogo";
 
 /** Floating mesh blobs for the empty state */
 function MeshBlobs() {
