@@ -71,7 +71,7 @@ Gather the user's needs quickly and build a curriculum. You need to know:
 
     async def _execute_tool(self, tool_name: str, arguments: dict) -> str:
         """Execute the planner's own tools."""
-        if tool_name == "save_curriculum":
+        if tool_name in ("save_curriculum", "revise_curriculum"):
             timeline = arguments.get("timeline", "")
             goal = arguments.get("goal", "")
             lessons = arguments.get("lessons", [])
@@ -100,8 +100,6 @@ Gather the user's needs quickly and build a curriculum. You need to know:
                     curriculum_doc["id"] = str(_uuid.uuid4())
                     await self.db.curricula.insert_one(curriculum_doc)
 
-                # Phase stays "planning" — the route handler will switch it after SSE completes
-
                 # Inject the curriculum result into the TUTOR's context window
                 lesson_summaries = [f"{i+1}. {l.get('title', 'Untitled')}" for i, l in enumerate(lessons)]
                 result_summary = (
@@ -121,12 +119,13 @@ Gather the user's needs quickly and build a curriculum. You need to know:
                 })
 
             first_lesson = lessons[0] if lessons else {}
+            action = "revised" if tool_name == "revise_curriculum" else "saved"
             return json.dumps({
-                "status": "curriculum_saved",
+                "status": f"curriculum_{action}",
                 "total_lessons": len(lessons),
                 "first_lesson_title": first_lesson.get("title", ""),
                 "first_lesson_topics": first_lesson.get("topics", []),
-                "instruction": f"Curriculum saved with {len(lessons)} lessons! Summarize the learning plan briefly for the user. Then tell them Lesson 1 is '{first_lesson.get('title', '')}' and ask them if they're ready to start. The tutor will take over from here."
+                "instruction": f"Curriculum {action} with {len(lessons)} lessons! Summarize the plan briefly. Tell the user Lesson 1 is '{first_lesson.get('title', '')}' and ask if they're ready to start."
             })
         return f"Unknown planner tool: {tool_name}"
 
