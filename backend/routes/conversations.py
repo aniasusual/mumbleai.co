@@ -245,7 +245,7 @@ async def send_message(conv_id: str, data: MessageCreate, user: dict = Depends(g
     await _track_activity(data.content, result.get("tools_used", []), conv.get("scenario"))
 
     # Phase transition: if planner saved curriculum, switch to learning
-    if "save_curriculum" in result.get("tools_used", []) and current_phase == "planning":
+    if ("save_curriculum" in result.get("tools_used", []) or "revise_curriculum" in result.get("tools_used", [])) and current_phase == "planning":
         await db.conversations.update_one(
             {"id": conv_id},
             {"$set": {"phase": "learning"}}
@@ -345,7 +345,7 @@ async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = De
 
         # Phase transition: if planner saved curriculum, switch to learning
         tools_used = result.get("tools_used", [])
-        if "save_curriculum" in tools_used and current_phase == "planning":
+        if ("save_curriculum" in tools_used or "revise_curriculum" in tools_used) and current_phase == "planning":
             await db.conversations.update_one(
                 {"id": conv_id},
                 {"$set": {"phase": "learning"}}
