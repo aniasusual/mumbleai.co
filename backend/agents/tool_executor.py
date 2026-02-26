@@ -88,14 +88,20 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
 
     elif tool_name == "plan_curriculum":
         proficiency = arguments.get("proficiency_level", "beginner")
+        context = arguments.get("context", "initial planning")
+        is_revision = False
+
         if db is not None and conversation_id:
+            # Check if there's an existing curriculum (revision vs initial)
+            existing = await db.curricula.find_one({"conversation_id": conversation_id}, {"_id": 0})
+            is_revision = existing is not None
+
             # 1) Switch conversation phase to "planning"
             await db.conversations.update_one(
                 {"id": conversation_id},
                 {"$set": {"phase": "planning"}}
             )
 
-            # 2) Run the planner as a real subagent — generate its welcome
             conv = await db.conversations.find_one({"id": conversation_id}, {"_id": 0})
             if conv:
                 from agents.planner import CurriculumPlannerAgent
@@ -108,30 +114,89 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
                     conversation_id=conversation_id,
                     db=db
                 )
-                planner_welcome = await planner.generate_welcome()
 
-                # 3) Save the planner's welcome into the PLANNER's context window
-                #    (phase="planning", is_internal=True so frontend doesn't double-show it)
-                await db.messages.insert_one({
-                    "id": str(uuid.uuid4()),
-                    "conversation_id": conversation_id,
-                    "role": "assistant",
-                    "content": planner_welcome,
-                    "tools_used": [],
-                    "phase": "planning",
-                    "is_internal": True,
-                    "created_at": datetime.now(timezone.utc).isoformat()
-                })
-
-                return json.dumps({
-                    "status": "planner_started",
-                    "planner_message": planner_welcome,
-                    "instruction": (
-                        f"The Curriculum Planner is now active. "
-                        f"Relay the planner's message to the user naturally: \"{planner_welcome}\" "
-                        f"You can add a brief transition (1 sentence max), but include the planner's question verbatim."
+                if is_revision:
+                    # Inject the existing curriculum + change request into planner's context
+                    lesson_summaries = [f"{i+1}. {l.get('title', '')}" for i, l in enumerate(existing.get("lessons", []))]
+                    revision_context = (
+                        f"[Curriculum revision requested] "
+                        f"Current plan: Goal={existing.get('goal', '')}, "
+                        f"Timeline={existing.get('timeline', '')}, "
+                        f"Lessons: {'; '.join(lesson_summaries)}. "
+                        f"User wants: {context}"
                     )
-                })
+                    await db.messages.insert_one({
+                        "id": str(uuid.uuid4()),
+                        "conversation_id": conversation_id,
+                        "role": "user",
+                        "content": revision_context,
+                        "tools_used": [],
+                        "phase": "planning",
+                        "is_internal": True,
+                        "created_at": datetime.now(timezone.utc).isoformat()
+                    })
+
+                    # Let the planner process the revision
+                    history = await db.messages.find(
+                        {"conversation_id": conversation_id, "phase": "planning"}, {"_id": 0}
+                    ).sort("created_at", 1).to_list(50)
+                    history_for_planner = [{"role": m["role"], "content": m["content"]} for m in history]
+
+                    planner_result = await planner.process_message(
+                        user_text=context,
+                        conversation_history=history_for_planner
+                    )
+                    planner_response = planner_result.get("response", "")
+                    planner_tools = planner_result.get("tools_used", [])
+
+                    # Save planner's response into its context
+                    await db.messages.insert_one({
+                        "id": str(uuid.uuid4()),
+                        "conversation_id": conversation_id,
+                        "role": "assistant",
+                        "content": planner_response,
+                        "tools_used": planner_tools,
+                        "phase": "planning",
+                        "is_internal": True,
+                        "created_at": datetime.now(timezone.utc).isoformat()
+                    })
+
+                    # If planner saved the revision, switch back to learning
+                    if "save_curriculum" in planner_tools or "revise_curriculum" in planner_tools:
+                        await db.conversations.update_one(
+                            {"id": conversation_id},
+                            {"$set": {"phase": "learning"}}
+                        )
+
+                    return json.dumps({
+                        "status": "revision_complete" if ("save_curriculum" in planner_tools or "revise_curriculum" in planner_tools) else "planner_revision_started",
+                        "planner_message": planner_response,
+                        "instruction": f"The Curriculum Planner has responded. Relay the planner's message to the user: \"{planner_response}\""
+                    })
+
+                else:
+                    # Initial planning — generate welcome
+                    planner_welcome = await planner.generate_welcome()
+                    await db.messages.insert_one({
+                        "id": str(uuid.uuid4()),
+                        "conversation_id": conversation_id,
+                        "role": "assistant",
+                        "content": planner_welcome,
+                        "tools_used": [],
+                        "phase": "planning",
+                        "is_internal": True,
+                        "created_at": datetime.now(timezone.utc).isoformat()
+                    })
+
+                    return json.dumps({
+                        "status": "planner_started",
+                        "planner_message": planner_welcome,
+                        "instruction": (
+                            f"The Curriculum Planner is now active. "
+                            f"Relay the planner's message to the user naturally: \"{planner_welcome}\" "
+                            f"You can add a brief transition (1 sentence max), but include the planner's question verbatim."
+                        )
+                    })
 
         return json.dumps({
             "status": "handoff_to_planner",
@@ -142,103 +207,7 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
         return json.dumps({"status": "error", "instruction": "save_curriculum is handled by the Curriculum Planner agent, not the main tutor."})
 
     elif tool_name == "revise_curriculum":
-        change_request = arguments.get("change_request", "")
-        if db is not None and conversation_id:
-            # 1) Switch phase to planning
-            await db.conversations.update_one(
-                {"id": conversation_id},
-                {"$set": {"phase": "planning"}}
-            )
-
-            # 2) Load existing curriculum to seed the planner's context
-            existing = await db.curricula.find_one({"conversation_id": conversation_id}, {"_id": 0})
-            curriculum_context = ""
-            if existing:
-                lesson_summaries = [f"{i+1}. {l.get('title', '')}" for i, l in enumerate(existing.get("lessons", []))]
-                curriculum_context = (
-                    f"Current plan: Goal={existing.get('goal', '')}, "
-                    f"Timeline={existing.get('timeline', '')}, "
-                    f"Lessons: {'; '.join(lesson_summaries)}"
-                )
-
-            # 3) Inject the revision context into the planner's context window
-            revision_context = f"[Curriculum revision requested] {curriculum_context}. User wants to change: {change_request}"
-            await db.messages.insert_one({
-                "id": str(uuid.uuid4()),
-                "conversation_id": conversation_id,
-                "role": "user",
-                "content": revision_context,
-                "tools_used": [],
-                "phase": "planning",
-                "is_internal": True,
-                "created_at": datetime.now(timezone.utc).isoformat()
-            })
-
-            # 4) Generate the planner's response to the revision request
-            conv = await db.conversations.find_one({"id": conversation_id}, {"_id": 0})
-            if conv:
-                from agents.planner import CurriculumPlannerAgent
-                planner = CurriculumPlannerAgent(
-                    api_key=api_key,
-                    session_id=f"lingua_planner_{conversation_id}",
-                    native_language=conv.get("native_language", "en"),
-                    target_language=conv.get("target_language", "en"),
-                    proficiency_level=conv.get("proficiency_level", "beginner"),
-                    conversation_id=conversation_id,
-                    db=db
-                )
-
-                # Load planner's context and let it respond
-                history = await db.messages.find(
-                    {"conversation_id": conversation_id, "phase": "planning"}, {"_id": 0}
-                ).sort("created_at", 1).to_list(50)
-                history_for_planner = [{"role": m["role"], "content": m["content"]} for m in history]
-
-                planner_result = await planner.process_message(
-                    user_text=change_request,
-                    conversation_history=history_for_planner
-                )
-                planner_response = planner_result.get("response", "")
-                planner_tools = planner_result.get("tools_used", [])
-
-                # Save the planner's response into its own context
-                await db.messages.insert_one({
-                    "id": str(uuid.uuid4()),
-                    "conversation_id": conversation_id,
-                    "role": "assistant",
-                    "content": planner_response,
-                    "tools_used": planner_tools,
-                    "phase": "planning",
-                    "is_internal": True,
-                    "created_at": datetime.now(timezone.utc).isoformat()
-                })
-
-                # If planner already saved the revision, switch back to learning
-                if "save_curriculum" in planner_tools:
-                    await db.conversations.update_one(
-                        {"id": conversation_id},
-                        {"$set": {"phase": "learning"}}
-                    )
-                    return json.dumps({
-                        "status": "revision_complete",
-                        "planner_message": planner_response,
-                        "instruction": f"The planner has revised and saved the curriculum. Relay the planner's message: \"{planner_response}\""
-                    })
-
-                # Otherwise planner needs more info from the user — it takes over
-                return json.dumps({
-                    "status": "planner_revision_started",
-                    "planner_message": planner_response,
-                    "instruction": (
-                        f"The Curriculum Planner is now active and needs more details. "
-                        f"Relay the planner's message: \"{planner_response}\""
-                    )
-                })
-
-        return json.dumps({
-            "status": "handoff_to_planner",
-            "instruction": "Phase switched to planning for curriculum revision."
-        })
+        return json.dumps({"status": "error", "instruction": "revise_curriculum is handled by the Curriculum Planner agent, not the main tutor."})
 
     elif tool_name == "advance_lesson":
         summary = arguments.get("summary", "")
