@@ -156,6 +156,7 @@ class LanguageTutorAgent:
             f"IMPORTANT: Write the message in {self.native_name} (the user's native language). "
             f"Only use {self.target_name} for example phrases or practice material.\n"
             f"Keep it to 2-3 short sentences. End with exactly ONE question or prompt.\n"
+            f"REMEMBER: End your response with [EXPECT_LANG:xx] tag as per your instructions.\n"
             f"Context: {context}"
         )
 
