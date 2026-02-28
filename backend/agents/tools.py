@@ -139,6 +139,20 @@ MAIN_AGENT_TOOLS = [
                 "required": ["proficiency_level", "context"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "web_search",
+            "description": "Search the web for real-world information. Use this when you need external knowledge to help the user — e.g., interview formats, exam structures (JLPT, DELF, HSK), cultural context, popular media for listening practice, travel tips, current slang, specific vocabulary for a profession or topic, real-world conversation examples, or anything you're not fully sure about.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "The search query. Be specific and include the target language name if relevant."}
+                },
+                "required": ["query"]
+            }
+        }
     }
 ]
 
