@@ -50,7 +50,7 @@ const DesktopSidebar = ({
   return (
   <TooltipProvider delayDuration={200}>
     <motion.aside
-      className="hidden lg:flex flex-col flex-shrink-0 relative rounded-2xl overflow-hidden m-2"
+      className="hidden lg:flex flex-col flex-shrink-0 relative overflow-hidden"
       style={{
         background: "linear-gradient(165deg, #f0f0ff 0%, #e8ecff 40%, #e0d8f8 100%)",
         boxShadow: "2px 0 16px rgba(99,102,241,0.06)",
