@@ -149,7 +149,8 @@ async def send_voice_message(
     await _track_activity(user_text, result.get("tools_used", []), conv.get("scenario"))
 
     # Phase transition: if planner saved curriculum, switch to learning
-    if "save_curriculum" in result.get("tools_used", []) and current_phase == "planning":
+    tools_used = result.get("tools_used", [])
+    if ("save_curriculum" in tools_used or "revise_curriculum" in tools_used) and current_phase == "planning":
         await db.conversations.update_one(
             {"id": conv_id},
             {"$set": {"phase": "learning"}}
