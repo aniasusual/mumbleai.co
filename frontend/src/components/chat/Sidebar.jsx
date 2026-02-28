@@ -341,9 +341,12 @@ const MobileSidebar = ({
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button className="w-full rounded-full text-sm font-semibold text-white border-0 h-10 shadow-[0_2px_12px_rgba(99,102,241,0.3)]"
-            style={{ background: "linear-gradient(135deg, #4338ca, #6366f1)" }} data-testid="new-chat-btn">
-            <Plus className="w-4 h-4 mr-2" /> New Chat <ChevronDown className="w-3 h-3 ml-auto opacity-60" />
+          <Button className="w-full rounded-full text-sm font-semibold text-white border-0 h-10 shadow-[0_2px_12px_rgba(99,102,241,0.3)] disabled:opacity-70"
+            style={{ background: "linear-gradient(135deg, #4338ca, #6366f1)" }}
+            disabled={creatingChat}
+            data-testid="new-chat-btn">
+            {creatingChat ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+            {creatingChat ? "Creating..." : "New Chat"} <ChevronDown className="w-3 h-3 ml-auto opacity-60" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-64 border-indigo-100 shadow-lg rounded-xl" style={{ backgroundColor: '#ffffff' }} data-testid="new-chat-dropdown">
