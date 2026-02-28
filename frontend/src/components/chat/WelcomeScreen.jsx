@@ -164,15 +164,19 @@ export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targ
             {scenarios.map((s, i) => (
                 <motion.button
                   key={s.id}
-                  onClick={() => onNewConversation(s.id)}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium text-slate-500 bg-white/70 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-200"
+                  onClick={() => handleClick(s.id)}
+                  disabled={creatingChat}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium text-slate-500 bg-white/70 border border-slate-200 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.6 + i * 0.04, duration: 0.3 }}
-                  whileHover={{ scale: 1.04 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileHover={creatingChat ? {} : { scale: 1.04 }}
+                  whileTap={creatingChat ? {} : { scale: 0.97 }}
                   data-testid={`welcome-scenario-${s.id}`}
                 >
+                  {creatingChat && clickedId === s.id ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : null}
                   <span>{s.title}</span>
                 </motion.button>
               ))}
