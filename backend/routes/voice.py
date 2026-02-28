@@ -2,6 +2,7 @@
 
 import os
 import uuid
+import asyncio
 import base64
 import logging
 import tempfile
@@ -10,6 +11,7 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from fastapi.responses import JSONResponse
+from langdetect import detect as detect_language
 
 from config import db, EMERGENT_LLM_KEY
 from emergentintegrations.llm.openai import OpenAISpeechToText, OpenAITextToSpeech
