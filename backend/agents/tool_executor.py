@@ -195,7 +195,14 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
 
                 else:
                     # Initial planning — generate welcome
+                    if on_event:
+                        await on_event({"type": "tool_start", "tool": "plan_curriculum", "label": "Connecting with planner"})
+
                     planner_welcome = _strip_lang_tag(await planner.generate_welcome())
+
+                    if on_event:
+                        await on_event({"type": "tool_end", "tool": "plan_curriculum", "label": "Connecting with planner"})
+
                     await db.messages.insert_one({
                         "id": str(uuid.uuid4()),
                         "conversation_id": conversation_id,
