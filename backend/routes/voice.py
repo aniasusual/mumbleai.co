@@ -104,7 +104,7 @@ async def send_voice_message(
     # Step 2: Process through agent — load only this agent's phase history
     history = await db.messages.find(
         {"conversation_id": conv_id, "phase": current_phase}, {"_id": 0}
-    ).sort("created_at", 1).to_list(50)
+    ).sort("created_at", 1).to_list(500)
     history_for_agent = [{"role": m["role"], "content": m["content"]} for m in history]
 
     agent = await create_agent_for_conversation(conv, conv_id)

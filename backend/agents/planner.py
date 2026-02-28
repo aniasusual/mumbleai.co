@@ -147,7 +147,7 @@ This tag is invisible to the user. If you forget it, the voice system breaks."""
         conversation_history already includes the current user message from DB."""
         messages = [
             {"role": m.get("role", "user"), "content": m.get("content", "")}
-            for m in conversation_history[-20:]
+            for m in conversation_history
         ]
 
         tools_used = []
