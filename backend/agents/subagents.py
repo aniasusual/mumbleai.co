@@ -18,6 +18,8 @@ SUBSTEP_LABELS = {
     "find_examples": "Generating examples",
     "phonetic_breakdown": "Analyzing pronunciation",
     "score_response": "Scoring your response",
+    "compare_phrases": "Comparing pronunciation",
+    "break_down_words": "Breaking down words phonetically",
 }
 
 
