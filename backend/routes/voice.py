@@ -22,35 +22,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-def _pick_best_transcription(native_text, target_text, native_lang, target_lang):
-    """
-    Given two Whisper transcriptions (one forced to native lang, one to target lang),
-    detect which language the user actually spoke and return the best transcription.
-    """
-    if not native_text:
-        return target_text
-    if not target_text:
-        return native_text
-
-    # If both are identical, language doesn't matter
-    if native_text.strip().lower() == target_text.strip().lower():
-        return native_text
-
-    # Use langdetect to figure out which language the user actually spoke
-    try:
-        detected = detect_language(native_text)
-    except Exception:
-        detected = native_lang
-
-    detected_normalized = detected.split("-")[0].lower()
-    target_normalized = target_lang.split("-")[0].lower()
-
-    if detected_normalized == target_normalized:
-        return target_text
-    else:
-        return native_text
-
-
 async def generate_tts(text: str) -> Optional[str]:
     """Shared TTS helper — returns base64 audio or None on failure."""
     try:
