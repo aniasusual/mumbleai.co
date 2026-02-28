@@ -256,3 +256,95 @@ fluency (1-10), and naturalness (1-10). Provide specific improvement suggestions
             messages.append({"role": "tool", "tool_call_id": tc.id, "content": result})
 
     return messages[-1].get("content", "Evaluation completed.")
+
+
+async def run_pronunciation_feedback_subagent(
+    api_key: str,
+    expected_phrase: str,
+    spoken_phrase: str,
+    target_language: str = "English",
+    native_language: str = "English",
+    on_event=None
+) -> str:
+    """Compares user's spoken attempt against an expected phrase and provides pronunciation feedback with phonetic breakdowns in the user's native language."""
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "compare_phrases",
+                "description": "Compare expected vs spoken phrase word-by-word. Identify which words matched, which were mispronounced, and estimate an overall accuracy score.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "accuracy_score": {"type": "integer", "description": "Overall pronunciation accuracy 0-100"},
+                        "word_results": {"type": "string", "description": "Word-by-word comparison: each word marked as correct/incorrect with what the user said vs expected"},
+                        "summary": {"type": "string", "description": "Brief summary of how the user did"}
+                    },
+                    "required": ["accuracy_score", "word_results", "summary"]
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "break_down_words",
+                "description": "For mispronounced words, break them into smaller phonetic chunks written in the user's native language so they can learn the correct pronunciation.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "breakdowns": {
+                            "type": "string",
+                            "description": "For each mispronounced word: the word, its phonetic breakdown in native language script, syllable-by-syllable guide, and a tip"
+                        }
+                    },
+                    "required": ["breakdowns"]
+                }
+            }
+        }
+    ]
+
+    system = f"""You are a pronunciation analysis specialist. You compare what a learner said against what they were supposed to say in {target_language}.
+
+Your job:
+1. Use `compare_phrases` to do a word-by-word comparison of the expected vs spoken phrase. Be smart about matching — minor spelling variations from transcription (e.g. "bonjour" vs "bonjor") indicate pronunciation issues. Give an accuracy score 0-100.
+2. Use `break_down_words` for any mispronounced words. Break each problematic word into smaller phonetic chunks written in {native_language} script so the user can read and speak them. For example:
+   - French "Bonjour" for an English speaker → "bon-ZHOOR" (the 'zh' sounds like the 's' in 'measure')
+   - French "Bonjour" for a Hindi speaker → "बॉन-ज़ूर"
+   - Japanese "Arigatou" for an English speaker → "ah-ree-GAH-toh"
+
+Be encouraging but honest. Focus on the most impactful corrections. Always provide the native language phonetic breakdown."""
+
+    messages = [
+        {"role": "user", "content": (
+            f"Expected phrase ({target_language}): \"{expected_phrase}\"\n"
+            f"What the user said: \"{spoken_phrase}\"\n"
+            f"User's native language: {native_language}\n\n"
+            f"Compare these and provide pronunciation feedback with phonetic breakdowns in {native_language}."
+        )}
+    ]
+
+    for _ in range(5):
+        response = await llm_call(api_key, messages, system=system, tools=tools)
+        msg = response.choices[0].message
+        messages.append({"role": "assistant", "content": msg.content, "tool_calls": serialize_tool_calls(msg.tool_calls)})
+
+        if response.choices[0].finish_reason != "tool_calls" or not msg.tool_calls:
+            return msg.content or "Pronunciation analysis completed."
+
+        for tc in msg.tool_calls:
+            args = json.loads(tc.function.arguments)
+            await _emit(on_event, {"type": "substep", "parent": "check_pronunciation", "substep": tc.function.name, "label": SUBSTEP_LABELS.get(tc.function.name, tc.function.name)})
+
+            if tc.function.name == "compare_phrases":
+                result = (
+                    f"Accuracy: {args.get('accuracy_score', 0)}%. "
+                    f"Word results: {args.get('word_results', '')}. "
+                    f"Summary: {args.get('summary', '')}"
+                )
+            elif tc.function.name == "break_down_words":
+                result = f"Phonetic breakdowns: {args.get('breakdowns', '')}"
+            else:
+                result = "Done."
+            messages.append({"role": "tool", "tool_call_id": tc.id, "content": result})
+
+    return messages[-1].get("content", "Pronunciation analysis completed.")
