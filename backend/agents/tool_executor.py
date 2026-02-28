@@ -75,6 +75,7 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
             arguments["spoken_phrase"],
             target_lang,
             native_lang,
+            charitable_transcription=arguments.get("charitable_transcription"),
             on_event=on_event
         )
 
