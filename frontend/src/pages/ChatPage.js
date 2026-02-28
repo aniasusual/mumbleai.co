@@ -318,6 +318,7 @@ export default function ChatPage() {
             onSetTargetLang={setTargetLang}
             onNewConversation={handleNewConversation}
             onOpenSidebar={() => setSidebarOpen(true)}
+            creatingChat={creatingChat}
           />
         ) : (
           <>
