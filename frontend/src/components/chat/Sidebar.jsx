@@ -21,7 +21,7 @@ const ICON_MAP = { Briefcase, Plane, UtensilsCrossed, MessageCircle, Phone, User
 
 /* ─── Decorative mesh blobs ─── */
 const SidebarMesh = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-r-2xl">
+  <div className="absolute inset-0 overflow-hidden pointer-events-none">
     <motion.div className="absolute rounded-full"
       style={{ width: 200, height: 200, top: "8%", right: "-15%", background: "radial-gradient(circle, rgba(129,140,248,0.25) 0%, transparent 70%)" }}
       animate={{ y: [0, 12, 0], x: [0, 5, 0] }}
