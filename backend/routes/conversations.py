@@ -19,6 +19,16 @@ from languages import SUPPORTED_LANGUAGES, get_language_name
 
 router = APIRouter()
 
+_EXPECT_LANG_RE = re.compile(r'\s*\[EXPECT_LANG:(\w+(?:-\w+)?)\]\s*$')
+
+
+def _strip_expect_lang(text: str):
+    """Strip [EXPECT_LANG:xx] tag from AI response. Returns (clean_text, lang_code or None)."""
+    m = _EXPECT_LANG_RE.search(text)
+    if m:
+        return text[:m.start()].rstrip(), m.group(1)
+    return text, None
+
 import base64
 import logging
 from emergentintegrations.llm.openai import OpenAITextToSpeech
