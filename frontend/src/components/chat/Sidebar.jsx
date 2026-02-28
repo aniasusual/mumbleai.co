@@ -65,8 +65,8 @@ const DesktopSidebar = ({
       {/* ─ COLLAPSED CONTENT ─ */}
       <motion.div
         className="absolute inset-0 flex flex-col items-center py-3 gap-1 z-10"
-        animate={{ opacity: collapsed ? 1 : 0, pointerEvents: collapsed ? "auto" : "none" }}
-        transition={{ duration: 0.2, delay: collapsed ? 0.15 : 0 }}
+        animate={{ opacity: isExpanded ? 0 : 1, pointerEvents: isExpanded ? "none" : "auto" }}
+        transition={{ duration: 0.2, delay: isExpanded ? 0 : 0.15 }}
       >
         {/* Logo */}
         <Tooltip>
