@@ -1,5 +1,6 @@
 """Conversation CRUD + message sending routes (including SSE streaming)."""
 
+import re
 import uuid
 import json
 import asyncio
