@@ -37,6 +37,7 @@ TOOL_LABELS = {
     "advance_lesson": "Advancing to next lesson",
     "save_curriculum": "Saving your learning plan",
     "revise_curriculum": "Revising your learning plan",
+    "web_search": "Searching the web",
 }
 
 
