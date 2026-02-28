@@ -144,13 +144,14 @@ MAIN_AGENT_TOOLS = [
         "type": "function",
         "function": {
             "name": "check_pronunciation",
-            "description": "Compare the user's spoken attempt against an expected phrase to give pronunciation feedback. Use this contextually: when you asked the user to repeat/say a phrase, or when the user is clearly practicing pronunciation. Provide both the expected phrase and what the user actually said (from their transcribed message).",
+            "description": "Compare the user's spoken attempt against an expected phrase to give pronunciation feedback. Use this when you asked the user to say/repeat a phrase and they responded via voice. The voice system provides two transcriptions: a literal one (auto-detected language) and a charitable one (target-language hint). Differences between them reveal pronunciation issues.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "expected_phrase": {"type": "string", "description": "The phrase the user was supposed to say (in the target language)"},
-                    "spoken_phrase": {"type": "string", "description": "What the user actually said (their transcribed speech)"},
-                    "target_language": {"type": "string", "description": "The language of the phrases"},
+                    "expected_phrase": {"type": "string", "description": "The phrase you asked the user to say (in the target language)"},
+                    "spoken_phrase": {"type": "string", "description": "The literal transcription of what the user said (auto-detected)"},
+                    "charitable_transcription": {"type": "string", "description": "The target-language transcription (what Whisper thinks they meant). May be the same as spoken_phrase if pronunciation was good."},
+                    "target_language": {"type": "string", "description": "The language of the expected phrase"},
                     "native_language": {"type": "string", "description": "The user's native language (for phonetic breakdowns)"}
                 },
                 "required": ["expected_phrase", "spoken_phrase", "target_language", "native_language"]
