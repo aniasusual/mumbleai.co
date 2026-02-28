@@ -264,9 +264,10 @@ async def run_pronunciation_feedback_subagent(
     spoken_phrase: str,
     target_language: str = "English",
     native_language: str = "English",
+    charitable_transcription: str = None,
     on_event=None
 ) -> str:
-    """Compares user's spoken attempt against an expected phrase and provides pronunciation feedback with phonetic breakdowns in the user's native language."""
+    """Compares user's spoken attempt against an expected phrase using dual Whisper transcriptions and provides pronunciation feedback with phonetic breakdowns in the user's native language."""
     tools = [
         {
             "type": "function",
@@ -303,10 +304,25 @@ async def run_pronunciation_feedback_subagent(
         }
     ]
 
+    charitable_info = ""
+    if charitable_transcription and charitable_transcription.strip().lower() != spoken_phrase.strip().lower():
+        charitable_info = (
+            f"\nTarget-language transcription (charitable): \"{charitable_transcription}\"\n"
+            f"This is what Whisper produced when forced to interpret the audio as {target_language}. "
+            f"Differences between the literal and charitable versions reveal specific pronunciation issues — "
+            f"the charitable version shows what the user likely MEANT to say, while the literal version shows what it actually SOUNDED like."
+        )
+
     system = f"""You are a pronunciation analysis specialist. You compare what a learner said against what they were supposed to say in {target_language}.
 
+The voice system provides dual transcriptions:
+- **Literal transcription** (auto-detected language): raw interpretation of the audio with no language bias
+- **Charitable transcription** (target language hint): what Whisper thinks they meant to say in {target_language}
+
+When these two differ, it strongly indicates pronunciation problems on those specific words.
+
 Your job:
-1. Use `compare_phrases` to do a word-by-word comparison of the expected vs spoken phrase. Be smart about matching — minor spelling variations from transcription (e.g. "bonjour" vs "bonjor") indicate pronunciation issues. Give an accuracy score 0-100.
+1. Use `compare_phrases` to do a word-by-word comparison of the expected vs spoken phrase. Cross-reference with the charitable transcription if available. Words where literal ≠ charitable ≠ expected are definitely mispronounced. Give an accuracy score 0-100.
 2. Use `break_down_words` for any mispronounced words. Break each problematic word into smaller phonetic chunks written in {native_language} script so the user can read and speak them. For example:
    - French "Bonjour" for an English speaker → "bon-ZHOOR" (the 'zh' sounds like the 's' in 'measure')
    - French "Bonjour" for a Hindi speaker → "बॉन-ज़ूर"
@@ -317,7 +333,8 @@ Be encouraging but honest. Focus on the most impactful corrections. Always provi
     messages = [
         {"role": "user", "content": (
             f"Expected phrase ({target_language}): \"{expected_phrase}\"\n"
-            f"What the user said: \"{spoken_phrase}\"\n"
+            f"Literal transcription (auto-detected): \"{spoken_phrase}\""
+            f"{charitable_info}\n"
             f"User's native language: {native_language}\n\n"
             f"Compare these and provide pronunciation feedback with phonetic breakdowns in {native_language}."
         )}
