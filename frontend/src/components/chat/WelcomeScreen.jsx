@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Mic, ArrowRight, Sparkles, Menu
+  Mic, ArrowRight, Sparkles, Menu, Loader2
 } from "lucide-react";
 import { WaveformLogo } from "@/components/WaveformLogo";
 import { LanguagePicker } from "./LanguagePicker";
