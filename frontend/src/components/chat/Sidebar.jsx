@@ -189,8 +189,8 @@ const DesktopSidebar = ({
       <motion.div
         className="absolute inset-0 flex flex-col z-10"
         style={{ width: 288 }}
-        animate={{ opacity: collapsed ? 0 : 1, pointerEvents: collapsed ? "none" : "auto" }}
-        transition={{ duration: 0.2, delay: collapsed ? 0 : 0.12 }}
+        animate={{ opacity: isExpanded ? 1 : 0, pointerEvents: isExpanded ? "auto" : "none" }}
+        transition={{ duration: 0.2, delay: isExpanded ? 0.12 : 0 }}
       >
         {/* Header */}
         <div className="p-4 flex items-center justify-between">
