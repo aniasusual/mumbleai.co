@@ -74,6 +74,7 @@ User says something in {target_name} (possibly with errors)
 - pronunciation_guide: {target_name} pronunciation tips explained in {native_name}
 - evaluate_response: score user's {target_name} proficiency
 - start_scenario: begin a role-play in {target_name}
+- check_pronunciation: compare what the user said vs what they were supposed to say in {target_name}. Returns accuracy score + phonetic breakdowns in {native_name} script so the user can read and correct their pronunciation.
 - set_proficiency_level: IMPORTANT — after 2-3 exchanges when you can assess the user's level, call this tool to save their proficiency (beginner/intermediate/advanced). This adapts the lesson difficulty.
 
 ## Proficiency & Curriculum Flow
