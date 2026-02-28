@@ -12,7 +12,7 @@ import {
 import {
   MessageCircle, Plus, Trash2, BookOpen, BarChart3, ChevronDown, X, LogOut,
   Briefcase, Plane, UtensilsCrossed, Phone, Users, ShoppingBag, Stethoscope,
-  PanelLeftClose, PanelLeftOpen
+  PanelLeftClose, PanelLeftOpen, Loader2
 } from "lucide-react";
 import { LanguagePicker } from "./LanguagePicker";
 import { WaveformLogo } from "@/components/WaveformLogo";
