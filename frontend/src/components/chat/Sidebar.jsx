@@ -416,7 +416,7 @@ export const Sidebar = ({
   conversations, conversationId, scenarios, languages,
   nativeLang, targetLang, sidebarOpen, collapsed, userEmail, onLogout,
   onSetNativeLang, onSetTargetLang, onNewConversation,
-  onDeleteConv, onClearAll, onCloseSidebar, onToggleCollapse,
+  onDeleteConv, onClearAll, onCloseSidebar, onToggleCollapse, creatingChat,
 }) => {
   const navigate = useNavigate();
   const handleLogout = () => { onLogout(); navigate("/"); };
