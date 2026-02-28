@@ -108,7 +108,6 @@ async def send_voice_message(
                     language=native_lang
                 )
             user_text = response.text
-            charitable_text = None
         else:
             # Different languages — run two Whisper calls in parallel
             async def transcribe_with_lang(lang):
