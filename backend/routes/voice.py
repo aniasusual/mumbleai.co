@@ -116,6 +116,9 @@ async def send_voice_message(
 
     ai_text = result["response"]
     clean_ai_text, expect_lang = _strip_expect_lang(ai_text)
+    # Fallback: default to native language if LLM didn't include tag
+    if not expect_lang:
+        expect_lang = conv.get("native_language", "en")
 
     # Save AI message tagged with current phase
     ai_msg = {
@@ -137,12 +140,10 @@ async def send_voice_message(
     if update_title == "New Conversation" and len(user_text) > 3:
         update_title = user_text[:50] + ("..." if len(user_text) > 50 else "")
 
-    update_fields = {"updated_at": datetime.now(timezone.utc).isoformat(), "title": update_title}
-    if expect_lang:
-        update_fields["expected_response_language"] = expect_lang
     await db.conversations.update_one(
         {"id": conv_id},
-        {"$set": update_fields, "$inc": {"message_count": 2}}
+        {"$set": {"updated_at": datetime.now(timezone.utc).isoformat(), "title": update_title, "expected_response_language": expect_lang},
+         "$inc": {"message_count": 2}}
     )
 
     await _track_activity(user_text, result.get("tools_used", []), conv.get("scenario"))
