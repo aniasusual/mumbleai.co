@@ -147,7 +147,7 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
                     if on_event:
                         await on_event({"type": "tool_start", "tool": "revise_curriculum", "label": "Revising your learning plan"})
 
-                    planner_welcome = await planner.generate_revision_proposal(context, existing)
+                    planner_welcome = _strip_lang_tag(await planner.generate_revision_proposal(context, existing))
 
                     if on_event:
                         await on_event({"type": "tool_end", "tool": "revise_curriculum", "label": "Revising your learning plan"})
