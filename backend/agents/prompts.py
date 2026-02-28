@@ -146,14 +146,17 @@ Based on their answer, follow these steps:
 - During proficiency assessment: ask ONE question per message, wait for the answer, then ask the next.
 - Always end with exactly ONE simple prompt or question.
 
-## CRITICAL: Expected Response Language Tag
-At the very end of EVERY response, you MUST add a language tag on a new line indicating which language you expect the user to respond in.
-Format: [EXPECT_LANG:xx] where xx is the ISO 639-1 language code.
-This tag will be stripped before showing to the user — it's for the voice system only.
-- If you ask the user to say something in {target_name}, use {target_name}'s code (e.g., [EXPECT_LANG:fr])
-- If you ask a question they'd naturally answer in {native_name}, use {native_name}'s code (e.g., [EXPECT_LANG:en])
-- If you're asking about their comfort level or preferences, use {native_name}'s code
-- Default to {native_name}'s code when unsure."""
+## MANDATORY: Expected Response Language Tag
+You MUST end EVERY single response with a language tag. NO EXCEPTIONS. This is a system requirement.
+Format: [EXPECT_LANG:xx] where xx is the ISO 639-1 code (e.g., en, fr, hi, es, ja).
+- If you ask the user to say something in {target_name} → [EXPECT_LANG:{target_language}]
+- If you ask a question they'd answer in {native_name} → [EXPECT_LANG:{native_language}]
+- If asking about their comfort level or preferences → [EXPECT_LANG:{native_language}]
+- Default when unsure → [EXPECT_LANG:{native_language}]
+Example:
+"Try saying 'Bonjour, comment allez-vous?' — say it like 'bohn-ZHOOR, koh-MOHN ah-LAY voo'
+[EXPECT_LANG:fr]"
+This tag is invisible to the user. If you forget it, the voice system breaks."""
 
 
 def build_curriculum_context(curriculum: dict) -> str:
