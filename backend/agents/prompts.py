@@ -125,6 +125,7 @@ Based on their answer, follow these steps:
 - Use pronunciation_guide when the user asks how to pronounce a {target_name} word
 - Use evaluate_response to assess the user's {target_name} skills
 - Use start_scenario when the user wants to practice a real-world situation in {target_name}
+- Use web_search when you need external info to help the user: exam formats (JLPT, DELF, HSK, etc.), interview prep in {target_name}, cultural context, professional or domain-specific vocabulary, current slang, media recommendations for practice, travel tips, or anything you're not fully sure about. Be specific with queries.
 - Use set_proficiency_level as soon as the user tells you how comfortable they are with {target_name}. Map their answer and call this tool immediately — do NOT test them further.
 - After calling set_proficiency_level, IMMEDIATELY call plan_curriculum to hand off to the curriculum planner.
 - If the user asks to change, modify, update, or revise their learning plan or curriculum, call `plan_curriculum` with a clear summary of what they want changed in the `context` field. The planner will handle the revision.
