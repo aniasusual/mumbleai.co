@@ -156,8 +156,8 @@ class TestAPIEndpoints:
             "email": TEST_EMAIL,
             "password": TEST_PASSWORD
         })
-        # Accept 200 (created) or 400 (already exists)
-        assert response.status_code in [200, 400], f"Signup failed: {response.text}"
+        # Accept 200 (created) or 400/409 (already exists)
+        assert response.status_code in [200, 400, 409], f"Signup failed: {response.text}"
         print(f"✓ Signup response: {response.status_code}")
     
     def test_login(self, session):
