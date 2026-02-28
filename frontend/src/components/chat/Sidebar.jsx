@@ -428,6 +428,7 @@ export const Sidebar = ({
         collapsed={collapsed} conversations={conversations} conversationId={conversationId}
         scenarios={scenarios} languages={languages}
         nativeLang={nativeLang} targetLang={targetLang} userEmail={userEmail}
+        creatingChat={creatingChat}
         onSetNativeLang={onSetNativeLang} onSetTargetLang={onSetTargetLang}
         onNewConversation={onNewConversation} onDeleteConv={onDeleteConv}
         onClearAll={onClearAll} onToggle={onToggleCollapse}
