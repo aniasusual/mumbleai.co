@@ -161,6 +161,7 @@ This tag is invisible to the user. If you forget it, the voice system breaks."""
         return f"Unknown planner tool: {tool_name}"
 
     async def process_message(self, user_text: str, conversation_history: list, on_event=None, **kwargs) -> dict:
+        self.on_event = on_event
         """The planner's own agent loop with streaming.
         conversation_history already includes the current user message from DB."""
         messages = [
