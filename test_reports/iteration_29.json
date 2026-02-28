@@ -1,0 +1,123 @@
+{
+  "summary": "Tested expected_response_language feature and voice-first prompt changes. All 26 backend tests PASSED. Verified: _strip_expect_lang regex, EXPECT_LANG tag stripping in welcome message and AI responses, voice.py uses expected_response_language for Whisper, system prompts include voice-first and pronunciation breakdown instructions, and check_pronunciation tool has been removed.",
+  
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  
+  "test_results": {
+    "strip_expect_lang_regex": {
+      "status": "PASSED",
+      "tests": [
+        "Regex matches [EXPECT_LANG:en]",
+        "Regex matches [EXPECT_LANG:fr]",
+        "Regex matches hyphenated codes like [EXPECT_LANG:zh-cn]",
+        "Regex handles trailing whitespace",
+        "Stripping returns clean text and language code",
+        "No match returns original text with None language code"
+      ]
+    },
+    "tool_definitions": {
+      "status": "PASSED",
+      "tests": [
+        "check_pronunciation removed from MAIN_AGENT_TOOLS",
+        "check_pronunciation not in PLANNER_TOOLS",
+        "check_pronunciation label removed from TOOL_LABELS"
+      ]
+    },
+    "system_prompts": {
+      "status": "PASSED",
+      "tests": [
+        "Tutor prompt includes voice-first instructions (never say 'type it')",
+        "Tutor prompt includes pronunciation breakdown instructions",
+        "Tutor prompt includes MANDATORY EXPECT_LANG tag section",
+        "Same-language prompt (en/en) also has EXPECT_LANG instruction",
+        "Planner prompt includes MANDATORY EXPECT_LANG tag section"
+      ]
+    },
+    "voice_route_implementation": {
+      "status": "PASSED",
+      "tests": [
+        "voice.py reads expected_response_language from conversation",
+        "voice.py uses single Whisper call (not dual-pass)",
+        "voice.py uses _strip_expect_lang to strip AI response tags"
+      ]
+    },
+    "conversation_response_model": {
+      "status": "PASSED",
+      "tests": [
+        "ConversationResponse uses extra='ignore' so expected_response_language is not returned in API response"
+      ]
+    },
+    "api_endpoint_integration": {
+      "status": "PASSED",
+      "tests": [
+        "POST /api/conversations creates conversation successfully",
+        "Welcome message does NOT contain [EXPECT_LANG:xx] text",
+        "POST /api/conversations/{id}/messages strips [EXPECT_LANG:xx] from AI responses",
+        "expected_response_language is saved to conversation (verified indirectly - stored in DB but not returned in API due to extra='ignore')"
+      ]
+    },
+    "code_structure": {
+      "status": "PASSED",
+      "tests": [
+        "conversations.py has _strip_expect_lang helper function",
+        "conversations.py has _EXPECT_LANG_RE regex pattern",
+        "conversations.py strips tag in create_conversation endpoint",
+        "conversations.py strips tag in send_message endpoint",
+        "voice.py imports and uses _strip_expect_lang"
+      ]
+    }
+  },
+  
+  "test_report_links": [
+    "/app/backend/tests/test_expected_response_language.py",
+    "/app/test_reports/pytest/expected_response_language_results.xml"
+  ],
+  
+  "action_items": [],
+  
+  "critical_code_review_comments": [
+    "CORRECT: _strip_expect_lang regex properly handles ISO 639-1 codes including hyphenated variants (zh-cn, pt-br)",
+    "CORRECT: expected_response_language stored in MongoDB but NOT returned in API response (ConversationResponse uses extra='ignore')",
+    "CORRECT: Voice route uses expected_response_language for single Whisper call (no dual-pass)",
+    "CORRECT: Fallback to native_language when LLM doesn't include EXPECT_LANG tag",
+    "CORRECT: System prompts emphasize voice-first approach ('say it' instead of 'type it')",
+    "CORRECT: Pronunciation breakdowns auto-provided in user's native language for every new word",
+    "CORRECT: check_pronunciation tool has been removed from all tool definitions"
+  ],
+  
+  "updated_files": [
+    "/app/backend/tests/test_expected_response_language.py"
+  ],
+  
+  "success_rate": {
+    "backend": "100% (26/26 tests passed)",
+    "frontend": "N/A (backend-only testing requested)"
+  },
+  
+  "test_credentials": {
+    "email": "sidebar@test.com",
+    "password": "password123"
+  },
+  
+  "seed_data_creation": "Test user sidebar@test.com already existed from previous iterations",
+  
+  "retest_needed": false,
+  
+  "should_main_agent_self_test": false,
+  
+  "context_for_next_testing_agent": "Expected_response_language feature fully verified. Key implementation points: 1) _strip_expect_lang regex in conversations.py extracts [EXPECT_LANG:xx] tags, 2) Welcome message and all AI responses have tags stripped before saving, 3) expected_response_language stored in MongoDB but NOT in API response (Pydantic extra='ignore'), 4) voice.py reads expected_response_language from conversation and passes to single Whisper call, 5) Fallback to native_language when LLM omits tag, 6) System prompts updated for voice-first ('say it' not 'type it') and auto pronunciation breakdowns, 7) check_pronunciation tool completely removed.",
+  
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
