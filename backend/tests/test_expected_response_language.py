@@ -17,6 +17,10 @@ import pytest
 import requests
 import re
 import os
+import sys
+
+# Add backend to path for local imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL').rstrip('/')
 
