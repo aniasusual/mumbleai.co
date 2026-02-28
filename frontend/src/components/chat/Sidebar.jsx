@@ -40,7 +40,7 @@ const SidebarMesh = () => (
 /* ─── Single Desktop Sidebar (animated width) ─── */
 const DesktopSidebar = ({
   collapsed, conversations, conversationId, scenarios, languages,
-  nativeLang, targetLang, userEmail,
+  nativeLang, targetLang, userEmail, creatingChat,
   onSetNativeLang, onSetTargetLang, onNewConversation,
   onDeleteConv, onClearAll, onToggle, onLogout, navigate,
 }) => {
