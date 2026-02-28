@@ -236,11 +236,13 @@ async def send_message(conv_id: str, data: MessageCreate, user: dict = Depends(g
     )
 
     # Save AI response with the same phase as the user's message
+    ai_text = result["response"]
+    clean_ai_text, expect_lang = _strip_expect_lang(ai_text)
     ai_msg = {
         "id": str(uuid.uuid4()),
         "conversation_id": conv_id,
         "role": "assistant",
-        "content": result["response"],
+        "content": clean_ai_text,
         "tools_used": result.get("tools_used", []),
         "phase": current_phase,
         "created_at": datetime.now(timezone.utc).isoformat()
@@ -252,10 +254,12 @@ async def send_message(conv_id: str, data: MessageCreate, user: dict = Depends(g
     if update_title == "New Conversation" and len(data.content) > 3:
         update_title = data.content[:50] + ("..." if len(data.content) > 50 else "")
 
+    update_fields = {"updated_at": datetime.now(timezone.utc).isoformat(), "title": update_title}
+    if expect_lang:
+        update_fields["expected_response_language"] = expect_lang
     await db.conversations.update_one(
         {"id": conv_id},
-        {"$set": {"updated_at": datetime.now(timezone.utc).isoformat(), "title": update_title},
-         "$inc": {"message_count": 2}}
+        {"$set": update_fields, "$inc": {"message_count": 2}}
     )
 
     await _track_activity(data.content, result.get("tools_used", []), conv.get("scenario"))
