@@ -49,12 +49,12 @@ async def send_voice_message(
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     now = datetime.now(timezone.utc).isoformat()
-    native_lang = conv.get("native_language", "en")
-    target_lang = conv.get("target_language", "en")
 
-    # Step 1: Transcribe with constrained dual-language Whisper
-    # Instead of auto-detect (all languages), we run two parallel passes
-    # constrained to only the two languages the user actually uses.
+    # Use the LLM-predicted expected response language for Whisper
+    # Falls back to native_language if no prediction exists yet
+    whisper_lang = conv.get("expected_response_language") or conv.get("native_language", "en")
+
+    # Step 1: Single Whisper call with the expected language
     stt = OpenAISpeechToText(api_key=EMERGENT_LLM_KEY)
     audio_bytes = await audio.read()
 
@@ -69,42 +69,13 @@ async def send_voice_message(
         tmp_path = tmp.name
 
     try:
-        if native_lang == target_lang:
-            # Same language — single Whisper call with language hint
-            with open(tmp_path, "rb") as f:
-                response = await stt.transcribe(
-                    file=f, model="whisper-1",
-                    response_format="json", temperature=0.0,
-                    language=native_lang
-                )
-            user_text = response.text
-        else:
-            # Different languages — run two Whisper calls in parallel
-            async def transcribe_with_lang(lang):
-                with open(tmp_path, "rb") as f:
-                    return await stt.transcribe(
-                        file=f, model="whisper-1",
-                        response_format="json", temperature=0.0,
-                        language=lang
-                    )
-
-            native_result, target_result = await asyncio.gather(
-                transcribe_with_lang(native_lang),
-                transcribe_with_lang(target_lang),
-                return_exceptions=True
+        with open(tmp_path, "rb") as f:
+            transcript_response = await stt.transcribe(
+                file=f, model="whisper-1",
+                response_format="json", temperature=0.0,
+                language=whisper_lang
             )
-
-            native_text = native_result.text if not isinstance(native_result, Exception) else None
-            target_text = target_result.text if not isinstance(target_result, Exception) else None
-
-            if not native_text and not target_text:
-                raise Exception("Both transcription passes failed")
-
-            # Pick the best transcription using language detection
-            user_text = _pick_best_transcription(
-                native_text, target_text, native_lang, target_lang
-            )
-
+        user_text = transcript_response.text
     except Exception as e:
         logger.error(f"Whisper transcription failed: {e}")
         if os.path.exists(tmp_path):
