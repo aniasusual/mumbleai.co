@@ -303,7 +303,8 @@ const DesktopSidebar = ({
       </motion.div>
     </motion.aside>
   </TooltipProvider>
-);
+  );
+};
 
 /* ─── Mobile Expanded Sidebar ─── */
 const MobileSidebar = ({
