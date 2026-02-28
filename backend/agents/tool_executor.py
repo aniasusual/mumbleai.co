@@ -94,6 +94,24 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
             "instruction": f"Level set to {level}. Now you MUST call the `plan_curriculum` tool to hand off to the Curriculum Planner. Pass proficiency_level='{level}'. The planner will create a personalized study plan with the user."
         })
 
+    elif tool_name == "web_search":
+        query = arguments.get("query", "")
+        if on_event:
+            await on_event({"type": "substep", "parent": "web_search", "substep": "searching", "label": f"Searching: {query[:50]}"})
+        try:
+            from duckduckgo_search import DDGS
+            with DDGS() as ddgs:
+                results = list(ddgs.text(query, max_results=5))
+            if not results:
+                return "No results found for this search."
+            formatted = []
+            for r in results:
+                formatted.append(f"**{r.get('title', '')}**\n{r.get('body', '')}\nSource: {r.get('href', '')}")
+            return "\n\n---\n\n".join(formatted)
+        except Exception as e:
+            logger.error(f"Web search failed: {e}")
+            return f"Web search failed: {str(e)}"
+
     elif tool_name == "plan_curriculum":
         proficiency = arguments.get("proficiency_level", "beginner")
         context = arguments.get("context", "initial planning")
