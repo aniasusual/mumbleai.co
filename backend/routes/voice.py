@@ -26,18 +26,16 @@ router = APIRouter()
 def _pick_best_transcription(native_text, target_text, native_lang, target_lang):
     """
     Given two Whisper transcriptions (one forced to native lang, one to target lang),
-    detect which language the user actually spoke and return (primary_text, other_text).
-    primary_text = the correct transcription, other_text = the alternative (for pronunciation context).
+    detect which language the user actually spoke and return the best transcription.
     """
-    # If one failed, use the other
     if not native_text:
-        return target_text, None
+        return target_text
     if not target_text:
-        return native_text, None
+        return native_text
 
-    # If both are identical, user spoke clearly in one language — just use it
+    # If both are identical, language doesn't matter
     if native_text.strip().lower() == target_text.strip().lower():
-        return native_text, None
+        return native_text
 
     # Use langdetect to figure out which language the user actually spoke
     try:
@@ -45,18 +43,13 @@ def _pick_best_transcription(native_text, target_text, native_lang, target_lang)
     except Exception:
         detected = native_lang
 
-    # Map common langdetect codes to our language codes
-    # langdetect returns ISO 639-1 codes like 'en', 'fr', 'hi', 'zh-cn', etc.
     detected_normalized = detected.split("-")[0].lower()
-    native_normalized = native_lang.split("-")[0].lower()
     target_normalized = target_lang.split("-")[0].lower()
 
     if detected_normalized == target_normalized:
-        # User spoke in target language — target transcription is primary
-        return target_text, native_text
+        return target_text
     else:
-        # User spoke in native language (or langdetect uncertain) — native is primary
-        return native_text, target_text
+        return native_text
 
 
 async def generate_tts(text: str) -> Optional[str]:
