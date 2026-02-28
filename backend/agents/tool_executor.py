@@ -5,11 +5,11 @@ Passes on_event callback to subagents for real-time activity tracking.
 """
 
 import json
+import re
 import uuid
 import logging
 from datetime import datetime, timezone
 from agents.subagents import (
-from routes.conversations import _strip_expect_lang
     run_grammar_subagent,
     run_vocabulary_subagent,
     run_pronunciation_subagent,
@@ -18,6 +18,12 @@ from routes.conversations import _strip_expect_lang
 from scenarios import SCENARIOS
 
 logger = logging.getLogger(__name__)
+
+_EXPECT_LANG_RE = re.compile(r'\s*\[EXPECT_LANG:(\w+(?:-\w+)?)\]\s*$')
+
+def _strip_lang_tag(text: str) -> str:
+    """Strip [EXPECT_LANG:xx] tag from text, return clean text."""
+    return _EXPECT_LANG_RE.sub('', text).rstrip()
 
 # Human-readable labels for tools
 TOOL_LABELS = {
