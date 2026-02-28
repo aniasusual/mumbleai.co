@@ -36,6 +36,7 @@ export default function ChatPage() {
   const [inputMode, setInputMode] = useState("voice");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [creatingChat, setCreatingChat] = useState(false);
   const [curriculum, setCurriculum] = useState(null);
   const [toolEvents, setToolEvents] = useState([]);
   const [streamingText, setStreamingText] = useState("");
