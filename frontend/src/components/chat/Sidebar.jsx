@@ -42,17 +42,23 @@ const DesktopSidebar = ({
   nativeLang, targetLang, userEmail,
   onSetNativeLang, onSetTargetLang, onNewConversation,
   onDeleteConv, onClearAll, onToggle, onLogout, navigate,
-}) => (
+}) => {
+  const [hovered, setHovered] = useState(false);
+  const isExpanded = !collapsed || hovered;
+
+  return (
   <TooltipProvider delayDuration={200}>
     <motion.aside
-      className="hidden lg:flex flex-col flex-shrink-0 relative rounded-r-2xl overflow-hidden"
+      className="hidden lg:flex flex-col flex-shrink-0 relative rounded-2xl overflow-hidden m-2"
       style={{
         background: "linear-gradient(165deg, #f0f0ff 0%, #e8ecff 40%, #e0d8f8 100%)",
         boxShadow: "2px 0 16px rgba(99,102,241,0.06)",
       }}
-      animate={{ width: collapsed ? 56 : 288 }}
+      animate={{ width: isExpanded ? 288 : 56 }}
       transition={{ type: "spring", stiffness: 280, damping: 26, mass: 0.8 }}
-      data-testid={collapsed ? "chat-sidebar-collapsed" : "chat-sidebar"}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      data-testid={isExpanded ? "chat-sidebar" : "chat-sidebar-collapsed"}
     >
       <SidebarMesh />
 
