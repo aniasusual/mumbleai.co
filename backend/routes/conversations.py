@@ -85,7 +85,7 @@ async def create_conversation(data: ConversationCreate, user: dict = Depends(get
         "native_language": native,
         "target_language": target,
         "proficiency_level": None,
-        "phase": "assessment" if native != target and not data.scenario else "learning",
+        "phase": "learning" if not data.scenario else "learning",
         "created_at": now,
         "updated_at": now,
         "message_count": 0
