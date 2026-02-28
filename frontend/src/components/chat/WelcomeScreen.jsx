@@ -60,8 +60,15 @@ function SoundWave() {
 }
 
 
-export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targetLang, onSetNativeLang, onSetTargetLang, onNewConversation, onOpenSidebar }) => {
+export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targetLang, onSetNativeLang, onSetTargetLang, onNewConversation, onOpenSidebar, creatingChat }) => {
   const firstName = userName?.split(" ")[0] || "there";
+  const [clickedId, setClickedId] = useState(null); // tracks which button was clicked
+
+  const handleClick = (scenarioId = null) => {
+    if (creatingChat) return;
+    setClickedId(scenarioId ?? "__free__");
+    onNewConversation(scenarioId);
+  };
 
   return (
     <div className="flex-1 overflow-y-auto relative">
