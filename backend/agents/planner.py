@@ -161,7 +161,7 @@ This tag is invisible to the user. If you forget it, the voice system breaks."""
 
                 stream = await llm_call_stream(
                     api_key=self.api_key, messages=messages,
-                    system=self.system_prompt, tools=self.tools, max_tokens=2000
+                    system=self.system_prompt, tools=self.tools, max_tokens=4000
                 )
                 content, tool_calls, finish_reason = await consume_stream(stream, on_event=on_event)
 
