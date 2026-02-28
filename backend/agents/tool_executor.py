@@ -13,6 +13,7 @@ from agents.subagents import (
     run_vocabulary_subagent,
     run_pronunciation_subagent,
     run_evaluation_subagent,
+    run_pronunciation_feedback_subagent,
 )
 from scenarios import SCENARIOS
 
