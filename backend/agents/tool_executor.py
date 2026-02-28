@@ -67,6 +67,17 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
             target_lang, on_event=on_event
         )
 
+    elif tool_name == "check_pronunciation":
+        native_lang = arguments.get("native_language", "English")
+        return await run_pronunciation_feedback_subagent(
+            api_key,
+            arguments["expected_phrase"],
+            arguments["spoken_phrase"],
+            target_lang,
+            native_lang,
+            on_event=on_event
+        )
+
     elif tool_name == "start_scenario":
         return start_scenario(
             arguments["scenario_type"],
