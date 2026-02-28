@@ -98,6 +98,17 @@ async def send_voice_message(
     if not user_text or not user_text.strip():
         raise HTTPException(status_code=400, detail="Could not understand the audio. Please try speaking again.")
 
+    # Build pronunciation context if dual transcriptions differ
+    pronunciation_hint = ""
+    if charitable_text and charitable_text.strip().lower() != user_text.strip().lower():
+        pronunciation_hint = (
+            f"\n[PRONUNCIATION CONTEXT — This message was spoken via voice. "
+            f"Literal transcription (auto-detected): \"{user_text.strip()}\" | "
+            f"Target-language transcription: \"{charitable_text.strip()}\". "
+            f"Differences between these may indicate pronunciation issues. "
+            f"Consider using the check_pronunciation tool if relevant.]"
+        )
+
     # Save user message tagged with current phase
     current_phase = conv.get("phase", "learning")
     user_msg = {
@@ -116,6 +127,10 @@ async def send_voice_message(
         {"conversation_id": conv_id, "phase": current_phase}, {"_id": 0}
     ).sort("created_at", 1).to_list(50)
     history_for_agent = [{"role": m["role"], "content": m["content"]} for m in history]
+
+    # Append pronunciation hint to the last user message for the agent (not saved to DB)
+    if pronunciation_hint and history_for_agent and history_for_agent[-1]["role"] == "user":
+        history_for_agent[-1]["content"] += pronunciation_hint
 
     agent = await create_agent_for_conversation(conv, conv_id)
     result = await agent.process_message(
