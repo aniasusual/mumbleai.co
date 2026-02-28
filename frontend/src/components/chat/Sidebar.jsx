@@ -315,7 +315,7 @@ const DesktopSidebar = ({
 /* ─── Mobile Expanded Sidebar ─── */
 const MobileSidebar = ({
   conversations, conversationId, scenarios, languages,
-  nativeLang, targetLang, userEmail,
+  nativeLang, targetLang, userEmail, creatingChat,
   onSetNativeLang, onSetTargetLang, onNewConversation,
   onDeleteConv, onClearAll, onLogout, onClose, navigate,
 }) => (
