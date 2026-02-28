@@ -226,7 +226,7 @@ async def send_message(conv_id: str, data: MessageCreate, user: dict = Depends(g
     # Load history ONLY for the current agent's phase (separate context window)
     history = await db.messages.find(
         {"conversation_id": conv_id, "phase": current_phase}, {"_id": 0}
-    ).sort("created_at", 1).to_list(50)
+    ).sort("created_at", 1).to_list(500)
     history_for_agent = [{"role": m["role"], "content": m["content"]} for m in history]
 
     agent = await create_agent_for_conversation(conv, conv_id)
@@ -310,7 +310,7 @@ async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = De
             # Load history ONLY for the current agent's phase (separate context window)
             history = await db.messages.find(
                 {"conversation_id": conv_id, "phase": current_phase}, {"_id": 0}
-            ).sort("created_at", 1).to_list(50)
+            ).sort("created_at", 1).to_list(500)
             history_for_agent = [{"role": m["role"], "content": m["content"]} for m in history]
 
             agent = await create_agent_for_conversation(conv, conv_id)

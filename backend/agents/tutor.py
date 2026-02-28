@@ -51,7 +51,7 @@ class LanguageTutorAgent:
         """
         messages = [
             {"role": m.get("role", "user"), "content": m.get("content", "")}
-            for m in conversation_history[-10:]
+            for m in conversation_history
         ]
 
         # Add scenario context to the last user message if needed (don't duplicate it)
