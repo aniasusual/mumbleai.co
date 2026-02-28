@@ -161,6 +161,20 @@ PLANNER_TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "web_search",
+            "description": "Search the web for information to build a better curriculum. Use this when the user mentions specific exams (JLPT, DELF, HSK), interviews, professional needs, or any topic you need more info about to create an accurate study plan.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "The search query. Be specific."}
+                },
+                "required": ["query"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "save_curriculum",
             "description": "Save a NEW curriculum/learning plan after the user has agreed to it. Call this ONLY after the user confirms they're happy with the plan.",
             "parameters": {
