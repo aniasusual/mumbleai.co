@@ -85,6 +85,23 @@ This tag is invisible to the user. If you forget it, the voice system breaks."""
 
     async def _execute_tool(self, tool_name: str, arguments: dict) -> str:
         """Execute the planner's own tools."""
+        if tool_name == "web_search":
+            query = arguments.get("query", "")
+            if self.on_event:
+                await self.on_event({"type": "substep", "parent": "web_search", "substep": "searching", "label": f"Searching: {query[:50]}"})
+            try:
+                from duckduckgo_search import DDGS
+                with DDGS() as ddgs:
+                    results = list(ddgs.text(query, max_results=5))
+                if not results:
+                    return "No results found for this search."
+                formatted = []
+                for r in results:
+                    formatted.append(f"**{r.get('title', '')}**\n{r.get('body', '')}\nSource: {r.get('href', '')}")
+                return "\n\n---\n\n".join(formatted)
+            except Exception as e:
+                return f"Web search failed: {str(e)}"
+
         if tool_name in ("save_curriculum", "revise_curriculum"):
             timeline = arguments.get("timeline", "")
             goal = arguments.get("goal", "")
