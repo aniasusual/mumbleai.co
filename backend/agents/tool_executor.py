@@ -176,7 +176,7 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
 
                 else:
                     # Initial planning — generate welcome
-                    planner_welcome = await planner.generate_welcome()
+                    planner_welcome = _strip_lang_tag(await planner.generate_welcome())
                     await db.messages.insert_one({
                         "id": str(uuid.uuid4()),
                         "conversation_id": conversation_id,
