@@ -132,7 +132,7 @@ async def send_voice_message(
                 raise Exception("Both transcription passes failed")
 
             # Pick the best transcription using language detection
-            user_text, charitable_text = _pick_best_transcription(
+            user_text = _pick_best_transcription(
                 native_text, target_text, native_lang, target_lang
             )
 
