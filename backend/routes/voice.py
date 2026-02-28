@@ -127,6 +127,7 @@ async def send_voice_message(
         "role": "assistant",
         "content": clean_ai_text,
         "tools_used": result.get("tools_used", []),
+        "tool_activity": result.get("tool_activity", []),
         "phase": current_phase,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
