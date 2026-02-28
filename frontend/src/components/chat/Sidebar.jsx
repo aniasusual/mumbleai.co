@@ -220,10 +220,13 @@ const DesktopSidebar = ({
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}>
-                <Button className="w-full rounded-full text-sm font-semibold text-white border-0 h-10 shadow-[0_2px_12px_rgba(99,102,241,0.3)] hover:shadow-[0_4px_20px_rgba(99,102,241,0.4)] transition-shadow"
-                  style={{ background: "linear-gradient(135deg, #4338ca, #6366f1)" }} data-testid="new-chat-btn">
-                  <Plus className="w-4 h-4 mr-2" /> New Chat <ChevronDown className="w-3 h-3 ml-auto opacity-60" />
+              <motion.div whileHover={creatingChat ? {} : { scale: 1.01 }} whileTap={creatingChat ? {} : { scale: 0.98 }}>
+                <Button className="w-full rounded-full text-sm font-semibold text-white border-0 h-10 shadow-[0_2px_12px_rgba(99,102,241,0.3)] hover:shadow-[0_4px_20px_rgba(99,102,241,0.4)] transition-shadow disabled:opacity-70"
+                  style={{ background: "linear-gradient(135deg, #4338ca, #6366f1)" }}
+                  disabled={creatingChat}
+                  data-testid="new-chat-btn">
+                  {creatingChat ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+                  {creatingChat ? "Creating..." : "New Chat"} <ChevronDown className="w-3 h-3 ml-auto opacity-60" />
                 </Button>
               </motion.div>
             </DropdownMenuTrigger>
