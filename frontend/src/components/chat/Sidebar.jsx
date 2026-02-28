@@ -99,10 +99,12 @@ const DesktopSidebar = ({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <motion.button className="p-2 my-1 rounded-xl text-white"
-              style={{ background: "linear-gradient(135deg, #4338ca, #6366f1)", boxShadow: "0 2px 10px rgba(99,102,241,0.35)" }}
-              whileHover={{ scale: 1.12, boxShadow: "0 4px 18px rgba(99,102,241,0.45)" }}
-              whileTap={{ scale: 0.9 }} data-testid="new-chat-btn-collapsed" title="New chat">
-              <Plus className="w-4 h-4" />
+              style={{ background: creatingChat ? "#9ca3af" : "linear-gradient(135deg, #4338ca, #6366f1)", boxShadow: creatingChat ? "none" : "0 2px 10px rgba(99,102,241,0.35)" }}
+              whileHover={creatingChat ? {} : { scale: 1.12, boxShadow: "0 4px 18px rgba(99,102,241,0.45)" }}
+              whileTap={creatingChat ? {} : { scale: 0.9 }}
+              disabled={creatingChat}
+              data-testid="new-chat-btn-collapsed" title="New chat">
+              {creatingChat ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
             </motion.button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" side="right" className="w-56 border-indigo-100 shadow-lg rounded-xl" style={{ backgroundColor: '#ffffff' }} data-testid="new-chat-dropdown-collapsed">
