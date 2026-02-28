@@ -135,16 +135,21 @@ export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targ
         <motion.div className="flex flex-col sm:flex-row gap-3 mb-6 md:mb-10"
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <motion.button
-            onClick={() => onNewConversation()}
-            className="relative rounded-full px-8 py-4 text-sm font-semibold bg-indigo-600 text-white overflow-hidden group shadow-[0_4px_24px_rgba(99,102,241,0.3)]"
-            whileHover={{ scale: 1.04, boxShadow: "0 6px 32px rgba(99,102,241,0.45)" }}
-            whileTap={{ scale: 0.97 }}
+            onClick={() => handleClick()}
+            disabled={creatingChat}
+            className="relative rounded-full px-8 py-4 text-sm font-semibold bg-indigo-600 text-white overflow-hidden group shadow-[0_4px_24px_rgba(99,102,241,0.3)] disabled:opacity-70 disabled:cursor-not-allowed"
+            whileHover={creatingChat ? {} : { scale: 1.04, boxShadow: "0 6px 32px rgba(99,102,241,0.45)" }}
+            whileTap={creatingChat ? {} : { scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
             data-testid="welcome-free-conversation-btn"
           >
             <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
             <span className="relative flex items-center gap-2">
-              <Mic className="w-4 h-4" /> Start a Free Conversation <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+              {creatingChat && clickedId === "__free__" ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Creating...</>
+              ) : (
+                <><Mic className="w-4 h-4" /> Start a Free Conversation <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" /></>
+              )}
             </span>
           </motion.button>
         </motion.div>
