@@ -35,21 +35,31 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - Landing page with animated hero, morphing text, language characters
 - Auth page with email/password + Google OAuth placeholder
 - Chat page with sidebar, message list, voice/text input
-- Desktop sidebar: hover-to-expand, flush edges (no rounding/margin)
+- Desktop sidebar: hover-to-expand, flush edges
 - Mobile sidebar with overlay
 - Welcome screen with language pickers, free conversation + scenarios
-- **Loading states** on all new conversation buttons (prevents double-clicks)
+- Loading states on all new conversation buttons (prevents double-clicks)
 - Agent system with tutor/planner isolation
 - Multi-turn curriculum revision flow
 - Onboarding: agent asks comfort level → hands off to planner
 - Voice pipeline with auto-language detection
-- Text/audio sync with karaoke-style highlighting
+- Text/audio sync with karaoke-style highlighting (including welcome message)
 - TTS in SSE done event (no round-trip)
 - Dashboard page (mobile responsive)
 - Vocabulary page (mobile responsive)
+- **Pronunciation Feedback Tool**: `check_pronunciation` tool compares expected vs spoken phrases, gives accuracy score + phonetic breakdowns in user's native language script. Agent uses it contextually.
+- Browser tab favicon (mumble waveform logo)
+
+## Agent Tools
+### Tutor Agent (learning phase)
+- grammar_check, vocabulary_lookup, pronunciation_guide, evaluate_response
+- start_scenario, set_proficiency_level, advance_lesson, plan_curriculum
+- **check_pronunciation** (NEW): compares expected vs spoken phrase, accuracy score, phonetic breakdowns in native language
+
+### Planner Agent (planning phase)
+- save_curriculum, revise_curriculum
 
 ## Backlog
 - **P1**: Progress Journal — weekly learning summaries
 - **P2**: Gamification — streaks, points, leaderboards
-- **P2**: Real-time Pronunciation Feedback
 - **Future**: Google OAuth login
