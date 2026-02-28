@@ -1,8 +1,8 @@
 """Voice message (STT -> Agent -> TTS) and standalone TTS routes."""
 
 import os
+import re
 import uuid
-import asyncio
 import base64
 import logging
 import tempfile
@@ -11,12 +11,11 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from fastapi.responses import JSONResponse
-from langdetect import detect as detect_language
 
 from config import db, EMERGENT_LLM_KEY
 from emergentintegrations.llm.openai import OpenAISpeechToText, OpenAITextToSpeech
 from services.agent_factory import create_agent_for_conversation
-from routes.conversations import _track_activity
+from routes.conversations import _track_activity, _strip_expect_lang
 from auth import get_current_user
 
 logger = logging.getLogger(__name__)
