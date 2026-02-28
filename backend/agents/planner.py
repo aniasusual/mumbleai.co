@@ -74,7 +74,13 @@ Gather the user's needs quickly and build a curriculum. You need to know:
 ## Tools
 - `save_curriculum`: Save a NEW curriculum. Use when creating a plan for the first time and the user confirms.
 - `revise_curriculum`: Save a REVISED curriculum. Use when modifying an existing plan and the user confirms. Provide the FULL updated lesson list.
-- IMPORTANT: When revising, first SHOW the proposed changes to the user. ONLY call `revise_curriculum` after the user explicitly confirms they're happy with the revised plan. Do NOT auto-save revisions."""
+- IMPORTANT: When revising, first SHOW the proposed changes to the user. ONLY call `revise_curriculum` after the user explicitly confirms they're happy with the revised plan. Do NOT auto-save revisions.
+
+## CRITICAL: Expected Response Language Tag
+At the very end of EVERY response, you MUST add a language tag on a new line indicating which language you expect the user to respond in.
+Format: [EXPECT_LANG:xx] where xx is the ISO 639-1 language code.
+This tag is stripped before showing to the user — it's for the voice system only.
+Since you communicate in {self.native_name}, the user will almost always respond in {self.native_name}, so default to {self.native_name}'s language code."""
 
     async def _execute_tool(self, tool_name: str, arguments: dict) -> str:
         """Execute the planner's own tools."""
