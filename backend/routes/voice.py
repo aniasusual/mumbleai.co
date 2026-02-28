@@ -50,9 +50,12 @@ async def send_voice_message(
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     now = datetime.now(timezone.utc).isoformat()
+    native_lang = conv.get("native_language", "en")
     target_lang = conv.get("target_language", "en")
 
-    # Step 1: Transcribe audio with Whisper (dual pass for pronunciation)
+    # Step 1: Transcribe with constrained dual-language Whisper
+    # Instead of auto-detect (all languages), we run two parallel passes
+    # constrained to only the two languages the user actually uses.
     stt = OpenAISpeechToText(api_key=EMERGENT_LLM_KEY)
     audio_bytes = await audio.read()
 
@@ -67,30 +70,47 @@ async def send_voice_message(
         tmp_path = tmp.name
 
     try:
-        # Pass 1: Auto-detect language (literal — captures what it actually sounds like)
-        with open(tmp_path, "rb") as f:
-            transcript_response = await stt.transcribe(
-                file=f, model="whisper-1",
-                response_format="json", temperature=0.0
-            )
-        user_text = transcript_response.text
-
-        # Pass 2: With target language hint (charitable — what Whisper thinks they meant)
-        charitable_text = None
-        try:
+        if native_lang == target_lang:
+            # Same language — single Whisper call with language hint
             with open(tmp_path, "rb") as f:
-                charitable_response = await stt.transcribe(
+                response = await stt.transcribe(
                     file=f, model="whisper-1",
                     response_format="json", temperature=0.0,
-                    language=target_lang
+                    language=native_lang
                 )
-            charitable_text = charitable_response.text
-        except Exception as e:
-            logger.warning(f"Charitable transcription failed, using primary: {e}")
+            user_text = response.text
+            charitable_text = None
+        else:
+            # Different languages — run two Whisper calls in parallel
+            async def transcribe_with_lang(lang):
+                with open(tmp_path, "rb") as f:
+                    return await stt.transcribe(
+                        file=f, model="whisper-1",
+                        response_format="json", temperature=0.0,
+                        language=lang
+                    )
+
+            native_result, target_result = await asyncio.gather(
+                transcribe_with_lang(native_lang),
+                transcribe_with_lang(target_lang),
+                return_exceptions=True
+            )
+
+            native_text = native_result.text if not isinstance(native_result, Exception) else None
+            target_text = target_result.text if not isinstance(target_result, Exception) else None
+
+            if not native_text and not target_text:
+                raise Exception("Both transcription passes failed")
+
+            # Pick the best transcription using language detection
+            user_text, charitable_text = _pick_best_transcription(
+                native_text, target_text, native_lang, target_lang
+            )
 
     except Exception as e:
         logger.error(f"Whisper transcription failed: {e}")
-        os.unlink(tmp_path)
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
         raise HTTPException(status_code=400, detail="Could not process audio. Please make sure you're speaking clearly and try again.")
     finally:
         if os.path.exists(tmp_path):
