@@ -341,6 +341,9 @@ async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = De
         # Generate TTS in parallel with saving the message
         ai_text = result["response"]
         clean_ai_text, expect_lang = _strip_expect_lang(ai_text)
+        # Fallback: default to native language if LLM didn't include tag
+        if not expect_lang:
+            expect_lang = conv.get("native_language", "en")
         tts_task = asyncio.create_task(_generate_tts(clean_ai_text))
 
         # Save AI response with the same phase as the user's message
@@ -360,12 +363,10 @@ async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = De
         if update_title == "New Conversation" and len(data.content) > 3:
             update_title = data.content[:50] + ("..." if len(data.content) > 50 else "")
 
-        update_fields = {"updated_at": datetime.now(timezone.utc).isoformat(), "title": update_title}
-        if expect_lang:
-            update_fields["expected_response_language"] = expect_lang
         await db.conversations.update_one(
             {"id": conv_id},
-            {"$set": update_fields, "$inc": {"message_count": 2}}
+            {"$set": {"updated_at": datetime.now(timezone.utc).isoformat(), "title": update_title, "expected_response_language": expect_lang},
+             "$inc": {"message_count": 2}}
         )
         await _track_activity(data.content, result.get("tools_used", []), conv.get("scenario"))
 
