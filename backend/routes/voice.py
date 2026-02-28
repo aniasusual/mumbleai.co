@@ -164,7 +164,7 @@ async def send_voice_message(
         },
         "ai_message": {
             "id": ai_msg["id"], "conversation_id": conv_id, "role": "assistant",
-            "content": ai_msg["content"], "tools_used": ai_msg["tools_used"], "created_at": ai_msg["created_at"]
+            "content": clean_ai_text, "tools_used": ai_msg["tools_used"], "created_at": ai_msg["created_at"]
         },
         "ai_audio_base64": audio_base64,
         "transcribed_text": user_text.strip()
