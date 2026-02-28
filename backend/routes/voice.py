@@ -115,13 +115,14 @@ async def send_voice_message(
     )
 
     ai_text = result["response"]
+    clean_ai_text, expect_lang = _strip_expect_lang(ai_text)
 
     # Save AI message tagged with current phase
     ai_msg = {
         "id": str(uuid.uuid4()),
         "conversation_id": conv_id,
         "role": "assistant",
-        "content": ai_text,
+        "content": clean_ai_text,
         "tools_used": result.get("tools_used", []),
         "phase": current_phase,
         "created_at": datetime.now(timezone.utc).isoformat()
@@ -129,17 +130,19 @@ async def send_voice_message(
     await db.messages.insert_one(ai_msg)
 
     # Step 3: Generate TTS
-    audio_base64 = await generate_tts(ai_text)
+    audio_base64 = await generate_tts(clean_ai_text)
 
     # Update conversation
     update_title = conv.get("title", "New Conversation")
     if update_title == "New Conversation" and len(user_text) > 3:
         update_title = user_text[:50] + ("..." if len(user_text) > 50 else "")
 
+    update_fields = {"updated_at": datetime.now(timezone.utc).isoformat(), "title": update_title}
+    if expect_lang:
+        update_fields["expected_response_language"] = expect_lang
     await db.conversations.update_one(
         {"id": conv_id},
-        {"$set": {"updated_at": datetime.now(timezone.utc).isoformat(), "title": update_title},
-         "$inc": {"message_count": 2}}
+        {"$set": update_fields, "$inc": {"message_count": 2}}
     )
 
     await _track_activity(user_text, result.get("tools_used", []), conv.get("scenario"))
