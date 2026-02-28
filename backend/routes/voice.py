@@ -51,7 +51,7 @@ async def send_voice_message(
     native_lang = conv.get("native_language", "en")
     target_lang = conv.get("target_language", "en")
 
-    # Step 1: Transcribe audio with Whisper
+    # Step 1: Transcribe audio with Whisper (dual pass for pronunciation)
     stt = OpenAISpeechToText(api_key=EMERGENT_LLM_KEY)
     audio_bytes = await audio.read()
 
@@ -66,12 +66,27 @@ async def send_voice_message(
         tmp_path = tmp.name
 
     try:
+        # Pass 1: Auto-detect language (literal — captures what it actually sounds like)
         with open(tmp_path, "rb") as f:
             transcript_response = await stt.transcribe(
                 file=f, model="whisper-1",
                 response_format="json", temperature=0.0
             )
         user_text = transcript_response.text
+
+        # Pass 2: With target language hint (charitable — what Whisper thinks they meant)
+        charitable_text = None
+        try:
+            with open(tmp_path, "rb") as f:
+                charitable_response = await stt.transcribe(
+                    file=f, model="whisper-1",
+                    response_format="json", temperature=0.0,
+                    language=target_lang
+                )
+            charitable_text = charitable_response.text
+        except Exception as e:
+            logger.warning(f"Charitable transcription failed, using primary: {e}")
+
     except Exception as e:
         logger.error(f"Whisper transcription failed: {e}")
         os.unlink(tmp_path)
