@@ -115,6 +115,9 @@ async def create_conversation(data: ConversationCreate, user: dict = Depends(get
     )
     welcome_content = await agent.generate_welcome(scenario=data.scenario)
     clean_welcome, expect_lang = _strip_expect_lang(welcome_content)
+    # Fallback: welcome message expects native language response
+    if not expect_lang:
+        expect_lang = native
     title = _build_conv_title(native, target, get_language_name(target), data.scenario)
 
     welcome_msg = {
@@ -128,9 +131,7 @@ async def create_conversation(data: ConversationCreate, user: dict = Depends(get
     }
     await db.messages.insert_one(welcome_msg)
 
-    update_fields = {"message_count": 1, "title": title}
-    if expect_lang:
-        update_fields["expected_response_language"] = expect_lang
+    update_fields = {"message_count": 1, "title": title, "expected_response_language": expect_lang}
     await db.conversations.update_one(
         {"id": conv["id"]},
         {"$set": update_fields}
