@@ -94,19 +94,31 @@ export default function ChatPage() {
     setLoading(true);
     try {
       const res = await getMessages(convId);
-      setMessages(res.data);
-      if (pendingTtsRef.current && res.data.length === 1 && res.data[0].role === "assistant") {
+      const isWelcome = pendingTtsRef.current && res.data.length === 1 && res.data[0].role === "assistant";
+      if (isWelcome) {
         pendingTtsRef.current = false;
+        const welcomeMsg = res.data[0];
+        // Keep loading visible while fetching TTS — don't reveal text yet
         try {
-          const welcomeMsg = res.data[0];
           const ttsRes = await textToSpeech(welcomeMsg.content);
+          setMessages(res.data);
+          setLoading(false);
           if (ttsRes.data.audio_base64) {
             playWithKaraoke(ttsRes.data.audio_base64, welcomeMsg.id, welcomeMsg.content);
           }
-        } catch (e) { console.error("Welcome TTS failed", e); }
+        } catch (e) {
+          console.error("Welcome TTS failed", e);
+          setMessages(res.data);
+          setLoading(false);
+        }
+      } else {
+        setMessages(res.data);
+        setLoading(false);
       }
-    } catch (e) { console.error("Failed to load messages", e); }
-    finally { setLoading(false); }
+    } catch (e) {
+      console.error("Failed to load messages", e);
+      setLoading(false);
+    }
   };
 
   const refreshConversations = async () => {
