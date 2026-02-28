@@ -303,6 +303,7 @@ export default function ChatPage() {
         onNewConversation={handleNewConversation} onDeleteConv={handleDeleteConv}
         onClearAll={handleClearAll} onCloseSidebar={() => setSidebarOpen(false)}
         onToggleCollapse={() => setSidebarCollapsed(c => !c)}
+        creatingChat={creatingChat}
       />
 
       <main className="flex-1 flex flex-col min-w-0" data-testid="chat-main">
