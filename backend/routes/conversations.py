@@ -35,11 +35,27 @@ from emergentintegrations.llm.openai import OpenAITextToSpeech
 
 _tts_logger = logging.getLogger(__name__)
 
+def _strip_markdown_for_tts(text: str) -> str:
+    """Strip markdown formatting so TTS reads clean natural text."""
+    import re
+    t = text
+    t = re.sub(r'\*\*(.+?)\*\*', r'\1', t)  # bold
+    t = re.sub(r'\*(.+?)\*', r'\1', t)        # italic
+    t = re.sub(r'__(.+?)__', r'\1', t)        # bold alt
+    t = re.sub(r'_(.+?)_', r'\1', t)          # italic alt
+    t = re.sub(r'#{1,6}\s*', '', t)           # headers
+    t = re.sub(r'^\s*[-*+]\s+', '', t, flags=re.MULTILINE)  # bullet points
+    t = re.sub(r'^\s*\d+[.)]\s+', '', t, flags=re.MULTILINE)  # numbered lists
+    t = re.sub(r'`(.+?)`', r'\1', t)          # inline code
+    return t.strip()
+
+
 async def _generate_tts(text: str):
     """Generate TTS audio, returns base64 string or None."""
     try:
         tts = OpenAITextToSpeech(api_key=EMERGENT_LLM_KEY)
-        tts_text = text[:4000]
+        clean_text = _strip_markdown_for_tts(text)
+        tts_text = clean_text[:4000]
         audio = await tts.generate_speech(
             text=tts_text, model="tts-1", voice="nova",
             response_format="mp3", speed=1.0
