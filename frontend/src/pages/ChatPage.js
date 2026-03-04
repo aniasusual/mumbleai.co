@@ -17,7 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { playAudioBase64, playAudioWithKaraoke } from "@/lib/audio";
 import {
   createConversation, listConversations, getMessages, sendMessage,
-  sendMessageStream, sendVoiceMessage, deleteConversation, clearAllConversations,
+  sendMessageStream, sendVoiceMessageStream, deleteConversation, clearAllConversations,
   getScenarios, getLanguages, textToSpeech, getCurriculum
 } from "@/lib/api";
 
@@ -246,22 +246,50 @@ export default function ChatPage() {
   const handleSendVoice = async (audioBlob) => {
     const convId = await ensureConversation();
     if (!convId) return;
-    setProcessingVoice(true); setSending(true);
+    setProcessingVoice(true); setSending(true); setToolEvents([]); setStreamingText("");
     const tempId = `temp-voice-${Date.now()}`;
     setMessages(prev => [...prev, { id: tempId, role: "user", content: "Listening...", tools_used: [], created_at: new Date().toISOString() }]);
 
     try {
-      const res = await sendVoiceMessage(convId, audioBlob, currentConv?.scenario);
-      const { user_message, ai_message, ai_audio_base64 } = res.data;
-      setMessages(prev => [...prev.filter(m => m.id !== tempId), user_message, ai_message]);
+      const result = await sendVoiceMessageStream(
+        convId,
+        audioBlob,
+        currentConv?.scenario,
+        (event) => {
+          if (event.type === "transcription") {
+            // Update the temp message with the transcribed text
+            setMessages(prev => prev.map(m =>
+              m.id === tempId ? { ...m, content: event.text } : m
+            ));
+          } else if (event.type === "text_delta") {
+            // Stream text in real-time
+            setStreamingText(prev => prev + (event.content || ""));
+          } else {
+            // Tool events — force immediate render
+            flushSync(() => {
+              setToolEvents(prev => [...prev, event]);
+            });
+          }
+        }
+      );
+      setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
+      requestAnimationFrame(() => {
+        setToolEvents([]);
+        setStreamingText("");
+        setSending(false);
+        setProcessingVoice(false);
+      });
       refreshConversations();
-      if (ai_audio_base64) {
-        playWithKaraoke(ai_audio_base64, ai_message.id, ai_message.content);
+      if (result.ai_audio_base64 && result.ai_message) {
+        playWithKaraoke(result.ai_audio_base64, result.ai_message.id, result.ai_message.content);
       }
     } catch (e) {
-      toast.error(e.response?.data?.detail || "Voice message failed. Try again.");
+      toast.error(e.message || "Voice message failed. Try again.");
       setMessages(prev => prev.filter(m => m.id !== tempId));
-    } finally { setProcessingVoice(false); setSending(false); }
+      setToolEvents([]); setStreamingText("");
+      setSending(false);
+      setProcessingVoice(false);
+    }
   };
 
   const handleVoiceRecord = async () => {

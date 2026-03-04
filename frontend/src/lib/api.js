@@ -69,7 +69,57 @@ export const sendMessageStream = (id, data, onEvent) => {
   });
 };
 
-// Voice message
+// Voice message — SSE streaming (same as text but with audio upload first)
+export const sendVoiceMessageStream = (id, audioBlob, scenarioContext, onEvent) => {
+  return new Promise((resolve, reject) => {
+    const token = getToken();
+    const formData = new FormData();
+    formData.append("audio", audioBlob, "recording.webm");
+    if (scenarioContext) formData.append("scenario_context", scenarioContext);
+
+    fetch(`${API}/conversations/${id}/voice-message`, {
+      method: "POST",
+      headers: {
+        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    }).then(async (response) => {
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ detail: "Voice message failed" }));
+        reject(new Error(err.detail || `Stream failed: ${response.status}`));
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const event = JSON.parse(line.slice(6));
+              if (event.type === "done") {
+                resolve(event);
+              } else if (onEvent) {
+                onEvent(event);
+              }
+            } catch (e) { /* skip malformed */ }
+          }
+        }
+      }
+    }).catch(reject);
+  });
+};
+
+// Voice message — legacy non-streaming (kept for backward compatibility)
 export const sendVoiceMessage = (id, audioBlob, scenarioContext) => {
   const formData = new FormData();
   formData.append("audio", audioBlob, "recording.webm");
