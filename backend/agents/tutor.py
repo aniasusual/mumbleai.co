@@ -39,6 +39,8 @@ class LanguageTutorAgent:
             self.system_prompt += f"\n\n## User's Proficiency: {proficiency_level.upper()}\nAdapt all content to {proficiency_level} level."
         if curriculum and curriculum.get("lessons"):
             self.system_prompt += build_curriculum_context(curriculum)
+            # Override the "curriculum required" guard — planning is DONE
+            self.system_prompt += "\n\n## PLANNING IS COMPLETE — DO NOT call set_proficiency_level or plan_curriculum. The curriculum above is active. Start teaching immediately based on the current lesson. If the user says 'yes', 'let's go', 'start', etc., begin the lesson."
         self.tools = MAIN_AGENT_TOOLS
 
     async def process_message(self, user_text: str, conversation_history: list,
