@@ -143,6 +143,23 @@ MAIN_AGENT_TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "save_vocabulary",
+            "description": "Save a word or phrase to the user's personal vocabulary notebook. Call this AUTOMATICALLY whenever you teach the user a new word or phrase during a lesson — do NOT ask the user for permission. Also call it when the user explicitly asks to save a word. Provide the word in the target language, a clear definition/translation in the user's native language, and an example sentence.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "word": {"type": "string", "description": "The word or phrase in the target language"},
+                    "definition": {"type": "string", "description": "Translation or definition in the user's native language"},
+                    "example": {"type": "string", "description": "An example sentence using the word in the target language"},
+                    "context": {"type": "string", "description": "Brief context about when/where the word was learned (e.g., 'lesson 3 - greetings')"}
+                },
+                "required": ["word", "definition"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "web_search",
             "description": "Search the web for real-world information. Use this when you need external knowledge to help the user — e.g., interview formats, exam structures (JLPT, DELF, HSK), cultural context, popular media for listening practice, travel tips, current slang, specific vocabulary for a profession or topic, real-world conversation examples, or anything you're not fully sure about.",
             "parameters": {

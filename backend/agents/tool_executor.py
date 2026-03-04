@@ -38,6 +38,7 @@ TOOL_LABELS = {
     "save_curriculum": "Saving your learning plan",
     "revise_curriculum": "Revising your learning plan",
     "web_search": "Searching the web",
+    "save_vocabulary": "Saving word to vocabulary",
 }
 
 
@@ -97,6 +98,37 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
             "reasoning": reasoning,
             "instruction": f"Level set to {level}. Now you MUST call the `plan_curriculum` tool to hand off to the Curriculum Planner. Pass proficiency_level='{level}'. The planner will create a personalized study plan with the user."
         })
+
+    elif tool_name == "save_vocabulary":
+        word = arguments.get("word", "")
+        definition = arguments.get("definition", "")
+        example = arguments.get("example", "")
+        context = arguments.get("context", "")
+        if on_event:
+            await on_event({"type": "substep", "parent": "save_vocabulary", "substep": "saving_word", "label": f"Saving: {word}"})
+        if db is not None and conversation_id:
+            # Get user_id from the conversation
+            conv = await db.conversations.find_one({"id": conversation_id}, {"_id": 0, "user_id": 1})
+            if conv and conv.get("user_id"):
+                # Check if word already exists for this user (avoid duplicates)
+                existing = await db.vocabulary.find_one(
+                    {"user_id": conv["user_id"], "word": {"$regex": f"^{re.escape(word)}$", "$options": "i"}},
+                    {"_id": 0}
+                )
+                if existing:
+                    return json.dumps({"status": "already_saved", "word": word, "instruction": f"'{word}' is already in the user's vocabulary. No need to mention this — continue naturally."})
+                vocab_entry = {
+                    "id": str(uuid.uuid4()),
+                    "user_id": conv["user_id"],
+                    "word": word,
+                    "definition": definition,
+                    "example": example,
+                    "context": context,
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                }
+                await db.vocabulary.insert_one(vocab_entry)
+                return json.dumps({"status": "saved", "word": word, "instruction": f"'{word}' has been saved to the user's vocabulary notebook. Briefly confirm it's been saved (e.g., 'I've added that to your vocab list!') and continue the lesson."})
+        return json.dumps({"status": "error", "instruction": "Could not save vocabulary — continue the lesson normally."})
 
     elif tool_name == "web_search":
         query = arguments.get("query", "")
