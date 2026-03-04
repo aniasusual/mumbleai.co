@@ -1,8 +1,9 @@
 import { useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, Sparkles } from "lucide-react";
-import { ChatBubble, TypingIndicator } from "./ChatBubble";
+import { ChatBubble, TypingIndicator, MarkdownContent } from "./ChatBubble";
 import { ToolActivityLive } from "./ToolActivity";
+import { WaveformLogoSmall } from "@/components/WaveformLogo";
 
 /** Floating mesh blobs for the empty state */
 function MeshBlobs() {
@@ -118,7 +119,29 @@ export const MessageList = ({ messages, loading, sending, toolEvents, streamingT
           <ChatBubble key={msg.id} message={msg} index={idx} onPlayAudio={onPlayAudio} speakingState={speakingState} onStopAudio={onStopAudio} />
         ))}
         {sending && toolEvents.length > 0 && <ToolActivityLive events={toolEvents} />}
-        {sending && <TypingIndicator />}
+        {sending && streamingText ? (
+          <motion.div
+            className="flex items-start gap-3 px-5 py-2"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25 }}
+            data-testid="streaming-message"
+          >
+            <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 bg-indigo-50 border border-indigo-100">
+              <WaveformLogoSmall size={18} className="text-indigo-500" />
+            </div>
+            <div
+              className="max-w-[75%] px-5 py-3 rounded-2xl rounded-tl-sm text-slate-700"
+              style={{ background: "white", border: "1px solid #e5e7eb", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
+            >
+              <div className="text-sm leading-relaxed">
+                <MarkdownContent content={streamingText} />
+              </div>
+            </div>
+          </motion.div>
+        ) : sending ? (
+          <TypingIndicator />
+        ) : null}
         <div ref={messagesEndRef} />
       </div>
     </div>

@@ -211,7 +211,8 @@ export default function ChatPage() {
         { content: userText, scenario_context: currentConv?.scenario },
         (event) => {
           if (event.type === "text_delta") {
-            // Don't show streaming text — we'll reveal it in sync with audio
+            // Stream text in real-time as the AI generates it
+            setStreamingText(prev => prev + (event.content || ""));
           } else {
             // Force immediate render so tool activity is visible before the response arrives
             flushSync(() => {
