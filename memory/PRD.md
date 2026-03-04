@@ -39,10 +39,11 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - Text/audio sync with karaoke-style highlighting
 - Web Search tool (DuckDuckGo)
 - **save_vocabulary tool**: Agent automatically saves new words during lessons (2026-03-04)
-- **SSE tool activity fix**: Fixed React 18 batching issue preventing live tool activity display (2026-03-04)
-  - Used `flushSync` for immediate event rendering
-  - `requestAnimationFrame` for cleanup timing
-  - Added SSE anti-buffering headers
+- **SSE streaming text fix**: Enabled real-time text streaming (was previously disabled). Text now appears word-by-word during generation (2026-03-04)
+  - text_delta events accumulated into streamingText state
+  - Added streaming AI bubble with MarkdownContent in MessageList
+  - Tool activity renders above streaming text
+  - flushSync for tool events, requestAnimationFrame for cleanup transition
 
 ## Agent Tools
 ### Tutor Agent (learning phase)
