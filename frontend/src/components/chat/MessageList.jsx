@@ -119,7 +119,7 @@ export const MessageList = ({ messages, loading, sending, toolEvents, streamingT
           <ChatBubble key={msg.id} message={msg} index={idx} onPlayAudio={onPlayAudio} speakingState={speakingState} onStopAudio={onStopAudio} />
         ))}
         {sending && toolEvents.length > 0 && <ToolActivityLive events={toolEvents} />}
-        {sending && streamingText ? (
+        {sending && streamingText && streamingText.replace(/\[EXPECT_LANG:\w+\]/g, "").trim() ? (
           <motion.div
             className="flex items-start gap-3 px-5 py-2"
             initial={{ opacity: 0, y: 12 }}
@@ -135,7 +135,7 @@ export const MessageList = ({ messages, loading, sending, toolEvents, streamingT
               style={{ background: "white", border: "1px solid #e5e7eb", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
             >
               <div className="text-sm leading-relaxed">
-                <MarkdownContent content={streamingText} />
+                <MarkdownContent content={streamingText.replace(/\[EXPECT_LANG:\w+\]/g, "").trimEnd()} />
               </div>
             </div>
           </motion.div>
