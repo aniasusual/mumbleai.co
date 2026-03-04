@@ -1,7 +1,56 @@
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Menu, Globe, Mic, Keyboard } from "lucide-react";
+import { ArrowLeft, Menu, Globe, Mic, Keyboard, FlaskConical, RefreshCw, Sparkles } from "lucide-react";
+
+const PhaseBadge = ({ phase }) => {
+  if (phase === "planning") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.8 }}
+        data-testid="phase-planning-badge"
+      >
+        <Badge className="text-[10px] border-0 gap-1 font-semibold bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-sm shadow-violet-200">
+          <Sparkles className="w-2.5 h-2.5" />
+          planning curriculum
+        </Badge>
+      </motion.div>
+    );
+  }
+  if (phase === "testing") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.8 }}
+        data-testid="phase-testing-badge"
+      >
+        <Badge className="text-[10px] border-0 gap-1 font-semibold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm shadow-amber-200 animate-pulse">
+          <FlaskConical className="w-2.5 h-2.5" />
+          quiz in progress
+        </Badge>
+      </motion.div>
+    );
+  }
+  if (phase === "revision") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.8 }}
+        data-testid="phase-revision-badge"
+      >
+        <Badge className="text-[10px] border-0 gap-1 font-semibold bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-sm shadow-teal-200 animate-pulse">
+          <RefreshCw className="w-2.5 h-2.5" />
+          revision session
+        </Badge>
+      </motion.div>
+    );
+  }
+  return null;
+};
 
 export const ChatHeader = ({ currentConv, curriculum, languages, inputMode, onSetInputMode, onOpenSidebar }) => {
   const navigate = useNavigate();
@@ -50,11 +99,9 @@ export const ChatHeader = ({ currentConv, curriculum, languages, inputMode, onSe
               {currentConv.proficiency_level}
             </Badge>
           )}
-          {currentConv?.phase === "planning" && (
-            <Badge className="text-[10px] border-0 bg-violet-100 text-violet-700" data-testid="phase-planning-badge">
-              planning curriculum
-            </Badge>
-          )}
+          <AnimatePresence mode="wait">
+            <PhaseBadge phase={currentConv?.phase} />
+          </AnimatePresence>
           {curriculum?.lessons && (
             <Badge variant="outline" className="text-[10px] border-indigo-200 text-indigo-600 bg-indigo-50" data-testid="curriculum-progress-badge">
               Lesson {(curriculum.current_lesson || 0) + 1}/{curriculum.lessons.length}
