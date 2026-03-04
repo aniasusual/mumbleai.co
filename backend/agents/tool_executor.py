@@ -74,6 +74,8 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
         )
 
     elif tool_name == "start_scenario":
+        if on_event:
+            await on_event({"type": "substep", "parent": "start_scenario", "substep": "loading_scenario", "label": f"Loading {arguments.get('scenario_type', 'scenario')}"})
         return start_scenario(
             arguments["scenario_type"],
             arguments.get("difficulty", "intermediate")
@@ -82,6 +84,8 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
     elif tool_name == "set_proficiency_level":
         level = arguments.get("level", "beginner")
         reasoning = arguments.get("reasoning", "")
+        if on_event:
+            await on_event({"type": "substep", "parent": "set_proficiency_level", "substep": "saving_level", "label": f"Setting level: {level}"})
         if db is not None and conversation_id:
             await db.conversations.update_one(
                 {"id": conversation_id},
@@ -233,6 +237,8 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
 
     elif tool_name == "advance_lesson":
         summary = arguments.get("summary", "")
+        if on_event:
+            await on_event({"type": "substep", "parent": "advance_lesson", "substep": "advancing", "label": "Moving to next lesson"})
         if db is not None and conversation_id:
             curr = await db.curricula.find_one({"conversation_id": conversation_id}, {"_id": 0})
             if curr:

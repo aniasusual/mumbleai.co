@@ -30,6 +30,7 @@ class CurriculumPlannerAgent:
         self.proficiency_level = proficiency_level
         self.conversation_id = conversation_id
         self.db = db
+        self.on_event = None
         self.system_prompt = self._build_system_prompt()
         self.tools = PLANNER_TOOLS
 
@@ -106,6 +107,9 @@ This tag is invisible to the user. If you forget it, the voice system breaks."""
             timeline = arguments.get("timeline", "")
             goal = arguments.get("goal", "")
             lessons = arguments.get("lessons", [])
+            if self.on_event:
+                label = "Saving your learning plan" if tool_name == "save_curriculum" else "Updating your learning plan"
+                await self.on_event({"type": "substep", "parent": tool_name, "substep": "saving", "label": label})
             if self.db is not None and self.conversation_id:
                 # Upsert: replace any existing curriculum for this conversation
                 curriculum_doc = {
