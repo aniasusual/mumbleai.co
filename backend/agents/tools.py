@@ -115,7 +115,7 @@ MAIN_AGENT_TOOLS = [
         "type": "function",
         "function": {
             "name": "advance_lesson",
-            "description": "Move to the next lesson in the curriculum. Call this when the user has sufficiently practiced the current lesson's topics and is ready to progress.",
+            "description": "Move to the next lesson in the curriculum. ONLY call this when you have thoroughly covered ALL topics in the current lesson over MANY exchanges — typically 15-20+ back-and-forth turns. Do NOT call this after introducing just one or two words. A lesson should feel like a full session.",
             "parameters": {
                 "type": "object",
                 "properties": {
