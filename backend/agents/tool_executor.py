@@ -41,6 +41,8 @@ TOOL_LABELS = {
     "save_vocabulary": "Saving word to vocabulary",
     "start_test": "Starting a quiz",
     "finish_test": "Saving test results",
+    "start_revision": "Starting revision session",
+    "finish_revision": "Saving revision summary",
 }
 
 
@@ -218,6 +220,77 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
         return json.dumps({
             "status": "test_handoff",
             "instruction": "Phase switched to testing. Tell the user you're starting a quiz."
+        })
+
+    elif tool_name == "start_revision":
+        revision_context = arguments.get("context", "general review of weak areas")
+        if db is not None and conversation_id:
+            # Switch phase to revision
+            await db.conversations.update_one(
+                {"id": conversation_id},
+                {"$set": {"phase": "revision"}}
+            )
+
+            conv = await db.conversations.find_one({"id": conversation_id}, {"_id": 0})
+            if conv:
+                from agents.revision_agent import RevisionAgent
+
+                curriculum = await db.curricula.find_one({"conversation_id": conversation_id}, {"_id": 0})
+                user_vocab = await db.vocabulary.find(
+                    {"user_id": conv.get("user_id")}, {"_id": 0}
+                ).sort("created_at", -1).to_list(50)
+                test_results = await db.test_results.find(
+                    {"conversation_id": conversation_id}, {"_id": 0}
+                ).sort("created_at", -1).to_list(3)
+
+                revisor = RevisionAgent(
+                    api_key=api_key,
+                    session_id=f"lingua_revisor_{conversation_id}",
+                    native_language=conv.get("native_language", "en"),
+                    target_language=conv.get("target_language", "en"),
+                    proficiency_level=conv.get("proficiency_level", "beginner"),
+                    conversation_id=conversation_id,
+                    db=db,
+                    curriculum=curriculum,
+                    vocabulary=user_vocab,
+                    test_results=test_results,
+                    revision_context=revision_context
+                )
+
+                if on_event:
+                    await on_event({"type": "substep", "parent": "start_revision", "substep": "preparing", "label": "Preparing revision session"})
+
+                revisor_welcome = await revisor.generate_welcome()
+                clean_welcome = revisor_welcome
+                import re
+                lang_match = re.search(r'\[EXPECT_LANG:\w+\]', clean_welcome)
+                if lang_match:
+                    clean_welcome = clean_welcome[:lang_match.start()].strip()
+
+                await db.messages.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "conversation_id": conversation_id,
+                    "role": "assistant",
+                    "content": clean_welcome,
+                    "tools_used": [],
+                    "phase": "revision",
+                    "is_internal": True,
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                })
+
+                return json.dumps({
+                    "status": "revision_started",
+                    "revisor_message": clean_welcome,
+                    "instruction": (
+                        f"The Revision Coach is now active. "
+                        f"Relay the coach's message to the user naturally: \"{clean_welcome}\" "
+                        f"The coach will handle the review — the user will interact with it directly."
+                    )
+                })
+
+        return json.dumps({
+            "status": "revision_handoff",
+            "instruction": "Phase switched to revision. Tell the user you're starting a review session."
         })
 
     elif tool_name == "plan_curriculum":

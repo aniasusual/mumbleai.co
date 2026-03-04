@@ -157,6 +157,20 @@ MAIN_AGENT_TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "start_revision",
+            "description": "Hand off to the Revision Agent to review and re-teach weak areas. Call this after a test when the user scored poorly, when the user asks to review or practice weak spots, or when you notice recurring mistakes. Provide context about what needs revision.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "context": {"type": "string", "description": "What to revise, e.g., 'vocabulary from last test: bonjour, merci' or 'grammar: past tense conjugation mistakes'"}
+                },
+                "required": ["context"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "save_vocabulary",
             "description": "Save a word to the user's vocabulary notebook. Be selective — only save words worth reviewing: key lesson words, corrected mistakes, or words the user asked about. Do NOT save every word you mention.",
             "parameters": {
