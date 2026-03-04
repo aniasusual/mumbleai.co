@@ -393,6 +393,12 @@ async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = De
                 {"id": conv_id},
                 {"$set": {"phase": "learning"}}
             )
+        # Phase transition: if testing agent finished, switch back to learning
+        if "finish_test" in tools_used and current_phase == "testing":
+            await db.conversations.update_one(
+                {"id": conv_id},
+                {"$set": {"phase": "learning"}}
+            )
 
         # Wait for TTS to finish (was running in parallel with DB writes)
         audio_base64 = await tts_task

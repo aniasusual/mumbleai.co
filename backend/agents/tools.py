@@ -143,6 +143,20 @@ MAIN_AGENT_TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "start_test",
+            "description": "Hand off to the Testing Agent to quiz the user on what they've learned. Call this when you think it's a good time to test the user — e.g., after finishing a lesson's key topics, when the user asks to be tested, or periodically to check retention. Provide context about what to test.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "context": {"type": "string", "description": "What to test the user on, e.g., 'vocabulary from lesson 2 about food and ordering' or 'grammar rules covered today'"}
+                },
+                "required": ["context"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "save_vocabulary",
             "description": "Save a word to the user's vocabulary notebook. Be selective — only save words worth reviewing: key lesson words, corrected mistakes, or words the user asked about. Do NOT save every word you mention.",
             "parameters": {
