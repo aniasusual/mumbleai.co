@@ -144,7 +144,7 @@ MAIN_AGENT_TOOLS = [
         "type": "function",
         "function": {
             "name": "save_vocabulary",
-            "description": "Save a NEW word or phrase to the user's vocabulary notebook. ONLY call this for words you are introducing for the FIRST TIME in this conversation. Do NOT re-save words already taught in earlier messages — check conversation history first. Also call when the user explicitly asks to save/remember a word.",
+            "description": "Save a word to the user's vocabulary notebook. Be selective — only save words worth reviewing: key lesson words, corrected mistakes, or words the user asked about. Do NOT save every word you mention.",
             "parameters": {
                 "type": "object",
                 "properties": {
