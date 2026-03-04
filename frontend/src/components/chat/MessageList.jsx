@@ -52,7 +52,7 @@ export const MessageList = ({ messages, loading, sending, toolEvents, streamingT
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streamingText]);
+  }, [messages, streamingText, toolEvents]);
 
   if (messages.length === 0 && !loading) {
     return (

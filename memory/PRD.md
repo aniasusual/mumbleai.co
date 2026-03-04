@@ -17,11 +17,11 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - **Backend**: FastAPI, MongoDB (motor), JWT auth
 - **Frontend**: React, TailwindCSS, Shadcn/UI, Framer Motion
 - **Agent System**: Parent/subagent model with phase-based context isolation
-  - `learning` phase: Tutor agent (cannot teach without curriculum)
-  - `planning` phase: Planner agent (owns save_curriculum, revise_curriculum tools)
+  - `learning` phase: Tutor agent
+  - `planning` phase: Planner agent
 - **Voice Pipeline**: LLM predicts expected response language -> stored on conversation -> Whisper uses it -> GPT-5.2 -> TTS
 - **Real-time**: SSE with tool events, streaming text, audio in `done` event
-- **3rd Party**: OpenAI GPT-5.2, Whisper, TTS via Emergent LLM Key; DuckDuckGo Search (free, no key)
+- **3rd Party**: OpenAI GPT-5.2, Whisper, TTS via Emergent LLM Key; DuckDuckGo Search
 
 ## DB Schema
 - `users`: id, name, email, hashed_password
@@ -32,33 +32,23 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 
 ## What's Been Implemented
 - Full authentication flow (signup/login/JWT)
-- Landing page with animated hero, morphing text, language characters
-- Auth page with email/password
-- Chat page with sidebar, message list, voice/text input
-- Desktop sidebar: hover-to-expand, flush edges
-- Mobile sidebar with overlay
-- Welcome screen with language pickers, free conversation + scenarios
-- Loading states on all new conversation buttons
-- Agent system with tutor/planner isolation
-- Multi-turn curriculum revision flow
-- Onboarding: agent asks comfort level -> hands off to planner
+- Landing page, Auth page, Chat page, Dashboard, Vocabulary page
+- Agent system with tutor/planner isolation, multi-turn curriculum revision
 - LLM-predicted Whisper language (EXPECT_LANG tag system)
-- Voice-first agent (never says "type it")
-- Auto pronunciation breakdowns in learner's native language
+- Voice-first agent, auto pronunciation breakdowns
 - Text/audio sync with karaoke-style highlighting
-- TTS in SSE done event
-- Dashboard page (mobile responsive)
-- Vocabulary page (mobile responsive)
-- Browser tab favicon
 - Web Search tool (DuckDuckGo)
-- **save_vocabulary tool**: Agent automatically saves new words to user's vocabulary notebook during lessons (2026-03-04)
+- **save_vocabulary tool**: Agent automatically saves new words during lessons (2026-03-04)
+- **SSE tool activity fix**: Fixed React 18 batching issue preventing live tool activity display (2026-03-04)
+  - Used `flushSync` for immediate event rendering
+  - `requestAnimationFrame` for cleanup timing
+  - Added SSE anti-buffering headers
 
 ## Agent Tools
 ### Tutor Agent (learning phase)
 - grammar_check, vocabulary_lookup, pronunciation_guide, evaluate_response
 - start_scenario, set_proficiency_level, advance_lesson, plan_curriculum
-- **save_vocabulary**: Automatically saves new words taught during lessons to the user's vocabulary notebook. Includes duplicate detection.
-- **web_search**: DuckDuckGo search for real-world info
+- save_vocabulary, web_search
 
 ### Planner Agent (planning phase)
 - save_curriculum, revise_curriculum, web_search

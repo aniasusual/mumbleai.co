@@ -3,6 +3,7 @@
  * Manages state and delegates rendering to focused child components.
  */
 import { useState, useEffect, useRef, useCallback } from "react";
+import { flushSync } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -212,13 +213,21 @@ export default function ChatPage() {
           if (event.type === "text_delta") {
             // Don't show streaming text — we'll reveal it in sync with audio
           } else {
-            setToolEvents(prev => [...prev, event]);
+            // Force immediate render so tool activity is visible before the response arrives
+            flushSync(() => {
+              setToolEvents(prev => [...prev, event]);
+            });
           }
         }
       );
+      // First update messages so the AI bubble appears
       setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
-      setToolEvents([]); setStreamingText("");
-      setSending(false);
+      // Then clear sending state — use requestAnimationFrame to let the message render first
+      requestAnimationFrame(() => {
+        setToolEvents([]);
+        setStreamingText("");
+        setSending(false);
+      });
       refreshConversations();
       // Audio arrives with the SSE done event — play in sync with text
       if (result.ai_audio_base64 && result.ai_message) {
@@ -229,7 +238,8 @@ export default function ChatPage() {
       setMessages(prev => prev.filter(m => m.id !== tempId));
       setInput(userText);
       setToolEvents([]); setStreamingText("");
-    } finally { setSending(false); inputRef.current?.focus(); }
+      setSending(false);
+    } finally { inputRef.current?.focus(); }
   };
 
   const handleSendVoice = async (audioBlob) => {

@@ -389,4 +389,12 @@ async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = De
             done_event['ai_audio_base64'] = audio_base64
         yield f"data: {json.dumps(done_event)}\n\n"
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-store",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
