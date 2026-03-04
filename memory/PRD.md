@@ -43,14 +43,20 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 
 - **Testing Agent**: Phase-based handoff quiz system. Tutor calls `start_test` → phase switches to "testing" → TestingAgent quizzes user (5-7 questions, one at a time) → calls `finish_test` → results saved to DB + injected into tutor context → phase back to "learning" (2026-03-04)
 
+- **Revision Agent**: Phase-based handoff review system. Tutor calls `start_revision` → phase switches to "revision" → RevisionAgent re-teaches weak areas from test results → calls `finish_revision` → summary injected into tutor context → phase back to "learning" (2026-03-04)
+
 ## Agent Tools
 ### Tutor Agent (learning phase)
 - grammar_check, vocabulary_lookup, pronunciation_guide, evaluate_response
 - start_scenario, set_proficiency_level, advance_lesson, plan_curriculum
-- save_vocabulary, web_search, start_test
+- save_vocabulary, web_search, start_test, start_revision
 
 ### Testing Agent (testing phase)
 - finish_test: saves score/strengths/weaknesses/review words to DB, injects feedback into tutor context
+- web_search
+
+### Revision Agent (revision phase)
+- finish_revision: saves topics reviewed/improved/still weak, injects feedback into tutor context
 - web_search
 
 ### Planner Agent (planning phase)
