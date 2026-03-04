@@ -237,7 +237,13 @@ def build_curriculum_context(curriculum: dict) -> str:
     ctx += f"\n\n## Current Lesson: {current_lesson.get('title', '')}"
     ctx += f"\n- Objective: {current_lesson.get('objective', '')}"
     ctx += f"\n- Topics to cover: {', '.join(current_lesson.get('topics', []))}"
-    ctx += f"\n\nFocus this conversation on the current lesson's topics. When the user has practiced enough on these topics, call `advance_lesson` to move to the next one."
+    ctx += f"\n\n## IMPORTANT: Lesson Pacing"
+    ctx += f"\nStay on the current lesson for a FULL session. A lesson is NOT a single question — it covers ALL the topics listed above through multiple exercises, examples, and practice rounds."
+    ctx += f"\nDo NOT call `advance_lesson` until you have:"
+    ctx += f"\n- Introduced and practiced EVERY topic listed above"
+    ctx += f"\n- Done at least 10-15 exchanges with the user on this lesson"
+    ctx += f"\n- Confirmed the user is comfortable with the material"
+    ctx += f"\nIf you just started the lesson or only covered one topic, KEEP GOING with more practice on the current lesson."
 
     if current + 1 < total:
         next_lesson = lessons[current + 1]
