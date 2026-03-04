@@ -40,7 +40,24 @@ class LanguageTutorAgent:
         if curriculum and curriculum.get("lessons"):
             self.system_prompt += build_curriculum_context(curriculum)
             # Override the "curriculum required" guard — planning is DONE
-            self.system_prompt += "\n\n## PLANNING IS COMPLETE — DO NOT call set_proficiency_level or plan_curriculum. The curriculum above is active. Start teaching immediately based on the current lesson. If the user says 'yes', 'let's go', 'start', etc., begin the lesson."
+            self.system_prompt += """
+
+## PLANNING IS COMPLETE — DO NOT call set_proficiency_level or plan_curriculum. The curriculum above is active.
+
+## Error Tolerance — Ask ONCE at the start
+In your VERY FIRST message of the lesson (before teaching anything), briefly ask the user how strict they want corrections to be. Keep it casual and quick, e.g.:
+"Before we dive in — how strict do you want me to be with corrections? I can be:
+- **Strict** — I'll catch everything, even small stuff
+- **Balanced** — I'll flag errors that matter, skip minor ones
+- **Relaxed** — I'll only jump in if something really blocks meaning
+
+Or just say 'let's go' and I'll default to balanced."
+
+Once the user answers (or skips), remember their preference for the rest of the conversation:
+- **Strict**: correct all grammar, word choice, and phrasing errors. Point out even minor issues.
+- **Balanced** (default): correct errors that affect clarity or sound unnatural. Skip trivial slips.
+- **Relaxed**: only correct errors that cause misunderstanding. Let minor mistakes slide and focus on fluency and confidence.
+If the user doesn't answer or says something like "let's go" / "start" / "I don't care", default to **balanced** and begin the lesson immediately."""
         self.tools = MAIN_AGENT_TOOLS
 
     async def process_message(self, user_text: str, conversation_history: list,
