@@ -41,11 +41,17 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - **save_vocabulary tool**: Agent automatically saves new words during lessons (2026-03-04)
 - **Voice/Keyboard SSE parity**: Converted voice endpoint from plain POST to SSE streaming — now has identical event flow as keyboard (transcription → thinking → tool events → text_delta → done with audio) (2026-03-04)
 
+- **Testing Agent**: Phase-based handoff quiz system. Tutor calls `start_test` → phase switches to "testing" → TestingAgent quizzes user (5-7 questions, one at a time) → calls `finish_test` → results saved to DB + injected into tutor context → phase back to "learning" (2026-03-04)
+
 ## Agent Tools
 ### Tutor Agent (learning phase)
 - grammar_check, vocabulary_lookup, pronunciation_guide, evaluate_response
 - start_scenario, set_proficiency_level, advance_lesson, plan_curriculum
-- save_vocabulary, web_search
+- save_vocabulary, web_search, start_test
+
+### Testing Agent (testing phase)
+- finish_test: saves score/strengths/weaknesses/review words to DB, injects feedback into tutor context
+- web_search
 
 ### Planner Agent (planning phase)
 - save_curriculum, revise_curriculum, web_search

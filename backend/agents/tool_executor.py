@@ -39,6 +39,8 @@ TOOL_LABELS = {
     "revise_curriculum": "Revising your learning plan",
     "web_search": "Searching the web",
     "save_vocabulary": "Saving word to vocabulary",
+    "start_test": "Starting a quiz",
+    "finish_test": "Saving test results",
 }
 
 
@@ -147,6 +149,76 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
         except Exception as e:
             logger.error(f"Web search failed: {e}")
             return f"Web search failed: {str(e)}"
+
+    elif tool_name == "start_test":
+        test_context = arguments.get("context", "general review")
+        if db is not None and conversation_id:
+            # Switch phase to testing
+            await db.conversations.update_one(
+                {"id": conversation_id},
+                {"$set": {"phase": "testing"}}
+            )
+
+            conv = await db.conversations.find_one({"id": conversation_id}, {"_id": 0})
+            if conv:
+                from agents.testing_agent import TestingAgent
+
+                # Load curriculum and vocabulary for the testing agent
+                curriculum = await db.curricula.find_one({"conversation_id": conversation_id}, {"_id": 0})
+                user_vocab = await db.vocabulary.find(
+                    {"user_id": conv.get("user_id")}, {"_id": 0}
+                ).sort("created_at", -1).to_list(50)
+
+                tester = TestingAgent(
+                    api_key=api_key,
+                    session_id=f"lingua_tester_{conversation_id}",
+                    native_language=conv.get("native_language", "en"),
+                    target_language=conv.get("target_language", "en"),
+                    proficiency_level=conv.get("proficiency_level", "beginner"),
+                    conversation_id=conversation_id,
+                    db=db,
+                    curriculum=curriculum,
+                    vocabulary=user_vocab,
+                    test_context=test_context
+                )
+
+                if on_event:
+                    await on_event({"type": "substep", "parent": "start_test", "substep": "preparing_test", "label": "Preparing your quiz"})
+
+                tester_welcome = await tester.generate_welcome()
+                # Strip language tag for internal storage
+                clean_welcome = tester_welcome
+                import re
+                lang_match = re.search(r'\[EXPECT_LANG:\w+\]', clean_welcome)
+                if lang_match:
+                    clean_welcome = clean_welcome[:lang_match.start()].strip()
+
+                # Save the tester's welcome into its own context
+                await db.messages.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "conversation_id": conversation_id,
+                    "role": "assistant",
+                    "content": clean_welcome,
+                    "tools_used": [],
+                    "phase": "testing",
+                    "is_internal": True,
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                })
+
+                return json.dumps({
+                    "status": "test_started",
+                    "tester_message": clean_welcome,
+                    "instruction": (
+                        f"The Testing Agent is now active. "
+                        f"Relay the tester's message to the user naturally: \"{clean_welcome}\" "
+                        f"The tester will handle the quiz — the user will interact with it directly."
+                    )
+                })
+
+        return json.dumps({
+            "status": "test_handoff",
+            "instruction": "Phase switched to testing. Tell the user you're starting a quiz."
+        })
 
     elif tool_name == "plan_curriculum":
         proficiency = arguments.get("proficiency_level", "beginner")
