@@ -53,14 +53,15 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - Voice/Keyboard SSE parity
 - Web Search tool (DuckDuckGo)
 - Vocabulary saving
-- **Razorpay Backend Integration**: /api/payments/plans, /subscription, /create-order, /verify-payment
+- **Razorpay Backend Integration**: /api/payments/plans, /subscription, /create-order, /verify-payment, /credit-history
 - **Landing Page Pricing Section**: 3-tier pricing cards matching app design system
 - **In-App Pricing Page** (`/pricing`): Full checkout page with Razorpay modal, current plan badge, credits display
+- **Credit History Page** (`/credit-history`): Paginated transaction log with filter pills (All/Usage/Purchases), expandable rows showing LLM/STT/TTS breakdown, balance after, and credit rates info
 - **Auth Redirect Flow**: Landing page plan buttons → Auth (with redirect params) → Pricing page (auto-opens Razorpay)
-- **Sidebar Pricing Link**: Added in expanded, collapsed, and mobile sidebar states
+- **Sidebar Pricing & Credit History Links**: In expanded, collapsed, and mobile sidebar states
+- **Credit Deduction System**: Tracks and deducts credits for LLM tokens, STT duration, TTS characters with transaction logging
 
 ## Backlog
-- **P0**: Credit deduction logic (wrap LLM/STT/TTS calls), sidebar credit balance, low-credit warnings, out-of-credits gating, conversation limit enforcement
 - **P1**: Progress Journal — weekly learning summaries
 - **P2**: Gamification — streaks, points, leaderboards
 - **Future**: VAD (always-on mic), SpeechAce pronunciation, Google OAuth
