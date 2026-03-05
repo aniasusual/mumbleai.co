@@ -8,7 +8,7 @@ import { WaveformLogo } from "@/components/WaveformLogo";
 import {
   Mic, ArrowRight, Brain, AudioLines, Target, Volume2,
   Briefcase, Plane, UtensilsCrossed, MessageSquare, GraduationCap,
-  Sparkles, BookOpen, ChevronDown,
+  Sparkles, BookOpen, ChevronDown, Check, Zap, Crown,
 } from "lucide-react";
 
 /* ═══════════════════════════════════════════
@@ -20,6 +20,7 @@ const BG = {
   tools:     "#bfdbfe",
   demo:      "#e9d5ff",
   scenarios: "#fed7aa",
+  pricing:   "#fce7f3",
   cta:       "#f8f7f4",
   footer:    "#1e1b4b",
 };
@@ -195,7 +196,7 @@ function Navbar() {
           <span className="text-[15px] font-semibold tracking-tight text-slate-900" style={{ fontFamily: "Sora" }}>mumble</span>
         </button>
         <div className="hidden md:flex items-center gap-7">
-          {["Features", "How it works", "Scenarios"].map(l => (
+          {["Features", "How it works", "Scenarios", "Pricing"].map(l => (
             <a key={l} href={`#${l.toLowerCase().replace(/ /g, "-")}`}
               className="text-[13px] font-medium text-slate-500 transition-colors duration-200 hover:text-indigo-600">{l}</a>
           ))}
@@ -556,6 +557,177 @@ function ScenarioTag({ s, i, scrollProgress }) {
 }
 
 /* ═══════════════════════════════════════════
+   PRICING — pink bg, 3 tier cards
+   ═══════════════════════════════════════════ */
+const PLAN_FEATURES = [
+  "All 4 AI agents (Tutor, Planner, Testing, Revision)",
+  "Voice & text conversations",
+  "50+ languages",
+  "Scenarios & role-play",
+  "Vocabulary saving",
+  "Grammar & pronunciation tools",
+  "Web search in lessons",
+  "Dashboard & progress tracking",
+];
+
+const PRICING_PLANS = [
+  {
+    id: "free",
+    name: "Free",
+    price: 0,
+    credits: 50,
+    accent: "#6366f1",
+    accentLight: "rgba(99,102,241,0.1)",
+    borderColor: "rgba(99,102,241,0.2)",
+    icon: Sparkles,
+    highlight: false,
+    extras: ["Up to 3 active conversations", "~10 voice or ~25 text turns/month"],
+  },
+  {
+    id: "plus",
+    name: "Plus",
+    price: 14,
+    credits: 1000,
+    accent: "#be185d",
+    accentLight: "rgba(190,24,93,0.08)",
+    borderColor: "rgba(190,24,93,0.25)",
+    icon: Zap,
+    highlight: true,
+    extras: ["Up to 10 active conversations", "~200 voice or ~500 text turns/month"],
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    price: 29,
+    credits: 5000,
+    accent: "#7c3aed",
+    accentLight: "rgba(124,58,237,0.08)",
+    borderColor: "rgba(124,58,237,0.25)",
+    icon: Crown,
+    highlight: false,
+    extras: ["Unlimited conversations", "~1,000 voice or ~2,500 text turns/month", "Priority response"],
+  },
+];
+
+function PricingCard({ plan, i }) {
+  const navigate = useNavigate();
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
+
+  return (
+    <motion.div
+      ref={ref}
+      className="relative flex flex-col rounded-2xl p-6 md:p-8"
+      style={{
+        background: plan.highlight ? "white" : "rgba(255,255,255,0.7)",
+        border: `2px solid ${plan.highlight ? plan.accent : plan.borderColor}`,
+        backdropFilter: "blur(12px)",
+        boxShadow: plan.highlight
+          ? `0 8px 40px rgba(190,24,93,0.15), 0 0 0 1px rgba(190,24,93,0.1)`
+          : "0 2px 12px rgba(0,0,0,0.04)",
+      }}
+      initial={{ opacity: 0, y: 32, scale: 0.95 }}
+      animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
+      transition={{ delay: i * 0.1, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ y: -4, boxShadow: `0 12px 48px ${plan.accentLight}, 0 0 0 2px ${plan.borderColor}` }}
+      data-testid={`pricing-card-${plan.id}`}
+    >
+      {plan.highlight && (
+        <motion.span
+          className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-semibold tracking-wider uppercase text-white"
+          style={{ background: plan.accent }}
+          initial={{ opacity: 0, y: 8 }} animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.3 }}
+          data-testid="pricing-popular-badge"
+        >
+          Most Popular
+        </motion.span>
+      )}
+
+      <div className="flex items-center gap-2 mb-4">
+        <plan.icon className="w-5 h-5" style={{ color: plan.accent }} />
+        <h3 className="text-lg font-semibold tracking-tight text-slate-900" style={{ fontFamily: "Sora" }}>{plan.name}</h3>
+      </div>
+
+      <div className="mb-1">
+        <span className="text-4xl font-bold tracking-tight text-slate-900" style={{ fontFamily: "Sora" }}>
+          {plan.price === 0 ? "$0" : `$${plan.price}`}
+        </span>
+        <span className="text-sm text-slate-400 ml-1">/month</span>
+      </div>
+      <p className="text-sm text-slate-500 mb-6">{plan.credits.toLocaleString()} credits/month</p>
+
+      <div className="flex-1 space-y-2.5 mb-6">
+        {plan.extras.map((f, j) => (
+          <div key={j} className="flex items-start gap-2">
+            <Check className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: plan.accent }} />
+            <span className="text-[13px] text-slate-600 leading-snug">{f}</span>
+          </div>
+        ))}
+        <div className="pt-2 mt-2 border-t border-slate-100">
+          {PLAN_FEATURES.map((f, j) => (
+            <div key={j} className="flex items-start gap-2 py-0.5">
+              <Check className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-emerald-500" />
+              <span className="text-[12px] text-slate-400 leading-snug">{f}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <motion.button
+        onClick={() => navigate("/chat")}
+        className="w-full rounded-full py-3 text-sm font-semibold transition-all duration-200 overflow-hidden relative group"
+        style={{
+          background: plan.highlight ? plan.accent : "transparent",
+          color: plan.highlight ? "white" : plan.accent,
+          border: plan.highlight ? "none" : `2px solid ${plan.borderColor}`,
+          boxShadow: plan.highlight ? `0 4px 20px ${plan.accentLight}` : "none",
+        }}
+        whileHover={{
+          scale: 1.02,
+          boxShadow: plan.highlight
+            ? `0 6px 28px rgba(190,24,93,0.3)`
+            : `0 4px 20px ${plan.accentLight}`,
+        }}
+        whileTap={{ scale: 0.97 }}
+        data-testid={`pricing-btn-${plan.id}`}
+      >
+        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+        <span className="relative">
+          {plan.price === 0 ? "Start for Free" : `Get ${plan.name}`}
+        </span>
+      </motion.button>
+    </motion.div>
+  );
+}
+
+function PricingSection() {
+  return (
+    <section id="pricing" className="relative py-24 md:py-32" style={{ background: BG.pricing }} data-testid="pricing-section">
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="text-center mb-14">
+          <Reveal>
+            <span className="text-[13px] font-semibold tracking-wider uppercase mb-3 block text-pink-700">Pricing</span>
+          </Reveal>
+          <WordReveal text="Simple plans, full access" as="h2"
+            className="text-3xl md:text-5xl font-bold tracking-tight text-pink-950 mb-4" />
+          <Reveal delay={0.1}>
+            <p className="text-[15px] max-w-lg mx-auto text-pink-800/60">
+              Every plan includes all features. Pick the volume that fits your practice routine.
+            </p>
+          </Reveal>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-5 max-w-4xl mx-auto">
+          {PRICING_PLANS.map((plan, i) => (
+            <PricingCard key={plan.id} plan={plan} i={i} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════
    CTA — clean with mesh
    ═══════════════════════════════════════════ */
 function CTASection() {
@@ -634,6 +806,7 @@ export default function LandingPage() {
       <HowItWorksSection />
       <DemoSection />
       <ScenariosSection />
+      <PricingSection />
       <CTASection />
       <Footer />
     </div>
