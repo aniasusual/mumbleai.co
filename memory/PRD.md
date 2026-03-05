@@ -1,7 +1,7 @@
 # mumble — Personal AI Language Tutor
 
 ## Problem Statement
-Build a conversational agent, "mumble," that acts as a personal language tutor with voice-first interaction (STT/TTS), support for 50+ languages, and a sophisticated agentic system with real-time UI updates via SSE.
+Build a conversational agent, "mumble," that acts as a personal language tutor with voice-first interaction (STT/TTS), support for 50+ languages, and a sophisticated agentic system with real-time UI updates via SSE. Monetize with a credit-based payment system via Razorpay.
 
 ## Core Requirements
 - React frontend + FastAPI backend + MongoDB
@@ -11,20 +11,15 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - Agentic system with phase-based context isolation (learning/planning/testing/revision)
 - Real-time UI updates via Server-Sent Events (SSE)
 - Premium, modern, animated UI (Framer Motion, Tailwind, Shadcn/UI)
-- Mobile-responsive internal pages
-- Credit-based payment system (upcoming)
+- Credit-based payment system with Razorpay
 
 ## Architecture
-- **Backend**: FastAPI, MongoDB (motor), JWT auth
-- **Frontend**: React, TailwindCSS, Shadcn/UI, Framer Motion
+- **Backend**: FastAPI, MongoDB (motor), JWT auth, Razorpay
+- **Frontend**: React, TailwindCSS, Shadcn/UI, Framer Motion, react-razorpay
 - **Agent System**: Parent/subagent model with phase-based context isolation
-  - `learning` phase: Tutor agent
-  - `planning` phase: Planner agent
-  - `testing` phase: Testing agent
-  - `revision` phase: Revision agent
-- **Voice Pipeline**: LLM predicts expected response language -> stored on conversation -> Whisper uses it (with user override via language toggle) -> GPT-5.2 -> TTS
-- **Real-time**: SSE with tool events, streaming text, audio in `done` event
-- **3rd Party**: OpenAI GPT-5.2, Whisper, TTS via Emergent LLM Key; DuckDuckGo Search
+- **Voice Pipeline**: Language toggle → Whisper STT → GPT-5.2 → TTS
+- **Real-time**: SSE with tool events, streaming text, audio
+- **3rd Party**: OpenAI GPT-5.2, Whisper, TTS via Emergent LLM Key; DuckDuckGo; Razorpay
 
 ## DB Schema
 - `users`: id, name, email, hashed_password
@@ -33,46 +28,36 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - `curriculums`: user/conversation scoped lesson plans
 - `vocabulary`: id, user_id, word, definition, example, context, created_at
 - `test_results`: user_id, score, strengths, weaknesses
+- `subscriptions`: user_id, plan, credits, max_conversations, razorpay_payment_id
+- `credit_transactions`: user_id, type (purchase/usage), plan, credits_added, razorpay_payment_id
+
+## Payment Plans
+| Plan | Price | Credits | Conversations | Features |
+|------|-------|---------|---------------|----------|
+| Free | $0/mo | 50 | 3 | All features |
+| Plus | $14/mo | 1,000 | 10 | All features |
+| Pro | $29/mo | 5,000 | Unlimited | All features + priority |
+
+## Credit Deduction Formula
+- LLM Input: 1 credit / 1K tokens
+- LLM Output: 3 credits / 1K tokens
+- STT (Whisper): 0.3 credits / second
+- TTS: 1 credit / 500 characters
 
 ## What's Been Implemented
 - Full authentication flow (signup/login/JWT)
-- Landing page, Auth page, Chat page, Dashboard, Vocabulary page
+- Landing page with pricing section, Auth page, Chat page, Dashboard, Vocabulary page
 - Agent system with tutor/planner/testing/revision isolation
-- LLM-predicted Whisper language (EXPECT_LANG tag system)
-- Voice-first agent, auto pronunciation breakdowns
-- Text/audio sync with karaoke-style highlighting
+- Learning context handoff to testing/revision agents
+- Voice language toggle (STT language switching)
+- Voice/Keyboard SSE parity
 - Web Search tool (DuckDuckGo)
-- save_vocabulary tool: Agent automatically saves new words during lessons
-- Voice/Keyboard SSE parity: Both have identical streaming event flow
-- Testing Agent: Phase-based handoff quiz system
-- Revision Agent: Phase-based handoff review system
-- **Voice Language Toggle** (2026-03-05): Pill-shaped EN|FR toggle next to mic button that lets users manually switch which language Whisper listens for. Auto-switches based on LLM's EXPECT_LANG prediction, with manual user override. Info tooltip explains the feature. Hidden when native == target language.
-
-## Agent Tools
-### Tutor Agent (learning phase)
-- grammar_check, vocabulary_lookup, pronunciation_guide, evaluate_response
-- start_scenario, set_proficiency_level, advance_lesson, plan_curriculum
-- save_vocabulary, web_search, start_test, start_revision
-
-### Testing Agent (testing phase)
-- finish_test: saves score/strengths/weaknesses/review words to DB
-- web_search
-
-### Revision Agent (revision phase)
-- finish_revision: saves topics reviewed/improved/still weak
-- web_search
-
-### Planner Agent (planning phase)
-- save_curriculum, revise_curriculum, web_search
+- Vocabulary saving
+- **Razorpay Backend Integration**: /api/payments/plans, /subscription, /create-order, /verify-payment
+- **Landing Page Pricing Section**: 3-tier pricing cards matching app design system
 
 ## Backlog
-- **P0**: Credit-based payment system with Stripe integration
-  - Credit formula discussed: LLM input 1cr/1K tokens, output 3cr/1K tokens, STT 0.3cr/sec, TTS 1cr/500chars
-  - Plans: Free (50cr), Basic $5 (500cr), Pro $15 (2000cr), Unlimited $30
-  - ~70-80% gross margin
-  - Awaiting user approval on final formula/pricing
+- **P0**: Wire up Razorpay checkout in internal app pages (subscription page, sidebar credit balance, low-credit warnings, credit deduction logic)
 - **P1**: Progress Journal — weekly learning summaries
 - **P2**: Gamification — streaks, points, leaderboards
-- **Future**: VAD (always-on mic)
-- **Future**: SpeechAce/Azure for phoneme-level pronunciation feedback
-- **Future**: Google OAuth login
+- **Future**: VAD (always-on mic), SpeechAce pronunciation, Google OAuth
