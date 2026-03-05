@@ -12,7 +12,7 @@ import {
 import {
   MessageCircle, Plus, Trash2, BookOpen, BarChart3, ChevronDown, X, LogOut,
   Briefcase, Plane, UtensilsCrossed, Phone, Users, ShoppingBag, Stethoscope,
-  PanelLeftClose, PanelLeftOpen, Loader2
+  PanelLeftClose, PanelLeftOpen, Loader2, CreditCard
 } from "lucide-react";
 import { LanguagePicker } from "./LanguagePicker";
 import { WaveformLogo } from "@/components/WaveformLogo";
@@ -177,6 +177,17 @@ const DesktopSidebar = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <div>
+                <motion.button onClick={() => navigate("/pricing")} className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-white/40 transition-colors"
+                  whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} data-testid="sidebar-pricing-collapsed">
+                  <CreditCard className="w-4 h-4" />
+                </motion.button>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right">Pricing</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
                 <motion.button onClick={onLogout} className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                   whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} data-testid="sidebar-logout-collapsed">
                   <LogOut className="w-4 h-4" />
@@ -298,6 +309,11 @@ const DesktopSidebar = ({
             whileHover={{ x: 3 }} data-testid="sidebar-vocabulary-link">
             <BookOpen className="w-4 h-4" /> Vocabulary
           </motion.button>
+          <motion.button onClick={() => navigate("/pricing")}
+            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-500 hover:text-indigo-600 hover:bg-white/40 rounded-xl transition-all"
+            whileHover={{ x: 3 }} data-testid="sidebar-pricing-link">
+            <CreditCard className="w-4 h-4" /> Pricing
+          </motion.button>
           <div className="h-px bg-indigo-100/50 my-1.5" />
           <div className="flex items-center justify-between px-3 py-1.5">
             <span className="text-xs text-slate-400 truncate max-w-[140px]" data-testid="sidebar-user-email">{userEmail}</span>
@@ -399,6 +415,9 @@ const MobileSidebar = ({
       </button>
       <button onClick={() => navigate("/vocabulary")} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-500 hover:text-indigo-600 hover:bg-white/40 rounded-xl transition-all" data-testid="sidebar-vocabulary-link">
         <BookOpen className="w-4 h-4" /> Vocabulary
+      </button>
+      <button onClick={() => navigate("/pricing")} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-500 hover:text-indigo-600 hover:bg-white/40 rounded-xl transition-all" data-testid="sidebar-pricing-link">
+        <CreditCard className="w-4 h-4" /> Pricing
       </button>
       <div className="h-px bg-indigo-100/50 my-1.5" />
       <div className="flex items-center justify-between px-3 py-1.5">
