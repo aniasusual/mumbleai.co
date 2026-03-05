@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, Square, Send, Loader2, Info } from "lucide-react";
 
@@ -25,6 +25,23 @@ const VoiceVisualizer = ({ isRecording, audioLevel }) => (
 
 const LanguageToggle = ({ sttLanguage, onSetSttLanguage, nativeLang, targetLang, languages, disabled }) => {
   const [showTooltip, setShowTooltip] = useState(false);
+  const tooltipRef = useRef(null);
+
+  // Close tooltip on outside click
+  useEffect(() => {
+    if (!showTooltip) return;
+    const handleClick = (e) => {
+      if (tooltipRef.current && !tooltipRef.current.contains(e.target)) {
+        setShowTooltip(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("touchstart", handleClick);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("touchstart", handleClick);
+    };
+  }, [showTooltip]);
 
   if (nativeLang === targetLang) return null;
 
@@ -80,11 +97,9 @@ const LanguageToggle = ({ sttLanguage, onSetSttLanguage, nativeLang, targetLang,
       </div>
 
       {/* Info icon with tooltip */}
-      <div className="relative">
+      <div className="relative" ref={tooltipRef}>
         <button
           className="w-5 h-5 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 transition-colors"
-          onMouseEnter={() => setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
           onClick={(e) => { e.stopPropagation(); setShowTooltip(v => !v); }}
           data-testid="language-toggle-info"
         >
@@ -97,13 +112,17 @@ const LanguageToggle = ({ sttLanguage, onSetSttLanguage, nativeLang, targetLang,
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 4, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 px-3 py-2 rounded-lg text-xs leading-relaxed z-50"
+              className="absolute bottom-full mb-2 px-3 py-2 rounded-lg text-xs leading-relaxed"
               style={{
                 background: "rgba(15,23,42,0.92)",
                 backdropFilter: "blur(8px)",
                 color: "white",
                 boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
+                zIndex: 9999,
+                width: "min(208px, calc(100vw - 32px))",
+                right: "0",
               }}
+              data-testid="language-toggle-tooltip"
             >
               <p className="font-medium mb-1">Voice language switch</p>
               <p className="text-slate-300">
@@ -116,7 +135,7 @@ const LanguageToggle = ({ sttLanguage, onSetSttLanguage, nativeLang, targetLang,
               </div>
               {/* Arrow */}
               <div
-                className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 rotate-45"
+                className="absolute top-full right-2 w-2 h-2 rotate-45"
                 style={{ background: "rgba(15,23,42,0.92)", marginTop: "-4px" }}
               />
             </motion.div>
@@ -140,7 +159,7 @@ export const ChatInput = ({
 
   return (
     <div
-      className="px-4 py-4"
+      className="px-4 py-4 overflow-visible"
       style={{
         background: "rgba(248,247,244,0.88)",
         backdropFilter: "blur(16px)",
