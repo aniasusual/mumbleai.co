@@ -100,6 +100,18 @@ async def _track_activity(user_text: str, tools_used: list, scenario: str = None
 
 @router.post("/conversations", response_model=ConversationResponse)
 async def create_conversation(data: ConversationCreate, user: dict = Depends(get_current_user)):
+    from services.credit_service import get_max_conversations
+
+    # Enforce conversation limit
+    max_convs = await get_max_conversations(user["id"])
+    if max_convs != -1:  # -1 = unlimited
+        current_count = await db.conversations.count_documents({"user_id": user["id"]})
+        if current_count >= max_convs:
+            raise HTTPException(
+                status_code=403,
+                detail=f"You've reached the maximum of {max_convs} conversations on your plan. Please upgrade or delete an existing conversation."
+            )
+
     now = datetime.now(timezone.utc).isoformat()
     native = data.native_language if data.native_language in SUPPORTED_LANGUAGES else "en"
     target = data.target_language if data.target_language in SUPPORTED_LANGUAGES else "en"
