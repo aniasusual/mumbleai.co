@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,11 @@ import {
 import {
   MessageCircle, Plus, Trash2, BookOpen, BarChart3, ChevronDown, X, LogOut,
   Briefcase, Plane, UtensilsCrossed, Phone, Users, ShoppingBag, Stethoscope,
-  PanelLeftClose, PanelLeftOpen, Loader2, CreditCard
+  PanelLeftClose, PanelLeftOpen, Loader2, CreditCard, Coins
 } from "lucide-react";
 import { LanguagePicker } from "./LanguagePicker";
 import { WaveformLogo } from "@/components/WaveformLogo";
+import { getSubscription } from "@/lib/api";
 
 const ICON_MAP = { Briefcase, Plane, UtensilsCrossed, MessageCircle, Phone, Users, ShoppingBag, Stethoscope };
 
@@ -36,6 +37,66 @@ const SidebarMesh = () => (
       transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }} />
   </div>
 );
+
+const CreditBadge = ({ collapsed }) => {
+  const [sub, setSub] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    getSubscription().then(r => setSub(r.data)).catch(() => {});
+    const iv = setInterval(() => {
+      getSubscription().then(r => setSub(r.data)).catch(() => {});
+    }, 30000);
+    return () => clearInterval(iv);
+  }, []);
+
+  if (!sub) return null;
+
+  const pct = sub.plan === "free" ? sub.credits / 50 : sub.plan === "plus" ? sub.credits / 1000 : sub.credits / 5000;
+  const isLow = pct <= 0.1;
+  const barColor = isLow ? "#ef4444" : pct <= 0.3 ? "#f59e0b" : "#6366f1";
+
+  if (collapsed) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div>
+            <motion.button onClick={() => navigate("/pricing")} className="p-2 rounded-xl hover:bg-white/40 transition-colors relative"
+              whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} data-testid="sidebar-credits-collapsed">
+              <Coins className="w-4 h-4" style={{ color: barColor }} />
+              {isLow && <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />}
+            </motion.button>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="right">{sub.credits} credits</TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <button onClick={() => navigate("/pricing")} className="w-full px-3 py-2 rounded-xl hover:bg-white/40 transition-all text-left group" data-testid="sidebar-credits-badge">
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-1.5">
+          <Coins className="w-3.5 h-3.5" style={{ color: barColor }} />
+          <span className="text-xs font-medium text-slate-600">{sub.credits} credits</span>
+        </div>
+        <span className="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-full"
+          style={{
+            background: sub.plan === "free" ? "rgba(99,102,241,0.1)" : sub.plan === "plus" ? "rgba(190,24,93,0.1)" : "rgba(124,58,237,0.1)",
+            color: sub.plan === "free" ? "#6366f1" : sub.plan === "plus" ? "#be185d" : "#7c3aed",
+          }}>
+          {sub.plan}
+        </span>
+      </div>
+      <div className="w-full h-1 rounded-full bg-slate-200/60 overflow-hidden">
+        <motion.div className="h-full rounded-full" style={{ background: barColor }}
+          initial={{ width: 0 }} animate={{ width: `${Math.max(2, Math.min(100, pct * 100))}%` }}
+          transition={{ duration: 0.8, ease: "easeOut" }} />
+      </div>
+      {isLow && <p className="text-[10px] text-red-500 mt-1">Low credits — upgrade for more</p>}
+    </button>
+  );
+};
 
 /* ─── Single Desktop Sidebar (animated width) ─── */
 const DesktopSidebar = ({
@@ -185,6 +246,7 @@ const DesktopSidebar = ({
             </TooltipTrigger>
             <TooltipContent side="right">Pricing</TooltipContent>
           </Tooltip>
+          <CreditBadge collapsed={true} />
           <Tooltip>
             <TooltipTrigger asChild>
               <div>
@@ -315,6 +377,8 @@ const DesktopSidebar = ({
             <CreditCard className="w-4 h-4" /> Pricing
           </motion.button>
           <div className="h-px bg-indigo-100/50 my-1.5" />
+          <CreditBadge collapsed={false} />
+          <div className="h-px bg-indigo-100/50 my-1.5" />
           <div className="flex items-center justify-between px-3 py-1.5">
             <span className="text-xs text-slate-400 truncate max-w-[140px]" data-testid="sidebar-user-email">{userEmail}</span>
             <button onClick={onLogout} className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors" data-testid="sidebar-logout-btn">
@@ -420,6 +484,7 @@ const MobileSidebar = ({
         <CreditCard className="w-4 h-4" /> Pricing
       </button>
       <div className="h-px bg-indigo-100/50 my-1.5" />
+      <CreditBadge collapsed={false} />
       <div className="flex items-center justify-between px-3 py-1.5">
         <span className="text-xs text-slate-400 truncate max-w-[140px]" data-testid="sidebar-user-email">{userEmail}</span>
         <button onClick={onLogout} className="flex items-center gap-1 text-xs text-slate-400 hover:text-red-500 transition-colors" data-testid="sidebar-logout-btn">
