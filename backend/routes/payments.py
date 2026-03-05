@@ -101,14 +101,13 @@ async def create_order(
     if not plan or req.plan == "free":
         raise HTTPException(status_code=400, detail="Invalid plan")
 
-    # Amount in paise (INR) — Razorpay uses smallest currency unit
-    # For USD $14 → convert to INR at approximate rate, or use USD directly
-    # Razorpay supports USD — amount in cents
-    amount = plan["price"]  # in cents for USD
+    # Amount in smallest currency unit (cents for USD)
+    # plan["price"] is already in cents (1499 = $14.99)
+    amount = plan["price"]
 
     try:
         order = razorpay_client.order.create({
-            "amount": amount * 100,  # Razorpay expects paise/cents (smallest unit)
+            "amount": amount,
             "currency": "USD",
             "receipt": f"sub_{user['id'][:8]}_{req.plan}",
             "notes": {
