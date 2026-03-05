@@ -15,7 +15,7 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 
 ## Architecture
 - **Backend**: FastAPI, MongoDB (motor), JWT auth, Razorpay
-- **Frontend**: React, TailwindCSS, Shadcn/UI, Framer Motion, react-razorpay
+- **Frontend**: React, TailwindCSS, Shadcn/UI, Framer Motion
 - **Agent System**: Parent/subagent model with phase-based context isolation
 - **Voice Pipeline**: Language toggle → Whisper STT → GPT-5.2 → TTS
 - **Real-time**: SSE with tool events, streaming text, audio
@@ -35,8 +35,8 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 | Plan | Price | Credits | Conversations | Features |
 |------|-------|---------|---------------|----------|
 | Free | $0/mo | 50 | 3 | All features |
-| Plus | $14/mo | 1,000 | 10 | All features |
-| Pro | $29/mo | 5,000 | Unlimited | All features + priority |
+| Plus | $14.99/mo | 1,000 | 10 | All features |
+| Pro | $29.99/mo | 5,000 | Unlimited | All features + priority |
 
 ## Credit Deduction Formula
 - LLM Input: 1 credit / 1K tokens
@@ -55,9 +55,12 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - Vocabulary saving
 - **Razorpay Backend Integration**: /api/payments/plans, /subscription, /create-order, /verify-payment
 - **Landing Page Pricing Section**: 3-tier pricing cards matching app design system
+- **In-App Pricing Page** (`/pricing`): Full checkout page with Razorpay modal, current plan badge, credits display
+- **Auth Redirect Flow**: Landing page plan buttons → Auth (with redirect params) → Pricing page (auto-opens Razorpay)
+- **Sidebar Pricing Link**: Added in expanded, collapsed, and mobile sidebar states
 
 ## Backlog
-- **P0**: Wire up Razorpay checkout in internal app pages (subscription page, sidebar credit balance, low-credit warnings, credit deduction logic)
+- **P0**: Credit deduction logic (wrap LLM/STT/TTS calls), sidebar credit balance, low-credit warnings, out-of-credits gating, conversation limit enforcement
 - **P1**: Progress Journal — weekly learning summaries
 - **P2**: Gamification — streaks, points, leaderboards
 - **Future**: VAD (always-on mic), SpeechAce pronunciation, Google OAuth
