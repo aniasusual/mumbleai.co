@@ -23,7 +23,6 @@ router = APIRouter()
 
 def _strip_markdown_for_tts(text: str) -> str:
     """Strip markdown formatting so TTS reads clean natural text."""
-    import re
     t = text
     t = re.sub(r'\*\*(.+?)\*\*', r'\1', t)  # bold
     t = re.sub(r'\*(.+?)\*', r'\1', t)        # italic
@@ -57,6 +56,7 @@ async def send_voice_message(
     conv_id: str,
     audio: UploadFile = File(...),
     scenario_context: Optional[str] = Form(None),
+    language_hint: Optional[str] = Form(None),
     user: dict = Depends(get_current_user),
 ):
     """SSE streaming voice endpoint — STT -> Agent (with live events) -> TTS."""
@@ -70,8 +70,8 @@ async def send_voice_message(
 
     now = datetime.now(timezone.utc).isoformat()
 
-    # Use the LLM-predicted expected response language for Whisper
-    whisper_lang = conv.get("expected_response_language") or conv.get("native_language", "en")
+    # Use the frontend-provided language hint if present, otherwise fall back to LLM-predicted
+    whisper_lang = language_hint or conv.get("expected_response_language") or conv.get("native_language", "en")
 
     # Step 1: Single Whisper call with the expected language
     stt = OpenAISpeechToText(api_key=EMERGENT_LLM_KEY)
@@ -222,7 +222,7 @@ async def send_voice_message(
         user_msg_out = {k: v for k, v in user_msg.items() if k != "_id"}
         ai_msg_out = {k: v for k, v in ai_msg.items() if k != "_id"}
 
-        done_event = {'type': 'done', 'user_message': user_msg_out, 'ai_message': ai_msg_out, 'transcribed_text': user_text}
+        done_event = {'type': 'done', 'user_message': user_msg_out, 'ai_message': ai_msg_out, 'transcribed_text': user_text, 'expected_response_language': expect_lang}
         if audio_base64:
             done_event['ai_audio_base64'] = audio_base64
         yield f"data: {json.dumps(done_event)}\n\n"

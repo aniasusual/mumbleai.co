@@ -412,7 +412,7 @@ async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = De
         user_msg_out = {k: v for k, v in user_msg.items() if k != "_id"}
         ai_msg_out = {k: v for k, v in ai_msg.items() if k != "_id"}
 
-        done_event = {'type': 'done', 'user_message': user_msg_out, 'ai_message': ai_msg_out}
+        done_event = {'type': 'done', 'user_message': user_msg_out, 'ai_message': ai_msg_out, 'expected_response_language': expect_lang}
         if audio_base64:
             done_event['ai_audio_base64'] = audio_base64
         yield f"data: {json.dumps(done_event)}\n\n"

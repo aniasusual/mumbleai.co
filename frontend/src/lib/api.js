@@ -70,12 +70,13 @@ export const sendMessageStream = (id, data, onEvent) => {
 };
 
 // Voice message — SSE streaming (same as text but with audio upload first)
-export const sendVoiceMessageStream = (id, audioBlob, scenarioContext, onEvent) => {
+export const sendVoiceMessageStream = (id, audioBlob, scenarioContext, onEvent, languageHint) => {
   return new Promise((resolve, reject) => {
     const token = getToken();
     const formData = new FormData();
     formData.append("audio", audioBlob, "recording.webm");
     if (scenarioContext) formData.append("scenario_context", scenarioContext);
+    if (languageHint) formData.append("language_hint", languageHint);
 
     fetch(`${API}/conversations/${id}/voice-message`, {
       method: "POST",
