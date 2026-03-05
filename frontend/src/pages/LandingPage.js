@@ -586,7 +586,7 @@ const PRICING_PLANS = [
   {
     id: "plus",
     name: "Plus",
-    price: 14,
+    price: 14.99,
     credits: 1000,
     accent: "#be185d",
     accentLight: "rgba(190,24,93,0.08)",
@@ -598,7 +598,7 @@ const PRICING_PLANS = [
   {
     id: "pro",
     name: "Pro",
-    price: 29,
+    price: 29.99,
     credits: 5000,
     accent: "#7c3aed",
     accentLight: "rgba(124,58,237,0.08)",

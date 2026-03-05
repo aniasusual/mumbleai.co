@@ -27,15 +27,15 @@ PLANS = {
     },
     "plus": {
         "name": "Plus",
-        "price": 1400,  # in paise (INR 14 * 100) — but we price in USD, so $14 = 1400 cents
-        "price_display": 14,
+        "price": 1499,  # $14.99 in cents
+        "price_display": 14.99,
         "credits": 1000,
         "max_conversations": 10,
     },
     "pro": {
         "name": "Pro",
-        "price": 2900,  # $29 = 2900 cents
-        "price_display": 29,
+        "price": 2999,  # $29.99 in cents
+        "price_display": 29.99,
         "credits": 5000,
         "max_conversations": -1,  # unlimited
     },
