@@ -8,6 +8,7 @@ import AuthPage from "@/pages/AuthPage";
 import ChatPage from "@/pages/ChatPage";
 import DashboardPage from "@/pages/DashboardPage";
 import VocabularyPage from "@/pages/VocabularyPage";
+import PricingPage from "@/pages/PricingPage";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path="/chat/:conversationId" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/vocabulary" element={<ProtectedRoute><VocabularyPage /></ProtectedRoute>} />
+            <Route path="/pricing" element={<ProtectedRoute><PricingPage /></ProtectedRoute>} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>

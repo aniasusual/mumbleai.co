@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
+import { useNavigate, Navigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { WaveformLogo } from "@/components/WaveformLogo";
@@ -112,6 +112,12 @@ function AuthInput({ icon: Icon, type, placeholder, value, onChange, required, t
 export default function AuthPage() {
   const { user, loading, login, signup } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectPath = searchParams.get("redirect");
+  const redirectPlan = searchParams.get("plan");
+  const afterAuthPath = redirectPath
+    ? `${redirectPath}${redirectPlan ? `?plan=${redirectPlan}` : ""}`
+    : "/chat";
   const [mode, setMode] = useState("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -127,7 +133,7 @@ export default function AuthPage() {
     );
   }
 
-  if (user) return <Navigate to="/chat" replace />;
+  if (user) return <Navigate to={afterAuthPath} replace />;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -139,7 +145,7 @@ export default function AuthPage() {
       } else {
         await login(email, password);
       }
-      navigate("/chat");
+      navigate(afterAuthPath);
     } catch (err) {
       const msg = err.response?.data?.detail || "Something went wrong";
       setError(typeof msg === "string" ? msg : JSON.stringify(msg));

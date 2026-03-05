@@ -148,4 +148,10 @@ export const getLanguages = () => api.get("/languages");
 // Progress
 export const getProgress = () => api.get("/progress");
 
+// Payments
+export const getPlans = () => api.get("/payments/plans");
+export const getSubscription = () => api.get("/payments/subscription");
+export const createOrder = (plan) => api.post("/payments/create-order", { plan });
+export const verifyPayment = (data) => api.post("/payments/verify-payment", data);
+
 export default api;

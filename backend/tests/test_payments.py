@@ -66,7 +66,7 @@ class TestPaymentsAPI:
         print("PASSED: Free plan has correct details ($0, 50 credits, 3 conversations)")
     
     def test_get_plans_plus_plan_details(self):
-        """Plus plan should have correct values: $14, 1000 credits, 10 conversations"""
+        """Plus plan should have correct values: $14.99, 1000 credits, 10 conversations"""
         response = self.session.get(f"{BASE_URL}/api/payments/plans")
         data = response.json()
         
@@ -74,13 +74,13 @@ class TestPaymentsAPI:
         assert plus_plan is not None, "Plus plan not found"
         
         assert plus_plan["name"] == "Plus", f"Expected 'Plus', got '{plus_plan['name']}'"
-        assert plus_plan["price"] == 14, f"Expected price 14, got {plus_plan['price']}"
+        assert plus_plan["price"] == 14.99, f"Expected price 14.99, got {plus_plan['price']}"
         assert plus_plan["credits"] == 1000, f"Expected 1000 credits, got {plus_plan['credits']}"
         assert plus_plan["max_conversations"] == 10, f"Expected 10 conversations, got {plus_plan['max_conversations']}"
-        print("PASSED: Plus plan has correct details ($14, 1000 credits, 10 conversations)")
+        print("PASSED: Plus plan has correct details ($14.99, 1000 credits, 10 conversations)")
     
     def test_get_plans_pro_plan_details(self):
-        """Pro plan should have correct values: $29, 5000 credits, unlimited conversations"""
+        """Pro plan should have correct values: $29.99, 5000 credits, unlimited conversations"""
         response = self.session.get(f"{BASE_URL}/api/payments/plans")
         data = response.json()
         
@@ -88,10 +88,10 @@ class TestPaymentsAPI:
         assert pro_plan is not None, "Pro plan not found"
         
         assert pro_plan["name"] == "Pro", f"Expected 'Pro', got '{pro_plan['name']}'"
-        assert pro_plan["price"] == 29, f"Expected price 29, got {pro_plan['price']}"
+        assert pro_plan["price"] == 29.99, f"Expected price 29.99, got {pro_plan['price']}"
         assert pro_plan["credits"] == 5000, f"Expected 5000 credits, got {pro_plan['credits']}"
         assert pro_plan["max_conversations"] == -1, f"Expected -1 (unlimited), got {pro_plan['max_conversations']}"
-        print("PASSED: Pro plan has correct details ($29, 5000 credits, unlimited)")
+        print("PASSED: Pro plan has correct details ($29.99, 5000 credits, unlimited)")
     
     # ========================
     # GET /api/payments/subscription
@@ -173,8 +173,8 @@ class TestPaymentsAPI:
         assert "currency" in data, "Response should have 'currency'"
         assert "key_id" in data, "Response should have 'key_id'"
         
-        # Verify amount is correct for Plus plan ($14 * 100 = 1400 cents, * 100 = 140000)
-        assert data["amount"] == 140000, f"Expected amount 140000, got {data['amount']}"
+        # Verify amount is correct for Plus plan ($14.99 * 100 = 1499 cents, * 100 = 149900)
+        assert data["amount"] == 149900, f"Expected amount 149900, got {data['amount']}"
         assert data["currency"] == "USD", f"Expected USD currency, got {data['currency']}"
         assert data["order_id"].startswith("order_"), f"Order ID should start with 'order_'"
         print(f"PASSED: Plus plan Razorpay order created (order_id: {data['order_id']}, amount: {data['amount']})")
@@ -192,8 +192,8 @@ class TestPaymentsAPI:
         assert "order_id" in data, "Response should have 'order_id'"
         assert "amount" in data, "Response should have 'amount'"
         
-        # Verify amount is correct for Pro plan ($29 * 100 = 2900 cents, * 100 = 290000)
-        assert data["amount"] == 290000, f"Expected amount 290000, got {data['amount']}"
+        # Verify amount is correct for Pro plan ($29.99 * 100 = 2999 cents, * 100 = 299900)
+        assert data["amount"] == 299900, f"Expected amount 299900, got {data['amount']}"
         assert data["currency"] == "USD", f"Expected USD currency"
         print(f"PASSED: Pro plan Razorpay order created (order_id: {data['order_id']}, amount: {data['amount']})")
     

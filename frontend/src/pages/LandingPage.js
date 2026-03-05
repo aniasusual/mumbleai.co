@@ -5,6 +5,7 @@ import {
   AnimatePresence,
 } from "framer-motion";
 import { WaveformLogo } from "@/components/WaveformLogo";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Mic, ArrowRight, Brain, AudioLines, Target, Volume2,
   Briefcase, Plane, UtensilsCrossed, MessageSquare, GraduationCap,
@@ -611,8 +612,17 @@ const PRICING_PLANS = [
 
 function PricingCard({ plan, i }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
+
+  const handleClick = () => {
+    if (plan.price === 0) {
+      navigate(user ? "/chat" : "/auth");
+    } else {
+      navigate(user ? `/pricing?plan=${plan.id}` : `/auth?redirect=/pricing&plan=${plan.id}`);
+    }
+  };
 
   return (
     <motion.div
@@ -675,7 +685,7 @@ function PricingCard({ plan, i }) {
       </div>
 
       <motion.button
-        onClick={() => navigate("/chat")}
+        onClick={handleClick}
         className="w-full rounded-full py-3 text-sm font-semibold transition-all duration-200 overflow-hidden relative group"
         style={{
           background: plan.highlight ? plan.accent : "transparent",
