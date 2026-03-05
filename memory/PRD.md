@@ -59,9 +59,10 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - **Credit History Page** (`/credit-history`): Paginated transaction log with filter pills (All/Usage/Purchases), expandable rows showing LLM/STT/TTS breakdown, balance after, and credit rates info
 - **Auth Redirect Flow**: Landing page plan buttons → Auth (with redirect params) → Pricing page (auto-opens Razorpay)
 - **Sidebar Pricing & Credit History Links**: In expanded, collapsed, and mobile sidebar states
-- **Credit Deduction System**: Tracks and deducts credits for LLM tokens, STT duration, TTS characters with transaction logging
+- **Credit Deduction System**: Tracks and deducts credits for LLM tokens (with stream_options include_usage), STT duration, TTS characters with transaction logging
 - **Conversation Limit Enforcement**: Free (3), Plus (10), Pro (unlimited) — enforced on conversation creation with clear toast message
 - **Credit Gating on All Endpoints**: Non-streaming messages, SSE streaming, and voice messages all check credits and return 402 when depleted
+- **Plan Credits**: Free=20, Plus=1000, Pro=5000
 
 ## Backlog
 - **P1**: Progress Journal — weekly learning summaries
