@@ -8,7 +8,7 @@ from fastapi import FastAPI, APIRouter
 from starlette.middleware.cors import CORSMiddleware
 
 from config import client, logger
-from routes import conversations, voice, vocabulary, progress, resources, auth
+from routes import conversations, voice, vocabulary, progress, resources, auth, payments
 
 app = FastAPI()
 
@@ -20,6 +20,7 @@ api_router.include_router(voice.router)
 api_router.include_router(vocabulary.router)
 api_router.include_router(progress.router)
 api_router.include_router(resources.router)
+api_router.include_router(payments.router)
 app.include_router(api_router)
 
 # CORS
