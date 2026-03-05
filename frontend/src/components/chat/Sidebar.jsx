@@ -52,7 +52,7 @@ const CreditBadge = ({ collapsed }) => {
 
   if (!sub) return null;
 
-  const pct = sub.plan === "free" ? sub.credits / 50 : sub.plan === "plus" ? sub.credits / 1000 : sub.credits / 5000;
+  const pct = sub.plan === "free" ? sub.credits / 20 : sub.plan === "plus" ? sub.credits / 1000 : sub.credits / 5000;
   const isLow = pct <= 0.1;
   const barColor = isLow ? "#ef4444" : pct <= 0.3 ? "#f59e0b" : "#6366f1";
 

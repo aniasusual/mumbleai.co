@@ -44,6 +44,7 @@ async def llm_call_stream(api_key: str, messages: list, system: str = None, tool
         "messages": full_messages,
         "max_tokens": max_tokens,
         "stream": True,
+        "stream_options": {"include_usage": True},
     }
     if tools:
         params["tools"] = tools

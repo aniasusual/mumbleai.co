@@ -1,0 +1,150 @@
+{
+  "summary": "Comprehensive testing of credit-based payment system for 'mumble' language tutor - ALL TESTS PASSED (20/20 backend + all frontend). Free plan correctly shows 20 credits (was 50). LLM token tracking working (stream_options include_usage fix verified). Credit deduction, transaction logging, and conversation limits all functioning correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend_tests": {
+      "status": "ALL PASSED (20/20)",
+      "test_file": "/app/backend/tests/test_credit_system_v2.py",
+      "categories": {
+        "TestPlansEndpoint": [
+          "test_plans_returns_all_three_plans: PASSED",
+          "test_free_plan_has_20_credits: PASSED (critical - was 50, now 20)",
+          "test_plus_plan_has_1000_credits: PASSED",
+          "test_pro_plan_has_5000_credits: PASSED"
+        ],
+        "TestNewUserCredits": [
+          "test_fresh_signup_gets_20_credits: PASSED (twenty@test.com)"
+        ],
+        "TestConversationLimits": [
+          "test_free_user_blocked_at_4th_conversation: PASSED (403)",
+          "test_plus_user_blocked_at_11th_conversation: PASSED (403)",
+          "test_pro_user_can_create_unlimited_conversations: PASSED"
+        ],
+        "TestCreditChecks": [
+          "test_zero_credit_user_gets_402_on_message: PASSED",
+          "test_zero_credit_user_gets_402_on_stream: PASSED"
+        ],
+        "TestCreditHistory": [
+          "test_credit_history_returns_transactions: PASSED",
+          "test_credit_history_filter_by_usage: PASSED",
+          "test_credit_history_filter_by_purchase: PASSED"
+        ],
+        "TestSubscription": [
+          "test_subscription_returns_plan_and_credits: PASSED"
+        ],
+        "TestRazorpayOrders": [
+          "test_create_order_rejects_free_plan: PASSED (400)",
+          "test_create_order_creates_order_for_plus: PASSED",
+          "test_create_order_creates_order_for_pro: PASSED"
+        ],
+        "TestCreditDeduction": [
+          "test_credits_decrease_after_streaming_message: PASSED",
+          "test_transaction_log_shows_llm_tokens: PASSED (verified 11446 in / 182 out tokens)",
+          "test_balance_after_matches_actual_credits: PASSED"
+        ]
+      }
+    },
+    "frontend_tests": {
+      "landing_page_pricing_section": {
+        "free_plan_20_credits": "PASSED - Shows '20 credits/month' (not 50)",
+        "plus_plan_1000_credits": "PASSED",
+        "pro_plan_5000_credits": "PASSED"
+      },
+      "pricing_page": {
+        "page_loads": "PASSED",
+        "free_plan_card": "PASSED - '20 credits/month', 'CURRENT PLAN' badge",
+        "plus_plan_card": "PASSED - '1,000 credits/month', $14.99/month",
+        "pro_plan_card": "PASSED - '5,000 credits/month', $29.99/month",
+        "credits_remaining_header": "PASSED - Shows '60 credits remaining'"
+      },
+      "credit_history_page": {
+        "page_loads": "PASSED",
+        "filter_pills": "PASSED - All, Usage, Purchases",
+        "transaction_list": "PASSED - Shows usage transactions",
+        "expandable_breakdown": "PASSED - Shows LLM Tokens (11,446 in / 182 out), TTS (333 chars)",
+        "balance_after": "PASSED - Shows 60",
+        "credit_rates_info": "PASSED - Shows LLM, STT, TTS rates"
+      },
+      "sidebar": {
+        "credit_badge": "PASSED - Shows '60 credits FREE'",
+        "credit_history_link": "PASSED",
+        "pricing_link": "PASSED"
+      },
+      "chat_page": {
+        "conversation_loads": "PASSED",
+        "messages_display": "PASSED - Shows 'tool used' indicators",
+        "credits_display_in_sidebar": "PASSED"
+      }
+    }
+  },
+  "features_verified": [
+    "PLANS: Free plan shows 20 credits (CHANGED from 50) - VERIFIED in backend API and all frontend pages",
+    "PLANS: Plus plan shows 1000 credits - VERIFIED",
+    "PLANS: Pro plan shows 5000 credits - VERIFIED",
+    "NEW USER: Fresh signup (twenty@test.com) gets exactly 20 credits on free plan - VERIFIED",
+    "CONVERSATION LIMITS: Free user blocked at 4th conversation (403) - VERIFIED",
+    "CONVERSATION LIMITS: Plus user blocked at 11th conversation (403) - VERIFIED",
+    "CONVERSATION LIMITS: Pro user can create unlimited conversations - VERIFIED",
+    "CREDIT CHECK: Zero-credit user (broke@test.com) gets 402 on POST /api/conversations/{id}/messages - VERIFIED",
+    "CREDIT CHECK: Zero-credit user gets 402 on POST /api/conversations/{id}/messages/stream - VERIFIED",
+    "CREDIT DEDUCTION: After sending a streaming message, credits decrease - VERIFIED",
+    "CREDIT DEDUCTION: Transaction log shows LLM input/output tokens with non-zero llm_credits - VERIFIED (11446/182 tokens)",
+    "CREDIT DEDUCTION: Transaction log shows TTS characters/credits when applicable - VERIFIED (333 chars)",
+    "CREDIT DEDUCTION: balance_after in transaction matches actual remaining credits - VERIFIED",
+    "CREDIT HISTORY: GET /api/payments/credit-history returns transactions - VERIFIED",
+    "CREDIT HISTORY: Filter by type=usage works - VERIFIED",
+    "CREDIT HISTORY: Filter by type=purchase works - VERIFIED",
+    "SUBSCRIPTION: GET /api/payments/subscription returns correct plan and credits - VERIFIED",
+    "RAZORPAY: POST /api/payments/create-order rejects free plan - VERIFIED (400)",
+    "RAZORPAY: POST /api/payments/create-order creates order for plus plan - VERIFIED",
+    "FRONTEND: Pricing page shows 20 credits for Free plan (not 50) - VERIFIED",
+    "FRONTEND: Credit History page loads with expandable breakdowns - VERIFIED",
+    "FRONTEND: Sidebar shows credit balance - VERIFIED",
+    "FRONTEND: Chat sends message and tools work - VERIFIED"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_credit_system_v2.py",
+    "/app/test_reports/pytest/credit_system_v2_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "VERIFIED: payments.py PLANS dict has free plan with 20 credits (line 25)",
+    "VERIFIED: credit_service.py auto-creates subscription with 20 credits (line 29)",
+    "VERIFIED: llm.py has stream_options={'include_usage': True} (line 47) - token tracking working",
+    "VERIFIED: tool_executor.py has single import re at top (duplicate imports removed)",
+    "VERIFIED: conversations.py has credit check on non-streaming endpoint (line 234)",
+    "VERIFIED: PricingPage.js shows 20 credits for free plan (line 23)",
+    "VERIFIED: LandingPage.js pricing section shows 20 credits (line 579)",
+    "VERIFIED: CreditHistoryPage.js shows expandable transaction breakdowns with LLM/TTS details"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_credit_system_v2.py"
+  ],
+  "success_rate": {
+    "backend": "100% (20/20 tests passed)",
+    "frontend": "100% (all UI tests passed)"
+  },
+  "test_credentials": {
+    "twenty@test.com": "password123 - Fresh free user with 20 credits",
+    "rebug@test.com": "password123 - Free plan with 60 credits, has conversation with credit history",
+    "free@test.com": "password123 - Free plan with 3 conversations (at limit)",
+    "plus@test.com": "password123 - Plus plan with 1000 credits, 10 conversations",
+    "pro@test.com": "password123 - Pro plan with 5000 credits, unlimited conversations",
+    "broke@test.com": "password123 - Free plan with 0 credits (for 402 testing)"
+  },
+  "seed_data_creation": "Test accounts already seeded by main agent with correct plan limits",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Credit system v2 fully tested. Free plan changed from 50 to 20 credits - verified in backend PLANS, credit_service auto-create, and all frontend pages (PricingPage, LandingPage, Sidebar). LLM token tracking now works via stream_options={include_usage:true} - credit history shows accurate token counts (e.g., 11446 in / 182 out). The re import bug was a duplicate import inside execute_tool function, now removed. All test accounts seeded with proper plan limits. Razorpay in TEST mode.",
+  "mocked_api": {
+    "Razorpay": "In TEST mode with test keys (rzp_test_*) - expected for development"
+  }
+}
