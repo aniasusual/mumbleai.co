@@ -61,6 +61,7 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - **Sidebar Pricing & Credit History Links**: In expanded, collapsed, and mobile sidebar states
 - **Credit Deduction System**: Tracks and deducts credits for LLM tokens, STT duration, TTS characters with transaction logging
 - **Conversation Limit Enforcement**: Free (3), Plus (10), Pro (unlimited) — enforced on conversation creation with clear toast message
+- **Credit Gating on All Endpoints**: Non-streaming messages, SSE streaming, and voice messages all check credits and return 402 when depleted
 
 ## Backlog
 - **P1**: Progress Journal — weekly learning summaries
