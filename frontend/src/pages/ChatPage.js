@@ -154,7 +154,8 @@ export default function ChatPage() {
         navigate(`/chat/${res.data.id}`, { replace: true });
         return res.data.id;
       } catch (e) {
-        toast.error("Failed to create conversation");
+        const msg = e.response?.data?.detail || "Failed to create conversation";
+        toast.error(msg);
         return null;
       } finally {
         creatingConvRef.current = null;
@@ -175,7 +176,10 @@ export default function ChatPage() {
       pendingTtsRef.current = true;
       navigate(`/chat/${res.data.id}`);
       setSidebarOpen(false);
-    } catch (e) { toast.error("Failed to create conversation"); }
+    } catch (e) {
+      const msg = e.response?.data?.detail || "Failed to create conversation";
+      toast.error(msg);
+    }
     finally { setCreatingChat(false); }
   };
 
