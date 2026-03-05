@@ -184,3 +184,29 @@ async def verify_payment(
         "plan": req.plan,
         "credits": plan["credits"],
     }
+
+
+@router.get("/credit-history")
+async def get_credit_history(
+    page: int = 1,
+    limit: int = 20,
+    type: str = None,
+    user: dict = Depends(get_current_user),
+):
+    """Return paginated credit transaction history for the current user."""
+    query = {"user_id": user["id"]}
+    if type in ("purchase", "usage"):
+        query["type"] = type
+
+    total = await db.credit_transactions.count_documents(query)
+    skip = (max(1, page) - 1) * limit
+
+    cursor = db.credit_transactions.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit)
+    transactions = await cursor.to_list(length=limit)
+
+    return {
+        "transactions": transactions,
+        "total": total,
+        "page": page,
+        "pages": max(1, -(-total // limit)),  # ceil division
+    }

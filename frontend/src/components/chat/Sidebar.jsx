@@ -12,7 +12,7 @@ import {
 import {
   MessageCircle, Plus, Trash2, BookOpen, BarChart3, ChevronDown, X, LogOut,
   Briefcase, Plane, UtensilsCrossed, Phone, Users, ShoppingBag, Stethoscope,
-  PanelLeftClose, PanelLeftOpen, Loader2, CreditCard, Coins
+  PanelLeftClose, PanelLeftOpen, Loader2, CreditCard, Coins, History
 } from "lucide-react";
 import { LanguagePicker } from "./LanguagePicker";
 import { WaveformLogo } from "@/components/WaveformLogo";
@@ -246,6 +246,17 @@ const DesktopSidebar = ({
             </TooltipTrigger>
             <TooltipContent side="right">Pricing</TooltipContent>
           </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <motion.button onClick={() => navigate("/credit-history")} className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-white/40 transition-colors"
+                  whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} data-testid="sidebar-credit-history-collapsed">
+                  <History className="w-4 h-4" />
+                </motion.button>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right">Credit History</TooltipContent>
+          </Tooltip>
           <CreditBadge collapsed={true} />
           <Tooltip>
             <TooltipTrigger asChild>
@@ -376,6 +387,11 @@ const DesktopSidebar = ({
             whileHover={{ x: 3 }} data-testid="sidebar-pricing-link">
             <CreditCard className="w-4 h-4" /> Pricing
           </motion.button>
+          <motion.button onClick={() => navigate("/credit-history")}
+            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-500 hover:text-indigo-600 hover:bg-white/40 rounded-xl transition-all"
+            whileHover={{ x: 3 }} data-testid="sidebar-credit-history-link">
+            <History className="w-4 h-4" /> Credit History
+          </motion.button>
           <div className="h-px bg-indigo-100/50 my-1.5" />
           <CreditBadge collapsed={false} />
           <div className="h-px bg-indigo-100/50 my-1.5" />
@@ -482,6 +498,9 @@ const MobileSidebar = ({
       </button>
       <button onClick={() => navigate("/pricing")} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-500 hover:text-indigo-600 hover:bg-white/40 rounded-xl transition-all" data-testid="sidebar-pricing-link">
         <CreditCard className="w-4 h-4" /> Pricing
+      </button>
+      <button onClick={() => navigate("/credit-history")} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-500 hover:text-indigo-600 hover:bg-white/40 rounded-xl transition-all" data-testid="sidebar-credit-history-link">
+        <History className="w-4 h-4" /> Credit History
       </button>
       <div className="h-px bg-indigo-100/50 my-1.5" />
       <CreditBadge collapsed={false} />
