@@ -219,7 +219,6 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
                 tester_welcome = await tester.generate_welcome()
                 # Strip language tag for internal storage
                 clean_welcome = tester_welcome
-                import re
                 lang_match = re.search(r'\[EXPECT_LANG:\w+\]', clean_welcome)
                 if lang_match:
                     clean_welcome = clean_welcome[:lang_match.start()].strip()
@@ -295,7 +294,6 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
 
                 revisor_welcome = await revisor.generate_welcome()
                 clean_welcome = revisor_welcome
-                import re
                 lang_match = re.search(r'\[EXPECT_LANG:\w+\]', clean_welcome)
                 if lang_match:
                     clean_welcome = clean_welcome[:lang_match.start()].strip()

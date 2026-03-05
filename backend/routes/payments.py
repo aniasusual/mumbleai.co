@@ -22,7 +22,7 @@ PLANS = {
     "free": {
         "name": "Free",
         "price": 0,
-        "credits": 50,
+        "credits": 20,
         "max_conversations": 3,
     },
     "plus": {
@@ -81,7 +81,7 @@ async def get_subscription(user: dict = Depends(get_current_user)):
         sub = {
             "user_id": user["id"],
             "plan": "free",
-            "credits": 50,
+            "credits": 20,
             "max_conversations": 3,
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
