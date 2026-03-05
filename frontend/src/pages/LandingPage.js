@@ -20,7 +20,7 @@ const BG = {
   tools:     "#bfdbfe",
   demo:      "#e9d5ff",
   scenarios: "#fed7aa",
-  pricing:   "#fce7f3",
+  pricing:   "#ccfbf1",
   cta:       "#f8f7f4",
   footer:    "#1e1b4b",
 };
@@ -707,12 +707,12 @@ function PricingSection() {
       <div className="max-w-5xl mx-auto px-6">
         <div className="text-center mb-14">
           <Reveal>
-            <span className="text-[13px] font-semibold tracking-wider uppercase mb-3 block text-pink-700">Pricing</span>
+            <span className="text-[13px] font-semibold tracking-wider uppercase mb-3 block text-teal-700">Pricing</span>
           </Reveal>
           <WordReveal text="Simple plans, full access" as="h2"
-            className="text-3xl md:text-5xl font-bold tracking-tight text-pink-950 mb-4" />
+            className="text-3xl md:text-5xl font-bold tracking-tight text-teal-950 mb-4" />
           <Reveal delay={0.1}>
-            <p className="text-[15px] max-w-lg mx-auto text-pink-800/60">
+            <p className="text-[15px] max-w-lg mx-auto text-teal-800/60">
               Every plan includes all features. Pick the volume that fits your practice routine.
             </p>
           </Reveal>
