@@ -48,6 +48,7 @@ export default function ChatPage() {
   const [languages, setLanguages] = useState({ popular: [], others: [] });
   const [nativeLang, setNativeLang] = useState("en");
   const [targetLang, setTargetLang] = useState("en");
+  const [sttLanguage, setSttLanguage] = useState("en");
 
   const inputRef = useRef(null);
   const pendingTtsRef = useRef(false);
@@ -74,6 +75,7 @@ export default function ChatPage() {
         setCurrentConv(conv);
         if (conv.native_language) setNativeLang(conv.native_language);
         if (conv.target_language) setTargetLang(conv.target_language);
+        if (conv.expected_response_language) setSttLanguage(conv.expected_response_language);
       }
       return;
     }
@@ -83,6 +85,8 @@ export default function ChatPage() {
       setCurrentConv(conv);
       if (conv.native_language) setNativeLang(conv.native_language);
       if (conv.target_language) setTargetLang(conv.target_language);
+      if (conv.expected_response_language) setSttLanguage(conv.expected_response_language);
+      else if (conv.native_language) setSttLanguage(conv.native_language);
       if (conv.phase === "learning") {
         getCurriculum(conv.id).then(r => setCurriculum(r.data)).catch(() => setCurriculum(null));
       } else {
@@ -223,6 +227,8 @@ export default function ChatPage() {
       );
       // First update messages so the AI bubble appears
       setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
+      // Auto-update STT language toggle from LLM's expectation
+      if (result.expected_response_language) setSttLanguage(result.expected_response_language);
       // Then clear sending state — use requestAnimationFrame to let the message render first
       requestAnimationFrame(() => {
         setToolEvents([]);
@@ -270,9 +276,12 @@ export default function ChatPage() {
               setToolEvents(prev => [...prev, event]);
             });
           }
-        }
+        },
+        sttLanguage
       );
       setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
+      // Auto-update STT language toggle from LLM's expectation
+      if (result.expected_response_language) setSttLanguage(result.expected_response_language);
       requestAnimationFrame(() => {
         setToolEvents([]);
         setStreamingText("");
@@ -392,6 +401,8 @@ export default function ChatPage() {
               isRecording={isRecording} audioLevel={audioLevel} processingVoice={processingVoice}
               onSetInput={setInput} onSendText={handleSendText}
               onVoiceRecord={handleVoiceRecord} inputRef={inputRef}
+              sttLanguage={sttLanguage} onSetSttLanguage={setSttLanguage}
+              nativeLang={nativeLang} targetLang={targetLang} languages={languages}
             />
           </>
         )}

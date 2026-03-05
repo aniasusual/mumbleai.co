@@ -1,0 +1,85 @@
+{
+  "summary": "Language Toggle feature VERIFIED. All backend endpoints working correctly, frontend toggle visibility logic correct (visible for different languages, hidden for same language). Toggle interaction, tooltip, and SSE expected_response_language all functioning as expected.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend_tests": {
+      "status": "ALL PASSED (7/7)",
+      "tests": [
+        "test_conversation_response_has_expected_response_language: PASSED",
+        "test_french_conversation_has_correct_fields: PASSED",
+        "test_create_conversation_with_different_languages: PASSED",
+        "test_create_same_language_conversation: PASSED",
+        "test_voice_endpoint_accepts_language_hint: PASSED",
+        "test_sse_text_stream_includes_expected_response_language: PASSED",
+        "test_languages_endpoint: PASSED"
+      ]
+    },
+    "frontend_tests": {
+      "language_toggle_visibility": {
+        "french_conversation_en_to_fr": {
+          "status": "PASSED",
+          "details": "Language toggle container visible, shows EN/FR codes correctly"
+        },
+        "english_conversation_en_to_en": {
+          "status": "PASSED",
+          "details": "Language toggle correctly NOT rendered (hidden) when native == target"
+        }
+      },
+      "toggle_interaction": {
+        "status": "PASSED",
+        "details": "Toggle clicks switch between native and target language highlighting, animation works"
+      },
+      "info_tooltip": {
+        "status": "PASSED",
+        "details": "Tooltip appears on hover showing 'Voice language switch' text with EN = English, FR = French"
+      }
+    }
+  },
+  "features_verified": [
+    "Language toggle appears next to mic button when native != target language (French conversation)",
+    "Language toggle is HIDDEN when native == target language (English Practice)",
+    "Toggle clicking switches between native and target language highlighting",
+    "Info tooltip appears on hover/click with correct language names",
+    "Toggle shows correct language codes (EN, FR) based on conversation languages",
+    "Backend voice endpoint accepts optional language_hint form parameter",
+    "SSE done events include expected_response_language field for text and voice endpoints",
+    "ConversationResponse model includes expected_response_language field"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_language_toggle.py",
+    "/app/test_reports/pytest/language_toggle_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "CORRECT: ChatInput.jsx LanguageToggle component returns null when nativeLang === targetLang (line 29)",
+    "CORRECT: Toggle shows native/target language codes with proper styling",
+    "CORRECT: Info tooltip displays correct language names from languages API",
+    "CORRECT: ChatPage.js passes sttLanguage, nativeLang, targetLang, languages to ChatInput",
+    "CORRECT: api.js sendVoiceMessageStream accepts languageHint as 5th param and sends as form data",
+    "CORRECT: voice.py accepts language_hint Form param and uses it for Whisper STT",
+    "CORRECT: conversations.py SSE done event includes expected_response_language field"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_language_toggle.py"
+  ],
+  "success_rate": {
+    "backend": "100% (7/7 tests passed)",
+    "frontend": "100% (all toggle visibility and interaction tests passed)"
+  },
+  "test_credentials": {
+    "email": "test2@example.com",
+    "password": "password123"
+  },
+  "seed_data_creation": "Used existing conversations - French (en->fr): b6f924a3-5819-47db-acdf-3812152678b7, English Practice (en->en): 3868cf2f-6fc6-4f42-b8f9-2d61a89bae9b",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Language toggle feature fully verified. Toggle appears only when native_language != target_language. For French conversations (EN->FR), toggle shows EN|FR with info tooltip. For English Practice (EN->EN), toggle is correctly hidden. Backend voice endpoint accepts language_hint parameter. SSE streams return expected_response_language in done events."
+}

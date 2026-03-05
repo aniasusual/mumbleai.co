@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Square, Send, Loader2 } from "lucide-react";
+import { Mic, Square, Send, Loader2, Info } from "lucide-react";
 
 const VoiceVisualizer = ({ isRecording, audioLevel }) => (
   <div className="flex items-center justify-center gap-1 h-16" data-testid="voice-visualizer">
@@ -23,9 +23,114 @@ const VoiceVisualizer = ({ isRecording, audioLevel }) => (
   </div>
 );
 
+const LanguageToggle = ({ sttLanguage, onSetSttLanguage, nativeLang, targetLang, languages, disabled }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  if (nativeLang === targetLang) return null;
+
+  const allLangs = [...(languages?.popular || []), ...(languages?.others || [])];
+  const nativeName = allLangs.find(l => l.code === nativeLang)?.name || nativeLang;
+  const targetName = allLangs.find(l => l.code === targetLang)?.name || targetLang;
+  const nativeCode = nativeLang?.toUpperCase().slice(0, 2) || "??";
+  const targetCode = targetLang?.toUpperCase().slice(0, 2) || "??";
+  const isTarget = sttLanguage === targetLang;
+
+  return (
+    <div className="relative flex items-center gap-2" data-testid="language-toggle-container">
+      <div
+        className="relative flex items-center rounded-full p-0.5 cursor-pointer select-none"
+        style={{
+          background: "rgba(0,0,0,0.06)",
+          width: "120px",
+          height: "32px",
+        }}
+        onClick={() => {
+          if (!disabled) onSetSttLanguage(isTarget ? nativeLang : targetLang);
+        }}
+        data-testid="language-toggle"
+      >
+        {/* Sliding indicator */}
+        <motion.div
+          className="absolute top-0.5 rounded-full"
+          style={{
+            width: "58px",
+            height: "28px",
+            background: isTarget
+              ? "linear-gradient(135deg, #059669, #10b981)"
+              : "linear-gradient(135deg, #4338ca, #6366f1)",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
+          }}
+          animate={{ left: isTarget ? "61px" : "2px" }}
+          transition={{ type: "spring", stiffness: 500, damping: 35 }}
+        />
+        {/* Native side */}
+        <div
+          className="relative z-10 flex-1 flex items-center justify-center text-xs font-semibold transition-colors duration-200"
+          style={{ color: !isTarget ? "white" : "rgba(0,0,0,0.45)" }}
+        >
+          {nativeCode}
+        </div>
+        {/* Target side */}
+        <div
+          className="relative z-10 flex-1 flex items-center justify-center text-xs font-semibold transition-colors duration-200"
+          style={{ color: isTarget ? "white" : "rgba(0,0,0,0.45)" }}
+        >
+          {targetCode}
+        </div>
+      </div>
+
+      {/* Info icon with tooltip */}
+      <div className="relative">
+        <button
+          className="w-5 h-5 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+          onClick={(e) => { e.stopPropagation(); setShowTooltip(v => !v); }}
+          data-testid="language-toggle-info"
+        >
+          <Info className="w-3.5 h-3.5" />
+        </button>
+        <AnimatePresence>
+          {showTooltip && (
+            <motion.div
+              initial={{ opacity: 0, y: 4, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 4, scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+              className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 px-3 py-2 rounded-lg text-xs leading-relaxed z-50"
+              style={{
+                background: "rgba(15,23,42,0.92)",
+                backdropFilter: "blur(8px)",
+                color: "white",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
+              }}
+            >
+              <p className="font-medium mb-1">Voice language switch</p>
+              <p className="text-slate-300">
+                Choose which language the mic listens for.
+                It auto-switches based on what the tutor expects, but you can override it anytime.
+              </p>
+              <div className="mt-1.5 flex flex-col gap-0.5 text-slate-400">
+                <span><span className="text-indigo-400 font-medium">{nativeCode}</span> = {nativeName}</span>
+                <span><span className="text-emerald-400 font-medium">{targetCode}</span> = {targetName}</span>
+              </div>
+              {/* Arrow */}
+              <div
+                className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 rotate-45"
+                style={{ background: "rgba(15,23,42,0.92)", marginTop: "-4px" }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+};
+
 export const ChatInput = ({
   inputMode, input, sending, isRecording, audioLevel, processingVoice,
   onSetInput, onSendText, onVoiceRecord, inputRef,
+  sttLanguage, onSetSttLanguage, nativeLang, targetLang, languages,
 }) => {
   const [focused, setFocused] = useState(false);
 
@@ -64,6 +169,14 @@ export const ChatInput = ({
               </div>
             )}
             <div className="flex items-center gap-4">
+              <LanguageToggle
+                sttLanguage={sttLanguage}
+                onSetSttLanguage={onSetSttLanguage}
+                nativeLang={nativeLang}
+                targetLang={targetLang}
+                languages={languages}
+                disabled={isRecording || processingVoice}
+              />
               <motion.button
                 onClick={onVoiceRecord}
                 disabled={processingVoice && !isRecording}

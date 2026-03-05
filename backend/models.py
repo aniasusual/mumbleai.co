@@ -18,6 +18,7 @@ class ConversationResponse(BaseModel):
     scenario: Optional[str] = None
     native_language: str = "en"
     target_language: str = "en"
+    expected_response_language: Optional[str] = None
     proficiency_level: Optional[str] = None
     phase: str = "learning"
     created_at: str
