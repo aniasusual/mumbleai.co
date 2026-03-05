@@ -25,7 +25,8 @@ async def llm_call(api_key: str, messages: list, system: str = None, tools: list
     if tools:
         params["tools"] = tools
 
-    return await litellm.acompletion(**params)
+    response = await litellm.acompletion(**params)
+    return response
 
 
 async def llm_call_stream(api_key: str, messages: list, system: str = None, tools: list = None, max_tokens: int = 1500):
@@ -53,17 +54,26 @@ async def llm_call_stream(api_key: str, messages: list, system: str = None, tool
 async def consume_stream(stream, on_event=None):
     """Consume a streaming LLM response.
     Emits text_delta events for content chunks via on_event.
-    Returns (content: str, tool_calls: list[dict], finish_reason: str).
+    Returns (content: str, tool_calls: list[dict], finish_reason: str, usage: dict).
     Each tool_call dict: {"id": str, "name": str, "arguments": str}
+    usage dict: {"prompt_tokens": int, "completion_tokens": int}
     """
     content = ""
     tool_calls_acc = {}
     finish_reason = None
+    usage = {"prompt_tokens": 0, "completion_tokens": 0}
 
     async for chunk in stream:
         choice = chunk.choices[0]
         if choice.finish_reason:
             finish_reason = choice.finish_reason
+
+        # Extract usage from the final chunk if available
+        if hasattr(chunk, "usage") and chunk.usage:
+            if hasattr(chunk.usage, "prompt_tokens") and chunk.usage.prompt_tokens:
+                usage["prompt_tokens"] = chunk.usage.prompt_tokens
+            if hasattr(chunk.usage, "completion_tokens") and chunk.usage.completion_tokens:
+                usage["completion_tokens"] = chunk.usage.completion_tokens
 
         delta = choice.delta
 
@@ -88,7 +98,7 @@ async def consume_stream(stream, on_event=None):
                         tool_calls_acc[idx]["arguments"] += tc_delta.function.arguments
 
     tool_calls = [tool_calls_acc[k] for k in sorted(tool_calls_acc.keys())] if tool_calls_acc else []
-    return content, tool_calls, finish_reason
+    return content, tool_calls, finish_reason, usage
 
 
 def serialize_tool_calls(tool_calls):

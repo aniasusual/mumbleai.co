@@ -79,6 +79,7 @@ If the user doesn't answer or says something like "let's go" / "start" / "I don'
 
         tools_used = []
         tool_activity = []
+        total_usage = {"prompt_tokens": 0, "completion_tokens": 0}
         max_iterations = 6
 
         try:
@@ -90,7 +91,9 @@ If the user doesn't answer or says something like "let's go" / "start" / "I don'
                     api_key=self.api_key, messages=messages,
                     system=self.system_prompt, tools=self.tools, max_tokens=2000
                 )
-                content, tool_calls, finish_reason = await consume_stream(stream, on_event=on_event)
+                content, tool_calls, finish_reason, usage = await consume_stream(stream, on_event=on_event)
+                total_usage["prompt_tokens"] += usage.get("prompt_tokens", 0)
+                total_usage["completion_tokens"] += usage.get("completion_tokens", 0)
 
                 # Build assistant message for history
                 assistant_msg = {"role": "assistant", "content": content}
@@ -109,7 +112,8 @@ If the user doesn't answer or says something like "let's go" / "start" / "I don'
                         "response": final_text,
                         "tools_used": tools_used,
                         "tool_activity": tool_activity,
-                        "type": "scenario" if scenario_context else "chat"
+                        "type": "scenario" if scenario_context else "chat",
+                        "usage": total_usage,
                     }
 
                 for tc in tool_calls:
@@ -145,7 +149,8 @@ If the user doesn't answer or says something like "let's go" / "start" / "I don'
                 "response": content or "Let me help you with that — could you try again?",
                 "tools_used": tools_used,
                 "tool_activity": tool_activity,
-                "type": "chat"
+                "type": "chat",
+                "usage": total_usage,
             }
 
         except Exception as e:
@@ -153,7 +158,8 @@ If the user doesn't answer or says something like "let's go" / "start" / "I don'
             return {
                 "response": "I had a hiccup processing that. Could you try saying it again?",
                 "tools_used": tools_used,
-                "type": "error"
+                "type": "error",
+                "usage": total_usage,
             }
 
     async def generate_welcome(self, scenario: str = None) -> str:

@@ -297,9 +297,17 @@ async def send_message(conv_id: str, data: MessageCreate, user: dict = Depends(g
 @router.post("/conversations/{conv_id}/messages/stream")
 async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = Depends(get_current_user)):
     """SSE streaming endpoint — sends tool activity events in real-time, then the final messages."""
+    from services.credit_service import check_credits, deduct_credits, InsufficientCreditsError
+
     conv = await db.conversations.find_one({"id": conv_id, "user_id": user["id"]}, {"_id": 0})
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Credit check before processing
+    try:
+        await check_credits(user["id"])
+    except InsufficientCreditsError:
+        raise HTTPException(status_code=402, detail="Insufficient credits. Please upgrade your plan.")
 
     now = datetime.now(timezone.utc).isoformat()
     current_phase = conv.get("phase", "learning")
@@ -409,10 +417,19 @@ async def send_message_stream(conv_id: str, data: MessageCreate, user: dict = De
         # Wait for TTS to finish (was running in parallel with DB writes)
         audio_base64 = await tts_task
 
+        # Deduct credits based on LLM usage + TTS
+        llm_usage = result.get("usage", {})
+        tts_chars = len(clean_ai_text) if audio_base64 else 0
+        credits_used = await deduct_credits(user["id"], conv_id, {
+            "llm_input_tokens": llm_usage.get("prompt_tokens", 0),
+            "llm_output_tokens": llm_usage.get("completion_tokens", 0),
+            "tts_characters": tts_chars,
+        })
+
         user_msg_out = {k: v for k, v in user_msg.items() if k != "_id"}
         ai_msg_out = {k: v for k, v in ai_msg.items() if k != "_id"}
 
-        done_event = {'type': 'done', 'user_message': user_msg_out, 'ai_message': ai_msg_out, 'expected_response_language': expect_lang}
+        done_event = {'type': 'done', 'user_message': user_msg_out, 'ai_message': ai_msg_out, 'expected_response_language': expect_lang, 'credits_used': credits_used}
         if audio_base64:
             done_event['ai_audio_base64'] = audio_base64
         yield f"data: {json.dumps(done_event)}\n\n"

@@ -248,6 +248,7 @@ For {self.native_name} instructions: [EXPECT_LANG:{self.native_language}]"""
 
         tools_used = []
         tool_activity = []
+        total_usage = {"prompt_tokens": 0, "completion_tokens": 0}
         max_iterations = 4
 
         try:
@@ -259,7 +260,9 @@ For {self.native_name} instructions: [EXPECT_LANG:{self.native_language}]"""
                     api_key=self.api_key, messages=messages,
                     system=self.system_prompt, tools=self.tools, max_tokens=4000
                 )
-                content, tool_calls, finish_reason = await consume_stream(stream, on_event=on_event)
+                content, tool_calls, finish_reason, usage = await consume_stream(stream, on_event=on_event)
+                total_usage["prompt_tokens"] += usage.get("prompt_tokens", 0)
+                total_usage["completion_tokens"] += usage.get("completion_tokens", 0)
 
                 assistant_msg = {"role": "assistant", "content": content}
                 if tool_calls:
@@ -275,7 +278,8 @@ For {self.native_name} instructions: [EXPECT_LANG:{self.native_language}]"""
                         "response": content or "Let's keep reviewing!",
                         "tools_used": tools_used,
                         "tool_activity": tool_activity,
-                        "type": "revision"
+                        "type": "revision",
+                        "usage": total_usage,
                     }
 
                 for tc in tool_calls:
@@ -304,7 +308,8 @@ For {self.native_name} instructions: [EXPECT_LANG:{self.native_language}]"""
                 "response": content or "Great revision session!",
                 "tools_used": tools_used,
                 "tool_activity": tool_activity,
-                "type": "revision"
+                "type": "revision",
+                "usage": total_usage,
             }
 
         except Exception as e:
@@ -313,7 +318,8 @@ For {self.native_name} instructions: [EXPECT_LANG:{self.native_language}]"""
                 "response": "I had a small hiccup, but no worries, let's continue reviewing!",
                 "tools_used": tools_used,
                 "tool_activity": tool_activity,
-                "type": "revision"
+                "type": "revision",
+                "usage": total_usage,
             }
 
     async def generate_welcome(self) -> str:
@@ -325,7 +331,7 @@ For {self.native_name} instructions: [EXPECT_LANG:{self.native_language}]"""
                 api_key=self.api_key, messages=messages,
                 system=self.system_prompt, tools=self.tools, max_tokens=2000
             )
-            content, _, _ = await consume_stream(stream)
+            content, _, _, _ = await consume_stream(stream)
             return content or "Let's review what you found tricky. I'll walk you through each area."
         except Exception as e:
             logger.error(f"Revision agent welcome error: {e}")

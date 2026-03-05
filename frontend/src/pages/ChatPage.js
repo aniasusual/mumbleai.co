@@ -241,7 +241,11 @@ export default function ChatPage() {
         playWithKaraoke(result.ai_audio_base64, result.ai_message.id, result.ai_message.content);
       }
     } catch (e) {
-      toast.error("Failed to send message.");
+      if (e?.response?.status === 402 || e?.message?.includes("402")) {
+        toast.error("You've run out of credits. Upgrade your plan to continue.", { action: { label: "Upgrade", onClick: () => navigate("/pricing") } });
+      } else {
+        toast.error("Failed to send message.");
+      }
       setMessages(prev => prev.filter(m => m.id !== tempId));
       setInput(userText);
       setToolEvents([]); setStreamingText("");
@@ -293,7 +297,11 @@ export default function ChatPage() {
         playWithKaraoke(result.ai_audio_base64, result.ai_message.id, result.ai_message.content);
       }
     } catch (e) {
-      toast.error(e.message || "Voice message failed. Try again.");
+      if (e?.response?.status === 402 || e?.message?.includes("402")) {
+        toast.error("You've run out of credits. Upgrade your plan to continue.", { action: { label: "Upgrade", onClick: () => navigate("/pricing") } });
+      } else {
+        toast.error(e.message || "Voice message failed. Try again.");
+      }
       setMessages(prev => prev.filter(m => m.id !== tempId));
       setToolEvents([]); setStreamingText("");
       setSending(false);

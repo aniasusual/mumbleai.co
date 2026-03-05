@@ -170,6 +170,7 @@ This tag is invisible to the user. If you forget it, the voice system breaks."""
 
         tools_used = []
         tool_activity = []
+        total_usage = {"prompt_tokens": 0, "completion_tokens": 0}
         max_iterations = 4
 
         try:
@@ -181,7 +182,9 @@ This tag is invisible to the user. If you forget it, the voice system breaks."""
                     api_key=self.api_key, messages=messages,
                     system=self.system_prompt, tools=self.tools, max_tokens=4000
                 )
-                content, tool_calls, finish_reason = await consume_stream(stream, on_event=on_event)
+                content, tool_calls, finish_reason, usage = await consume_stream(stream, on_event=on_event)
+                total_usage["prompt_tokens"] += usage.get("prompt_tokens", 0)
+                total_usage["completion_tokens"] += usage.get("completion_tokens", 0)
 
                 # Build assistant message for history
                 assistant_msg = {"role": "assistant", "content": content}
@@ -198,7 +201,8 @@ This tag is invisible to the user. If you forget it, the voice system breaks."""
                         "response": content or "Let's keep planning your curriculum!",
                         "tools_used": tools_used,
                         "tool_activity": tool_activity,
-                        "type": "planning"
+                        "type": "planning",
+                        "usage": total_usage,
                     }
 
                 for tc in tool_calls:
@@ -228,7 +232,8 @@ This tag is invisible to the user. If you forget it, the voice system breaks."""
                 "response": content or "Let me finalize your study plan.",
                 "tools_used": tools_used,
                 "tool_activity": tool_activity,
-                "type": "planning"
+                "type": "planning",
+                "usage": total_usage,
             }
 
         except Exception as e:
@@ -236,7 +241,8 @@ This tag is invisible to the user. If you forget it, the voice system breaks."""
             return {
                 "response": "I had a hiccup planning. Could you repeat what you'd like?",
                 "tools_used": tools_used,
-                "type": "error"
+                "type": "error",
+                "usage": total_usage,
             }
 
     async def generate_welcome(self, **kwargs) -> str:

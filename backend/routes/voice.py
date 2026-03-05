@@ -61,12 +61,19 @@ async def send_voice_message(
 ):
     """SSE streaming voice endpoint — STT -> Agent (with live events) -> TTS."""
     from fastapi.responses import StreamingResponse
+    from services.credit_service import check_credits, deduct_credits, InsufficientCreditsError
     import asyncio
     import json
 
     conv = await db.conversations.find_one({"id": conv_id, "user_id": user["id"]}, {"_id": 0})
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Credit check before processing
+    try:
+        await check_credits(user["id"])
+    except InsufficientCreditsError:
+        raise HTTPException(status_code=402, detail="Insufficient credits. Please upgrade your plan.")
 
     now = datetime.now(timezone.utc).isoformat()
 
@@ -76,6 +83,8 @@ async def send_voice_message(
     # Step 1: Single Whisper call with the expected language
     stt = OpenAISpeechToText(api_key=EMERGENT_LLM_KEY)
     audio_bytes = await audio.read()
+    # Estimate audio duration for credit tracking (webm ~16kbps for speech)
+    audio_duration_sec = max(1.0, len(audio_bytes) / 16000 * 8)
 
     suffix = ".webm"
     if audio.content_type:
@@ -217,12 +226,22 @@ async def send_voice_message(
         # Wait for TTS
         audio_base64 = await tts_task
 
+        # Deduct credits: STT + LLM + TTS
+        llm_usage = result.get("usage", {})
+        tts_chars = len(clean_ai_text) if audio_base64 else 0
+        credits_used = await deduct_credits(user["id"], conv_id, {
+            "llm_input_tokens": llm_usage.get("prompt_tokens", 0),
+            "llm_output_tokens": llm_usage.get("completion_tokens", 0),
+            "stt_seconds": audio_duration_sec,
+            "tts_characters": tts_chars,
+        })
+
         user_msg.pop("_id", None)
         ai_msg.pop("_id", None)
         user_msg_out = {k: v for k, v in user_msg.items() if k != "_id"}
         ai_msg_out = {k: v for k, v in ai_msg.items() if k != "_id"}
 
-        done_event = {'type': 'done', 'user_message': user_msg_out, 'ai_message': ai_msg_out, 'transcribed_text': user_text, 'expected_response_language': expect_lang}
+        done_event = {'type': 'done', 'user_message': user_msg_out, 'ai_message': ai_msg_out, 'transcribed_text': user_text, 'expected_response_language': expect_lang, 'credits_used': credits_used}
         if audio_base64:
             done_event['ai_audio_base64'] = audio_base64
         yield f"data: {json.dumps(done_event)}\n\n"
