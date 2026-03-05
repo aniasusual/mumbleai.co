@@ -8,6 +8,7 @@ from agents.tutor import LanguageTutorAgent
 from agents.planner import CurriculumPlannerAgent
 from agents.testing_agent import TestingAgent
 from agents.revision_agent import RevisionAgent
+from agents.tool_executor import _build_learning_summary
 
 
 async def create_agent_for_conversation(conv: dict, conv_id: str):
@@ -36,6 +37,7 @@ async def create_agent_for_conversation(conv: dict, conv_id: str):
         user_vocab = await db.vocabulary.find(
             {"user_id": conv.get("user_id")}, {"_id": 0}
         ).sort("created_at", -1).to_list(50)
+        learning_summary = await _build_learning_summary(db, conv_id)
         return TestingAgent(
             api_key=EMERGENT_LLM_KEY,
             session_id=f"lingua_tester_{conv_id}",
@@ -45,7 +47,8 @@ async def create_agent_for_conversation(conv: dict, conv_id: str):
             conversation_id=conv_id,
             db=db,
             curriculum=curriculum,
-            vocabulary=user_vocab
+            vocabulary=user_vocab,
+            learning_summary=learning_summary
         )
 
     if phase == "revision":
@@ -56,6 +59,7 @@ async def create_agent_for_conversation(conv: dict, conv_id: str):
         test_results = await db.test_results.find(
             {"conversation_id": conv_id}, {"_id": 0}
         ).sort("created_at", -1).to_list(3)
+        learning_summary = await _build_learning_summary(db, conv_id)
         return RevisionAgent(
             api_key=EMERGENT_LLM_KEY,
             session_id=f"lingua_revisor_{conv_id}",
@@ -66,7 +70,8 @@ async def create_agent_for_conversation(conv: dict, conv_id: str):
             db=db,
             curriculum=curriculum,
             vocabulary=user_vocab,
-            test_results=test_results
+            test_results=test_results,
+            learning_summary=learning_summary
         )
 
     curriculum = None

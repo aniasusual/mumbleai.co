@@ -46,6 +46,31 @@ TOOL_LABELS = {
 }
 
 
+async def _build_learning_summary(db, conversation_id: str, max_messages: int = 30) -> str:
+    """Build a compact summary of recent learning-phase conversation for handoff to testing/revision agents."""
+    messages = await db.messages.find(
+        {"conversation_id": conversation_id, "phase": "learning", "is_internal": {"$ne": True}},
+        {"_id": 0, "role": 1, "content": 1}
+    ).sort("created_at", -1).to_list(max_messages)
+
+    if not messages:
+        return ""
+
+    # Reverse to chronological order
+    messages.reverse()
+
+    summary_lines = []
+    for m in messages:
+        role = "Tutor" if m.get("role") == "assistant" else "Student"
+        content = m.get("content", "").strip()
+        # Truncate long messages to keep the summary compact
+        if len(content) > 200:
+            content = content[:200] + "..."
+        summary_lines.append(f"{role}: {content}")
+
+    return "\n".join(summary_lines)
+
+
 def start_scenario(scenario_type: str, difficulty: str = "intermediate") -> str:
     scenario = SCENARIOS.get(scenario_type, SCENARIOS["small_talk"])
     return json.dumps({
@@ -171,6 +196,9 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
                     {"user_id": conv.get("user_id")}, {"_id": 0}
                 ).sort("created_at", -1).to_list(50)
 
+                # Fetch recent learning-phase messages as context summary
+                learning_summary = await _build_learning_summary(db, conversation_id)
+
                 tester = TestingAgent(
                     api_key=api_key,
                     session_id=f"lingua_tester_{conversation_id}",
@@ -181,7 +209,8 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
                     db=db,
                     curriculum=curriculum,
                     vocabulary=user_vocab,
-                    test_context=test_context
+                    test_context=test_context,
+                    learning_summary=learning_summary
                 )
 
                 if on_event:
@@ -243,6 +272,9 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
                     {"conversation_id": conversation_id}, {"_id": 0}
                 ).sort("created_at", -1).to_list(3)
 
+                # Fetch recent learning-phase messages as context summary
+                learning_summary = await _build_learning_summary(db, conversation_id)
+
                 revisor = RevisionAgent(
                     api_key=api_key,
                     session_id=f"lingua_revisor_{conversation_id}",
@@ -254,7 +286,8 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
                     curriculum=curriculum,
                     vocabulary=user_vocab,
                     test_results=test_results,
-                    revision_context=revision_context
+                    revision_context=revision_context,
+                    learning_summary=learning_summary
                 )
 
                 if on_event:

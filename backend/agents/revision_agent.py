@@ -66,7 +66,7 @@ class RevisionAgent:
 
     def __init__(self, api_key, session_id, native_language, target_language,
                  proficiency_level, conversation_id, db, curriculum=None,
-                 vocabulary=None, test_results=None, revision_context=""):
+                 vocabulary=None, test_results=None, revision_context="", learning_summary=""):
         self.api_key = api_key
         self.session_id = session_id
         self.native_language = native_language
@@ -80,6 +80,7 @@ class RevisionAgent:
         self.vocabulary = vocabulary or []
         self.test_results = test_results or []
         self.revision_context = revision_context
+        self.learning_summary = learning_summary
         self.tools = REVISION_TOOLS
         self.on_event = None
         self.system_prompt = self._build_system_prompt()
@@ -128,6 +129,14 @@ class RevisionAgent:
 ## Revision Request
 {self.revision_context}"""
 
+        # Learning summary from the tutor's conversation
+        learning_ctx = ""
+        if self.learning_summary:
+            learning_ctx = f"""
+## Recent Lesson Activity (what the tutor taught and the student practiced)
+This is a summary of the recent tutor-student conversation. Use this to understand what was covered, what the student struggled with, and what they practiced. Focus your revision on areas where the student had difficulty.
+{self.learning_summary}"""
+
         if same_language:
             lang_instructions = f"""
 ## Language
@@ -153,6 +162,7 @@ class RevisionAgent:
 {vocab_info}
 {curriculum_info}
 {revision_ctx}
+{learning_ctx}
 
 ## Your Job
 Revisit and re-teach the areas where the user struggled. Focus on their test weaknesses and words they got wrong.

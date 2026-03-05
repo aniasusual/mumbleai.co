@@ -70,7 +70,7 @@ class TestingAgent:
 
     def __init__(self, api_key, session_id, native_language, target_language,
                  proficiency_level, conversation_id, db, curriculum=None, vocabulary=None,
-                 test_context=""):
+                 test_context="", learning_summary=""):
         self.api_key = api_key
         self.session_id = session_id
         self.native_language = native_language
@@ -83,6 +83,7 @@ class TestingAgent:
         self.curriculum = curriculum
         self.vocabulary = vocabulary or []
         self.test_context = test_context
+        self.learning_summary = learning_summary
         self.tools = TESTING_TOOLS
         self.on_event = None
         self.system_prompt = self._build_system_prompt()
@@ -120,6 +121,14 @@ class TestingAgent:
 ## Test Request Context
 {self.test_context}"""
 
+        # Learning summary from the tutor's conversation
+        learning_ctx = ""
+        if self.learning_summary:
+            learning_ctx = f"""
+## Recent Lesson Activity (what the tutor taught and the student practiced)
+This is a summary of the recent tutor-student conversation. Use this to create targeted test questions about what was ACTUALLY covered, not just what's in the curriculum.
+{self.learning_summary}"""
+
         if same_language:
             lang_instructions = f"""
 ## Language
@@ -144,6 +153,7 @@ class TestingAgent:
 {curriculum_info}
 {vocab_info}
 {test_ctx}
+{learning_ctx}
 
 ## Your Job
 Test the user on what they have learned. Create a focused, interactive quiz with 5-7 questions.
