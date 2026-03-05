@@ -232,9 +232,17 @@ async def get_messages(conv_id: str, user: dict = Depends(get_current_user)):
 
 @router.post("/conversations/{conv_id}/messages", response_model=List[MessageResponse])
 async def send_message(conv_id: str, data: MessageCreate, user: dict = Depends(get_current_user)):
+    from services.credit_service import check_credits, deduct_credits, InsufficientCreditsError
+
     conv = await db.conversations.find_one({"id": conv_id, "user_id": user["id"]}, {"_id": 0})
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Credit check before processing
+    try:
+        await check_credits(user["id"])
+    except InsufficientCreditsError:
+        raise HTTPException(status_code=402, detail="Insufficient credits. Please upgrade your plan.")
 
     now = datetime.now(timezone.utc).isoformat()
     current_phase = conv.get("phase", "learning")
@@ -300,6 +308,13 @@ async def send_message(conv_id: str, data: MessageCreate, user: dict = Depends(g
             {"id": conv_id},
             {"$set": {"phase": "learning"}}
         )
+
+    # Deduct credits based on LLM usage
+    llm_usage = result.get("usage", {})
+    await deduct_credits(user["id"], conv_id, {
+        "llm_input_tokens": llm_usage.get("prompt_tokens", 0),
+        "llm_output_tokens": llm_usage.get("completion_tokens", 0),
+    })
 
     user_msg.pop("_id", None)
     ai_msg.pop("_id", None)
