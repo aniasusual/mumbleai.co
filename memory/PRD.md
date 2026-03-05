@@ -8,10 +8,11 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - JWT-based email/password authentication
 - Voice-first interaction (OpenAI Whisper STT, OpenAI TTS)
 - 50+ language support with LLM-predicted language detection
-- Agentic system with phase-based context isolation (learning/planning)
+- Agentic system with phase-based context isolation (learning/planning/testing/revision)
 - Real-time UI updates via Server-Sent Events (SSE)
 - Premium, modern, animated UI (Framer Motion, Tailwind, Shadcn/UI)
 - Mobile-responsive internal pages
+- Credit-based payment system (upcoming)
 
 ## Architecture
 - **Backend**: FastAPI, MongoDB (motor), JWT auth
@@ -19,7 +20,9 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - **Agent System**: Parent/subagent model with phase-based context isolation
   - `learning` phase: Tutor agent
   - `planning` phase: Planner agent
-- **Voice Pipeline**: LLM predicts expected response language -> stored on conversation -> Whisper uses it -> GPT-5.2 -> TTS
+  - `testing` phase: Testing agent
+  - `revision` phase: Revision agent
+- **Voice Pipeline**: LLM predicts expected response language -> stored on conversation -> Whisper uses it (with user override via language toggle) -> GPT-5.2 -> TTS
 - **Real-time**: SSE with tool events, streaming text, audio in `done` event
 - **3rd Party**: OpenAI GPT-5.2, Whisper, TTS via Emergent LLM Key; DuckDuckGo Search
 
@@ -29,21 +32,21 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - `messages`: id, conversation_id, role, content, phase, tools_used, tool_activity
 - `curriculums`: user/conversation scoped lesson plans
 - `vocabulary`: id, user_id, word, definition, example, context, created_at
+- `test_results`: user_id, score, strengths, weaknesses
 
 ## What's Been Implemented
 - Full authentication flow (signup/login/JWT)
 - Landing page, Auth page, Chat page, Dashboard, Vocabulary page
-- Agent system with tutor/planner isolation, multi-turn curriculum revision
+- Agent system with tutor/planner/testing/revision isolation
 - LLM-predicted Whisper language (EXPECT_LANG tag system)
 - Voice-first agent, auto pronunciation breakdowns
 - Text/audio sync with karaoke-style highlighting
 - Web Search tool (DuckDuckGo)
-- **save_vocabulary tool**: Agent automatically saves new words during lessons (2026-03-04)
-- **Voice/Keyboard SSE parity**: Converted voice endpoint from plain POST to SSE streaming — now has identical event flow as keyboard (transcription → thinking → tool events → text_delta → done with audio) (2026-03-04)
-
-- **Testing Agent**: Phase-based handoff quiz system. Tutor calls `start_test` → phase switches to "testing" → TestingAgent quizzes user (5-7 questions, one at a time) → calls `finish_test` → results saved to DB + injected into tutor context → phase back to "learning" (2026-03-04)
-
-- **Revision Agent**: Phase-based handoff review system. Tutor calls `start_revision` → phase switches to "revision" → RevisionAgent re-teaches weak areas from test results → calls `finish_revision` → summary injected into tutor context → phase back to "learning" (2026-03-04)
+- save_vocabulary tool: Agent automatically saves new words during lessons
+- Voice/Keyboard SSE parity: Both have identical streaming event flow
+- Testing Agent: Phase-based handoff quiz system
+- Revision Agent: Phase-based handoff review system
+- **Voice Language Toggle** (2026-03-05): Pill-shaped EN|FR toggle next to mic button that lets users manually switch which language Whisper listens for. Auto-switches based on LLM's EXPECT_LANG prediction, with manual user override. Info tooltip explains the feature. Hidden when native == target language.
 
 ## Agent Tools
 ### Tutor Agent (learning phase)
@@ -52,19 +55,24 @@ Build a conversational agent, "mumble," that acts as a personal language tutor w
 - save_vocabulary, web_search, start_test, start_revision
 
 ### Testing Agent (testing phase)
-- finish_test: saves score/strengths/weaknesses/review words to DB, injects feedback into tutor context
+- finish_test: saves score/strengths/weaknesses/review words to DB
 - web_search
 
 ### Revision Agent (revision phase)
-- finish_revision: saves topics reviewed/improved/still weak, injects feedback into tutor context
+- finish_revision: saves topics reviewed/improved/still weak
 - web_search
 
 ### Planner Agent (planning phase)
 - save_curriculum, revise_curriculum, web_search
 
 ## Backlog
-- **P1**: Configurable error tolerance (strict/balanced/lenient corrections)
+- **P0**: Credit-based payment system with Stripe integration
+  - Credit formula discussed: LLM input 1cr/1K tokens, output 3cr/1K tokens, STT 0.3cr/sec, TTS 1cr/500chars
+  - Plans: Free (50cr), Basic $5 (500cr), Pro $15 (2000cr), Unlimited $30
+  - ~70-80% gross margin
+  - Awaiting user approval on final formula/pricing
 - **P1**: Progress Journal — weekly learning summaries
 - **P2**: Gamification — streaks, points, leaderboards
+- **Future**: VAD (always-on mic)
 - **Future**: SpeechAce/Azure for phoneme-level pronunciation feedback
 - **Future**: Google OAuth login
