@@ -1,0 +1,113 @@
+{
+  "summary": "Credit History feature for 'mumble' language tutor app - ALL TESTS PASSED. Backend API with pagination/filtering verified. Frontend page renders correctly with filter pills, transaction list, expandable rows showing LLM/STT/TTS breakdown, and Credit Rates info section. Sidebar has Credit History link in both expanded and collapsed modes.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/payments/credit-history", "issue": "Returns 403 instead of 401 for unauthenticated requests - minor HTTP status code difference, functionally correct"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend_tests": {
+      "status": "ALL PASSED (15/15)",
+      "tests": [
+        "test_credit_history_without_auth_returns_unauthorized: PASSED (returns 403)",
+        "test_credit_history_with_invalid_token_returns_401: PASSED",
+        "test_credit_history_returns_200: PASSED",
+        "test_credit_history_returns_correct_structure: PASSED (transactions, total, page, pages)",
+        "test_credit_history_has_transactions: PASSED (9+ transactions found)",
+        "test_usage_transaction_fields: PASSED (has type, user_id, amount, created_at, breakdown)",
+        "test_purchase_transaction_fields: PASSED (has type, user_id, credits_added, plan, created_at)",
+        "test_filter_by_usage_type: PASSED (returns only usage transactions)",
+        "test_filter_by_purchase_type: PASSED (returns only purchase transactions)",
+        "test_no_filter_returns_all_types: PASSED (returns both usage and purchase)",
+        "test_default_pagination: PASSED (page defaults to 1)",
+        "test_custom_page_parameter: PASSED",
+        "test_custom_limit_parameter: PASSED (respects limit)",
+        "test_pagination_math: PASSED (pages calculated correctly)",
+        "test_transactions_sorted_by_date_descending: PASSED (newest first)"
+      ]
+    },
+    "frontend_tests": {
+      "credit_history_page": {
+        "page_loads": "PASSED - /credit-history page renders with data-testid='credit-history-page'",
+        "title": "PASSED - Shows 'Credit History' as h1",
+        "subtitle": "PASSED - Shows 'Track how your credits are earned and spent across conversations.'",
+        "filter_pills": "PASSED - All, Usage, Purchases filter pills with correct data-testid"
+      },
+      "filter_functionality": {
+        "all_filter": "PASSED - Shows 18 total transactions",
+        "usage_filter": "PASSED - Shows 16 usage transactions with negative (red) amounts",
+        "purchase_filter": "PASSED - Shows 2 purchase transactions with positive (green) amounts"
+      },
+      "transaction_display": {
+        "usage_transactions": "PASSED - Shows 'Conversation usage' with USAGE badge, negative credits in red",
+        "purchase_transactions": "PASSED - Shows 'Plus Plan Purchase' with PURCHASE badge, +1000 credits in green"
+      },
+      "row_expansion": {
+        "click_to_expand": "PASSED - Usage rows expand on click",
+        "breakdown_details": "PASSED - Shows LLM Tokens (600 in / 200 out), Speech-to-Text (2.5s audio), Text-to-Speech (300 chars)",
+        "balance_after": "PASSED - Shows 'Balance after' with remaining credits (997)"
+      },
+      "credit_rates_info": {
+        "section_visible": "PASSED - Credit Rates section at bottom with data-testid='credit-rates-info'",
+        "llm_rate": "PASSED - Shows '1 credit/1K input tokens, 3 credits/1K output tokens'",
+        "stt_rate": "PASSED - Shows '0.3 credits per second of audio'",
+        "tts_rate": "PASSED - Shows '1 credit per 500 characters'"
+      },
+      "sidebar_links": {
+        "expanded_sidebar": "PASSED - Credit History link visible with History icon, navigates to /credit-history",
+        "collapsed_sidebar": "PASSED - Credit History icon (History) visible in collapsed sidebar"
+      }
+    }
+  },
+  "features_verified": [
+    "GET /api/payments/credit-history returns paginated credit transactions for authenticated user",
+    "GET /api/payments/credit-history?type=usage filters to usage transactions only",
+    "GET /api/payments/credit-history?type=purchase filters to purchase transactions only",
+    "GET /api/payments/credit-history returns 403 without auth token (authentication enforced)",
+    "/credit-history page renders with title 'Credit History'",
+    "Filter pills (All, Usage, Purchases) work correctly to filter transactions",
+    "Transaction rows expand on click to show breakdown (LLM, STT, TTS details)",
+    "Purchase transactions show positive credits with green color (+1000)",
+    "Usage transactions show negative credits with red color (-3, -5, etc.)",
+    "Credit Rates info section is visible at bottom of page",
+    "Sidebar has 'Credit History' link with History icon in expanded mode",
+    "Sidebar has 'Credit History' icon in collapsed mode",
+    "Clicking Credit History link in sidebar navigates to /credit-history"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_credit_history.py",
+    "/app/test_reports/pytest/credit_history_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "CORRECT: payments.py has GET /credit-history endpoint with pagination (page, limit) and type filtering",
+    "CORRECT: credit_service.py logs transactions with detailed breakdown (LLM tokens, STT seconds, TTS characters)",
+    "CORRECT: CreditHistoryPage.js has proper data-testid attributes for testing",
+    "CORRECT: Filter pills properly update state and refetch data",
+    "CORRECT: TransactionRow component expands to show breakdown with animation",
+    "CORRECT: Credit Rates section displays accurate rates from credit_service.py constants",
+    "CORRECT: Sidebar.jsx has Credit History link in both DesktopSidebar and MobileSidebar with History icon",
+    "CORRECT: api.js has getCreditHistory function with page, limit, type parameters"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_credit_history.py"
+  ],
+  "success_rate": {
+    "backend": "100% (15/15 tests passed)",
+    "frontend": "100% (all UI and integration tests passed)"
+  },
+  "test_credentials": {
+    "email": "demo@mumble.com",
+    "password": "password123"
+  },
+  "seed_data_creation": "None - used existing seeded data (9 transactions: 8 usage + 1 purchase)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Credit History feature complete. Seeded test user demo@mumble.com has 9 transactions (8 usage, 1 purchase). Backend returns 403 for unauthenticated requests (not 401). Frontend uses data-testid attributes for all key elements. Sidebar expands on hover showing Credit History link with History icon. Transaction rows expand on click for usage type only when breakdown data exists."
+}

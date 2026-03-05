@@ -153,5 +153,10 @@ export const getPlans = () => api.get("/payments/plans");
 export const getSubscription = () => api.get("/payments/subscription");
 export const createOrder = (plan) => api.post("/payments/create-order", { plan });
 export const verifyPayment = (data) => api.post("/payments/verify-payment", data);
+export const getCreditHistory = (page = 1, limit = 20, type = null) => {
+  const params = { page, limit };
+  if (type) params.type = type;
+  return api.get("/payments/credit-history", { params });
+};
 
 export default api;

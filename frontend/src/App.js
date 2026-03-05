@@ -9,6 +9,7 @@ import ChatPage from "@/pages/ChatPage";
 import DashboardPage from "@/pages/DashboardPage";
 import VocabularyPage from "@/pages/VocabularyPage";
 import PricingPage from "@/pages/PricingPage";
+import CreditHistoryPage from "@/pages/CreditHistoryPage";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/vocabulary" element={<ProtectedRoute><VocabularyPage /></ProtectedRoute>} />
             <Route path="/pricing" element={<ProtectedRoute><PricingPage /></ProtectedRoute>} />
+            <Route path="/credit-history" element={<ProtectedRoute><CreditHistoryPage /></ProtectedRoute>} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
