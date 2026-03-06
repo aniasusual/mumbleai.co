@@ -20,10 +20,10 @@ const PLAN_FEATURES = [
 
 const PLANS = [
   {
-    id: "free", name: "Free", price: 0, credits: 20,
+    id: "free", name: "Free", price: 0, credits: 100,
     accent: "#6366f1", accentLight: "rgba(99,102,241,0.1)", borderColor: "rgba(99,102,241,0.2)",
     icon: Sparkles, highlight: false,
-    extras: ["Up to 3 active conversations", "~4 voice or ~10 text turns/month"],
+    extras: ["Up to 3 active conversations", "~20 voice or ~50 text turns/month"],
   },
   {
     id: "plus", name: "Plus", price: 14.99, credits: 1000,
@@ -148,7 +148,7 @@ export default function PricingPage() {
       setSubscription(res.data);
     } catch {
       // Default to free
-      setSubscription({ plan: "free", credits: 20 });
+      setSubscription({ plan: "free", credits: 100 });
     }
     setPageLoading(false);
   }, []);
