@@ -230,17 +230,19 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen relative overflow-hidden" data-testid="pricing-page">
       {/* Mesh gradient background */}
-      <div className="fixed inset-0 -z-10" style={{ background: "#f8f7f4" }}>
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[60%] rounded-full opacity-40"
-          style={{ background: "radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%)" }} />
-        <div className="absolute top-[10%] right-[-5%] w-[45%] h-[50%] rounded-full opacity-35"
-          style={{ background: "radial-gradient(circle, rgba(190,24,93,0.12) 0%, transparent 70%)" }} />
-        <div className="absolute bottom-[-15%] left-[20%] w-[55%] h-[50%] rounded-full opacity-30"
-          style={{ background: "radial-gradient(circle, rgba(124,58,237,0.14) 0%, transparent 70%)" }} />
-        <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] rounded-full opacity-20"
-          style={{ background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 65%)" }} />
-        {/* Subtle noise texture */}
-        <div className="absolute inset-0 opacity-[0.03]"
+      <div className="fixed inset-0 -z-10" style={{ background: "#f0eeea" }}>
+        <div className="absolute top-[-15%] left-[-8%] w-[55%] h-[65%] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(99,102,241,0.35) 0%, rgba(99,102,241,0.08) 50%, transparent 70%)" }} />
+        <div className="absolute top-[5%] right-[-8%] w-[50%] h-[55%] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(190,24,93,0.25) 0%, rgba(190,24,93,0.06) 50%, transparent 70%)" }} />
+        <div className="absolute bottom-[-10%] left-[15%] w-[60%] h-[55%] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(124,58,237,0.3) 0%, rgba(124,58,237,0.07) 50%, transparent 70%)" }} />
+        <div className="absolute top-[40%] right-[10%] w-[40%] h-[45%] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(16,185,129,0.22) 0%, rgba(16,185,129,0.05) 50%, transparent 65%)" }} />
+        <div className="absolute top-[60%] left-[-5%] w-[35%] h-[40%] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(245,158,11,0.18) 0%, transparent 65%)" }} />
+        {/* Noise texture */}
+        <div className="absolute inset-0 opacity-[0.04]"
           style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E\")", backgroundRepeat: "repeat", backgroundSize: "128px" }} />
       </div>
       {/* Header */}
