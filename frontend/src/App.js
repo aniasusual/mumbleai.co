@@ -10,12 +10,17 @@ import DashboardPage from "@/pages/DashboardPage";
 import VocabularyPage from "@/pages/VocabularyPage";
 import PricingPage from "@/pages/PricingPage";
 import CreditHistoryPage from "@/pages/CreditHistoryPage";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+
+// REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
 function App() {
   return (
-    <div className="min-h-screen">
-      <BrowserRouter>
-        <AuthProvider>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <div className="min-h-screen">
+        <BrowserRouter>
+          <AuthProvider>
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/auth" element={<AuthPage />} />
@@ -30,6 +35,7 @@ function App() {
       </BrowserRouter>
       <Toaster position="top-right" />
     </div>
+    </GoogleOAuthProvider>
   );
 }
 
