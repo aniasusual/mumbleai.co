@@ -15,6 +15,8 @@ router = APIRouter(prefix="/payments", tags=["payments"])
 RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET")
 
+
+ADMIN_SECRET = os.environ.get("JWT_SECRET")  # reuse JWT secret as admin key
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
 # Plan definitions
@@ -209,4 +211,50 @@ async def get_credit_history(
         "total": total,
         "page": page,
         "pages": max(1, -(-total // limit)),  # ceil division
+    }
+
+
+class AdminCreditRequest(BaseModel):
+    email: str
+    credits: int
+    admin_key: str
+
+
+@router.post("/admin/add-credits")
+async def admin_add_credits(data: AdminCreditRequest):
+    """Admin endpoint to add credits to a user by email."""
+    if data.admin_key != ADMIN_SECRET:
+        raise HTTPException(status_code=403, detail="Invalid admin key")
+
+    if data.credits <= 0:
+        raise HTTPException(status_code=400, detail="Credits must be positive")
+
+    user = await db.users.find_one({"email": data.email.lower()}, {"_id": 0, "id": 1, "email": 1})
+    if not user:
+        raise HTTPException(status_code=404, detail=f"No user found with email {data.email}")
+
+    sub = await db.subscriptions.find_one({"user_id": user["id"]})
+    if not sub:
+        raise HTTPException(status_code=404, detail="No subscription found for this user")
+
+    old_credits = sub["credits"]
+    new_credits = old_credits + data.credits
+
+    await db.subscriptions.update_one({"user_id": user["id"]}, {"$set": {"credits": new_credits}})
+
+    await db.credit_transactions.insert_one({
+        "user_id": user["id"],
+        "type": "purchase",
+        "plan": "admin_topup",
+        "credits_added": data.credits,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+    logger.info(f"Admin added {data.credits} credits to {data.email}: {old_credits} -> {new_credits}")
+
+    return {
+        "email": data.email,
+        "credits_added": data.credits,
+        "old_balance": old_credits,
+        "new_balance": new_credits,
     }
