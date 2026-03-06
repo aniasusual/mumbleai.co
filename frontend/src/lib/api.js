@@ -86,8 +86,11 @@ export const sendVoiceMessageStream = (id, audioBlob, scenarioContext, onEvent, 
       body: formData,
     }).then(async (response) => {
       if (!response.ok) {
-        const err = await response.json().catch(() => ({ detail: "Voice message failed" }));
-        reject(new Error(err.detail || `Stream failed: ${response.status}`));
+        const err = await response.json().catch(() => ({}));
+        const detail = err.detail || (response.status === 402 ? "Insufficient credits. Please upgrade your plan." : `Voice message failed (${response.status})`);
+        const error = new Error(detail);
+        error.status = response.status;
+        reject(error);
         return;
       }
 

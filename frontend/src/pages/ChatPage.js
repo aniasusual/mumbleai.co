@@ -155,7 +155,8 @@ export default function ChatPage() {
         return res.data.id;
       } catch (e) {
         const msg = e.response?.data?.detail || "Failed to create conversation";
-        toast.error(msg);
+        const isCredits = e.response?.status === 402;
+        toast.error(msg, isCredits ? { action: { label: "Upgrade", onClick: () => navigate("/pricing") } } : {});
         return null;
       } finally {
         creatingConvRef.current = null;
@@ -178,7 +179,8 @@ export default function ChatPage() {
       setSidebarOpen(false);
     } catch (e) {
       const msg = e.response?.data?.detail || "Failed to create conversation";
-      toast.error(msg);
+      const isCredits = e.response?.status === 402;
+      toast.error(msg, isCredits ? { action: { label: "Upgrade", onClick: () => navigate("/pricing") } } : {});
     }
     finally { setCreatingChat(false); }
   };
@@ -302,7 +304,7 @@ export default function ChatPage() {
         playWithKaraoke(result.ai_audio_base64, result.ai_message.id, result.ai_message.content);
       }
     } catch (e) {
-      const isCreditsError = e?.response?.status === 402 || e?.message?.includes("402") || e?.message?.toLowerCase()?.includes("insufficient credits");
+      const isCreditsError = e?.status === 402 || e?.response?.status === 402 || e?.message?.includes("402") || e?.message?.toLowerCase()?.includes("insufficient credits");
       if (isCreditsError) {
         toast.error("You've run out of credits. Upgrade your plan to continue.", { action: { label: "Upgrade", onClick: () => navigate("/pricing") } });
       } else {

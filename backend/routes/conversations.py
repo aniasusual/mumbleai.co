@@ -100,7 +100,16 @@ async def _track_activity(user_text: str, tools_used: list, scenario: str = None
 
 @router.post("/conversations", response_model=ConversationResponse)
 async def create_conversation(data: ConversationCreate, user: dict = Depends(get_current_user)):
-    from services.credit_service import get_max_conversations
+    from services.credit_service import get_max_conversations, check_credits, InsufficientCreditsError
+
+    # Credit check — don't let users create conversations they can't use
+    try:
+        await check_credits(user["id"])
+    except InsufficientCreditsError:
+        raise HTTPException(
+            status_code=402,
+            detail="You're out of credits. Please upgrade your plan to start a new conversation."
+        )
 
     # Enforce conversation limit
     max_convs = await get_max_conversations(user["id"])
