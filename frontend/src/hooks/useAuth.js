@@ -66,6 +66,16 @@ export function AuthProvider({ children }) {
     return u;
   }, []);
 
+  const googleLogin = useCallback(async (credential) => {
+    const res = await api.post("/auth/google", { credential });
+    const { token: t, user: u } = res.data;
+    localStorage.setItem(TOKEN_KEY, t);
+    localStorage.setItem(USER_KEY, JSON.stringify(u));
+    setToken(t);
+    setUser(u);
+    return u;
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
@@ -75,7 +85,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, signup, googleLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );
