@@ -154,8 +154,10 @@ export const getProgress = () => api.get("/progress");
 // Payments
 export const getPlans = () => api.get("/payments/plans");
 export const getSubscription = () => api.get("/payments/subscription");
-export const createOrder = (plan) => api.post("/payments/create-order", { plan });
-export const verifyPayment = (data) => api.post("/payments/verify-payment", data);
+export const createSubscription = (plan) => api.post("/payments/create-subscription", { plan });
+export const verifySubscription = (data) => api.post("/payments/verify-subscription", data);
+export const cancelSubscription = () => api.post("/payments/cancel-subscription");
+export const changePlan = (plan) => api.post("/payments/change-plan", { plan });
 export const getCreditHistory = (page = 1, limit = 20, type = null) => {
   const params = { page, limit };
   if (type) params.type = type;
