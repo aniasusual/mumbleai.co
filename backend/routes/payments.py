@@ -151,12 +151,16 @@ async def verify_payment(
 
     now = datetime.now(timezone.utc).isoformat()
 
-    # Update or create subscription
+    # Get current credits to stack them
+    current_sub = await db.subscriptions.find_one({"user_id": user["id"]})
+    existing_credits = current_sub["credits"] if current_sub else 0
+
+    # Update or create subscription — credits stack on top of existing balance
     await db.subscriptions.update_one(
         {"user_id": user["id"]},
         {"$set": {
             "plan": req.plan,
-            "credits": plan["credits"],
+            "credits": existing_credits + plan["credits"],
             "max_conversations": plan["max_conversations"],
             "razorpay_payment_id": req.razorpay_payment_id,
             "razorpay_order_id": req.razorpay_order_id,
@@ -179,12 +183,12 @@ async def verify_payment(
         "created_at": now,
     })
 
-    logger.info(f"Payment verified for user {user['id']}, plan {req.plan}, credits {plan['credits']}")
+    logger.info(f"Payment verified for user {user['id']}, plan {req.plan}, credits {existing_credits}+{plan['credits']}={existing_credits + plan['credits']}")
 
     return {
         "status": "success",
         "plan": req.plan,
-        "credits": plan["credits"],
+        "credits": existing_credits + plan["credits"],
     }
 
 
