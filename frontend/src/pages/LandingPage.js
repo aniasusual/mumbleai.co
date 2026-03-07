@@ -10,6 +10,7 @@ import {
   Mic, ArrowRight, Brain, AudioLines, Target, Volume2,
   Briefcase, Plane, UtensilsCrossed, MessageSquare, GraduationCap,
   Sparkles, BookOpen, ChevronDown, Check, Zap, Crown,
+  Globe, Shield, Users, Clock,
 } from "lucide-react";
 
 /* ═══════════════════════════════════════════
@@ -216,6 +217,35 @@ function Navbar() {
 /* ═══════════════════════════════════════════
    HERO — mesh gradient + morphing text
    ═══════════════════════════════════════════ */
+
+function AnimatedStat({ value, label, delay }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
+  useEffect(() => {
+    if (!inView) return;
+    let start = 0;
+    const end = parseInt(value);
+    const duration = 1800;
+    const step = Math.max(1, Math.floor(end / (duration / 16)));
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= end) { start = end; clearInterval(timer); }
+      setCount(start);
+    }, 16);
+    return () => clearInterval(timer);
+  }, [inView, value]);
+
+  return (
+    <motion.div ref={ref} className="text-center"
+      initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ delay, duration: 0.5 }}>
+      <span className="text-2xl md:text-3xl font-bold text-indigo-600 tabular-nums" style={{ fontFamily: "Sora" }}>{count}+</span>
+      <p className="text-[11px] md:text-xs text-slate-500 mt-0.5">{label}</p>
+    </motion.div>
+  );
+}
+
 function HeroSection() {
   const navigate = useNavigate();
   const ref = useRef(null);
@@ -233,29 +263,36 @@ function HeroSection() {
         <motion.span
           className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-[11px] font-medium tracking-wider uppercase mb-8 border border-indigo-200 text-indigo-600 bg-indigo-50"
           initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
-          <Sparkles className="w-3 h-3" /> AI Language Tutor
+          <Sparkles className="w-3 h-3" /> AI-Powered Language Tutor
         </motion.span>
 
         <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-slate-900 mb-6" style={{ fontFamily: "Sora", lineHeight: 1.15 }}>
-          <WordReveal text="Say" as="span" className="block" />
-          <span className="block"><MorphingHello /></span>
-          <WordReveal text="in every language" as="span" className="block" />
+          <WordReveal text="Your AI Tutor" as="span" className="block" />
+          <span className="block">That <MorphingHello /></span>
+          <WordReveal text="Back" as="span" className="block" />
         </h1>
 
-        <motion.p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto mb-10"
+        <motion.p className="text-base md:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto mb-4"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>
-          Voice-first conversations with an AI that listens, corrects, and adapts.{" "}
-          <span className="text-emerald-600 font-semibold">50+ languages</span>. Real-time feedback.
+          Have real voice conversations with an AI that corrects your grammar, builds your vocabulary,
+          and adapts to your level.{" "}
+          <span className="text-emerald-600 font-semibold">50+ languages</span>. Real-time spoken feedback.
+        </motion.p>
+
+        <motion.p className="text-sm text-slate-400 mb-8"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.85 }}>
+          <Shield className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" />
+          Free to start — no credit card required
         </motion.p>
 
         {/* Sound wave */}
-        <motion.div className="flex justify-center mb-10"
+        <motion.div className="flex justify-center mb-8"
           initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.9, duration: 0.6 }}>
           <SoundWave barCount={32} color="#6366f1" height={40} />
         </motion.div>
 
-        <motion.div className="flex flex-col sm:flex-row gap-4 justify-center"
+        <motion.div className="flex flex-col sm:flex-row gap-4 justify-center mb-14"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1 }}>
           <motion.button onClick={() => navigate("/chat")}
             className="relative rounded-full px-9 py-4 text-sm font-semibold bg-indigo-600 text-white overflow-hidden group shadow-[0_4px_24px_rgba(99,102,241,0.35)]"
@@ -279,6 +316,14 @@ function HeroSection() {
             </span>
           </motion.button>
         </motion.div>
+
+        {/* Animated stats */}
+        <motion.div className="flex justify-center gap-10 md:gap-16"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.4 }}>
+          <AnimatedStat value="50" label="Languages" delay={1.5} />
+          <AnimatedStat value="4" label="AI Agents" delay={1.6} />
+          <AnimatedStat value="100" label="Free Credits" delay={1.7} />
+        </motion.div>
       </motion.div>
 
       <motion.div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10"
@@ -295,10 +340,10 @@ function HeroSection() {
    FEATURES — saturated green bg, inline rows
    ═══════════════════════════════════════════ */
 const FEATURES = [
-  { icon: Mic, label: "Voice-First", desc: "Speak naturally in any language. mumble listens, understands, and responds with natural voice.", accent: "#059669" },
-  { icon: AudioLines, label: "Karaoke Tracking", desc: "Every word highlights as the AI speaks — connecting sound to text in real-time.", accent: "#be185d" },
-  { icon: Brain, label: "Live AI Tools", desc: "Grammar, vocabulary, and pronunciation tools activate live as you talk.", accent: "#4338ca" },
-  { icon: GraduationCap, label: "Adaptive Curriculum", desc: "A study plan built around your goals that evolves as you improve.", accent: "#b45309" },
+  { icon: Mic, label: "Voice-First Learning", desc: "Speak naturally and hear instant spoken corrections. Like having a patient tutor who never judges — just helps you get better.", accent: "#059669" },
+  { icon: AudioLines, label: "Live Word Tracking", desc: "Every word highlights as the AI speaks, connecting sound to text so you absorb pronunciation and reading simultaneously.", accent: "#be185d" },
+  { icon: Brain, label: "Real-Time Corrections", desc: "Grammar, vocabulary, and pronunciation tools activate as you talk — corrections appear mid-conversation, not after a quiz.", accent: "#4338ca" },
+  { icon: GraduationCap, label: "Remembers Your Weaknesses", desc: "Your personal curriculum evolves with every session. It tracks mistakes, revisits weak spots, and levels up when you're ready.", accent: "#b45309" },
 ];
 
 function FeaturesSection() {
@@ -308,7 +353,7 @@ function FeaturesSection() {
         <Reveal>
           <span className="text-[13px] font-semibold tracking-wider uppercase mb-3 block text-emerald-700">Core Features</span>
         </Reveal>
-        <WordReveal text="Built different from day one" as="h2"
+        <WordReveal text="Everything you need to speak confidently" as="h2"
           className="text-3xl md:text-5xl font-bold tracking-tight text-emerald-950 mb-14" />
         <div>
           {FEATURES.map((f, i) => (
@@ -323,24 +368,33 @@ function FeaturesSection() {
 function FeatureStrip({ f, i, isLast }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
+  const [hovered, setHovered] = useState(false);
   return (
     <motion.div ref={ref}
       className={`group py-7 md:py-9 ${!isLast ? "border-b border-emerald-300/40" : ""}`}
       initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
       animate={inView ? { opacity: 1, x: 0 } : {}}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}>
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}>
       <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-8">
-        <div className="flex items-center gap-4 md:w-64 flex-shrink-0">
-          <span className="text-[11px] font-mono text-emerald-600/50">0{i + 1}</span>
-          <motion.div whileHover={{ scale: 1.2, rotate: 8 }}
+        <div className="flex items-center gap-4 md:w-72 flex-shrink-0">
+          <motion.span className="text-[11px] font-mono text-emerald-600/50"
+            animate={hovered ? { scale: 1.2, color: f.accent } : { scale: 1 }}
+            transition={{ duration: 0.2 }}>0{i + 1}</motion.span>
+          <motion.div
+            animate={hovered ? { scale: 1.3, rotate: 12, color: f.accent } : { scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 15 }}>
             <f.icon className="w-5 h-5" style={{ color: f.accent }} />
           </motion.div>
           <h3 className="text-lg md:text-xl font-semibold tracking-tight text-emerald-950" style={{ fontFamily: "Sora" }}>{f.label}</h3>
         </div>
         <p className="text-sm md:text-[15px] leading-relaxed md:flex-1 max-w-xl text-emerald-800/70">{f.desc}</p>
-        <motion.div className="hidden md:block w-10 h-[2px] rounded-full flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-400"
-          style={{ background: f.accent }} />
+        <motion.div className="hidden md:block w-16 h-[3px] rounded-full flex-shrink-0 origin-left"
+          style={{ background: f.accent }}
+          initial={{ scaleX: 0, opacity: 0 }}
+          animate={hovered ? { scaleX: 1, opacity: 1 } : { scaleX: 0, opacity: 0 }}
+          transition={{ duration: 0.35, ease: "easeOut" }} />
       </div>
     </motion.div>
   );
@@ -350,10 +404,10 @@ function FeatureStrip({ f, i, isLast }) {
    HOW IT WORKS — blue bg, timeline
    ═══════════════════════════════════════════ */
 const STEPS = [
-  { icon: Target, title: "Speak naturally", desc: "Talk in your target language. mumble transcribes and understands your intent." },
-  { icon: Brain, title: "AI analyzes in real-time", desc: "Grammar, vocabulary, and pronunciation tools activate behind the scenes." },
-  { icon: Volume2, title: "Get spoken feedback", desc: "Hear corrections with karaoke-style word highlights." },
-  { icon: GraduationCap, title: "Level up automatically", desc: "Your curriculum adapts and lessons get harder as you improve." },
+  { icon: Target, title: "Just start talking", desc: "Open a conversation, pick your language, and speak. No textbooks, no drills — just talk like you would to a friend." },
+  { icon: Brain, title: "AI listens and understands", desc: "Your Tutor agent transcribes speech, spots grammar mistakes, identifies new vocabulary, and figures out what you're trying to say." },
+  { icon: Volume2, title: "Get spoken feedback instantly", desc: "Hear corrections with word-by-word highlights. Your Tester agent quizzes you, and the Revision Coach helps you practice weak spots." },
+  { icon: GraduationCap, title: "Watch yourself improve", desc: "Your Planner agent builds a curriculum that evolves with you — harder lessons as you improve, extra practice where you struggle." },
 ];
 
 function HowItWorksSection() {
@@ -385,12 +439,19 @@ function TimelineStep({ s, i }) {
     <motion.div ref={ref} className="relative flex gap-6 md:gap-9"
       initial={{ opacity: 0, y: 24 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ delay: i * 0.1, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}>
+      transition={{ delay: i * 0.15, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}>
       <div className="relative z-10 flex-shrink-0 w-12 md:w-14 flex items-start justify-center pt-0.5">
-        <motion.div className="w-11 h-11 rounded-full flex items-center justify-center bg-white border-2 border-blue-200 shadow-sm"
-          whileHover={{ scale: 1.1, boxShadow: "0 4px 16px rgba(59,130,246,0.2)" }}
+        <motion.div className="w-11 h-11 rounded-full flex items-center justify-center bg-white border-2 border-blue-200 shadow-sm relative"
+          whileHover={{ scale: 1.15, boxShadow: "0 4px 16px rgba(59,130,246,0.25)" }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}>
           <s.icon className="w-5 h-5 text-blue-600" />
+          {/* Pulse ring on appear */}
+          {inView && (
+            <motion.span className="absolute inset-0 rounded-full border-2 border-blue-300"
+              initial={{ scale: 1, opacity: 0.6 }}
+              animate={{ scale: 1.6, opacity: 0 }}
+              transition={{ delay: i * 0.15 + 0.3, duration: 0.8, ease: "easeOut" }} />
+          )}
         </motion.div>
       </div>
       <div className="pb-1">
@@ -407,19 +468,46 @@ function TimelineStep({ s, i }) {
    ═══════════════════════════════════════════ */
 const DEMO_MSGS = [
   { role: "user", text: "How do I say 'I am happy' in Spanish?" },
-  { role: "tool", text: "Analyzing grammar..." },
+  { role: "tool", text: "Checking grammar patterns..." },
   { role: "tool", text: "Looking up vocabulary..." },
   { role: "ai", text: '"Estoy feliz" — estar is used for emotions because they are temporary states.' },
 ];
+
+function TypingIndicator() {
+  return (
+    <div className="flex items-center gap-1 px-3 py-1.5">
+      {[0, 1, 2].map(i => (
+        <motion.div key={i} className="w-1.5 h-1.5 rounded-full bg-violet-400"
+          animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
+          transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }} />
+      ))}
+    </div>
+  );
+}
 
 function DemoChat() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
   const [count, setCount] = useState(0);
+  const [showTyping, setShowTyping] = useState(false);
   useEffect(() => {
     if (!inView) return;
     let idx = 0;
-    const t = setInterval(() => { idx++; setCount(idx); if (idx >= DEMO_MSGS.length) clearInterval(t); }, 1000);
+    const show = () => {
+      if (idx >= DEMO_MSGS.length) return;
+      if (DEMO_MSGS[idx].role === "ai") {
+        setShowTyping(true);
+        setTimeout(() => {
+          setShowTyping(false);
+          idx++; setCount(idx);
+        }, 800);
+      } else {
+        idx++; setCount(idx);
+        setTimeout(show, 900);
+      }
+    };
+    setTimeout(show, 600);
+    const t = setInterval(show, 1200);
     return () => clearInterval(t);
   }, [inView]);
 
@@ -457,6 +545,7 @@ function DemoChat() {
           </motion.div>
         );
       })}
+      {showTyping && <TypingIndicator />}
     </div>
   );
 }
@@ -474,9 +563,29 @@ function DemoSection() {
             <WordReveal text="A conversation, not a classroom" as="h2"
               className="text-3xl md:text-5xl font-bold tracking-tight text-violet-950 mb-5" />
             <Reveal delay={0.15}>
-              <p className="text-[15px] leading-relaxed mb-8 text-violet-800/60">
-                Ask anything. mumble responds with context-aware corrections, vocabulary insights, and pronunciation guides — streamed in real-time.
+              <p className="text-[15px] leading-relaxed mb-5 text-violet-800/60">
+                Ask anything. mumble responds with context-aware corrections, vocabulary insights, and pronunciation guides — all streamed in real-time.
               </p>
+            </Reveal>
+            <Reveal delay={0.2}>
+              <div className="flex flex-wrap gap-2 mb-8">
+                {[
+                  { label: "Tutor", desc: "teaches & corrects", color: "#6366f1" },
+                  { label: "Planner", desc: "builds your path", color: "#059669" },
+                  { label: "Tester", desc: "quizzes you", color: "#be185d" },
+                  { label: "Revision", desc: "reviews mistakes", color: "#b45309" },
+                ].map((agent, i) => (
+                  <motion.div key={agent.label}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/60 backdrop-blur-sm border border-violet-200/50"
+                    initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }} transition={{ delay: 0.3 + i * 0.08 }}
+                    whileHover={{ scale: 1.06, borderColor: agent.color }}>
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: agent.color }} />
+                    <span className="text-xs font-semibold" style={{ color: agent.color }}>{agent.label}</span>
+                    <span className="text-[10px] text-violet-500/60">{agent.desc}</span>
+                  </motion.div>
+                ))}
+              </div>
             </Reveal>
             <Reveal delay={0.25}>
               <motion.button onClick={() => navigate("/chat")}
@@ -506,10 +615,11 @@ function DemoSection() {
    ═══════════════════════════════════════════ */
 const SCENARIOS = [
   { icon: Briefcase, label: "Job Interview", color: "#b45309" },
-  { icon: Plane, label: "Travel", color: "#059669" },
-  { icon: UtensilsCrossed, label: "Restaurant", color: "#be185d" },
+  { icon: Plane, label: "Travel Abroad", color: "#059669" },
+  { icon: UtensilsCrossed, label: "Ordering Food", color: "#be185d" },
   { icon: MessageSquare, label: "Small Talk", color: "#4338ca" },
-  { icon: BookOpen, label: "Business", color: "#c2410c" },
+  { icon: BookOpen, label: "Business Meeting", color: "#c2410c" },
+  { icon: Users, label: "Making Friends", color: "#7c3aed" },
 ];
 
 function ScenariosSection() {
@@ -525,7 +635,7 @@ function ScenariosSection() {
         <WordReveal text="Real conversations for real life" as="h2"
           className="text-3xl md:text-5xl font-bold tracking-tight text-amber-950 mb-4" />
         <Reveal delay={0.1}>
-          <p className="text-[15px] max-w-xl text-amber-800/60">Pick a scenario and mumble drops you into a realistic conversation.</p>
+          <p className="text-[15px] max-w-xl text-amber-800/60">Pick a scenario and mumble drops you into a realistic role-play. Practice ordering coffee in Paris or nailing a job interview in Tokyo.</p>
         </Reveal>
       </div>
       <div className="max-w-4xl mx-auto px-6">
@@ -757,8 +867,8 @@ function CTASection() {
           className="text-4xl md:text-6xl font-bold tracking-tighter text-slate-900 mb-5" />
         <Reveal delay={0.15}>
           <p className="text-lg text-slate-600 leading-relaxed max-w-xl mx-auto mb-10">
-            The best way to learn a language is to use it. mumble gives you a patient,
-            always-available partner who adapts to <span className="text-emerald-600 font-semibold">your</span> level.
+            Language apps teach you to tap buttons. mumble teaches you to <span className="text-emerald-600 font-semibold">actually talk</span>.
+            100 free credits. 4 AI agents. Start in 10 seconds.
           </p>
         </Reveal>
         <Reveal delay={0.25}>
