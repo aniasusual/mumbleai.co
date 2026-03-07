@@ -885,6 +885,7 @@ const PRICING_PLANS = [
     id: "free",
     name: "Free",
     price: 0,
+    priceDisplay: "Free",
     credits: 100,
     accent: "#6366f1",
     accentLight: "rgba(99,102,241,0.1)",
@@ -896,7 +897,8 @@ const PRICING_PLANS = [
   {
     id: "plus",
     name: "Plus",
-    price: 14.99,
+    price: 1199,
+    priceDisplay: "1,199",
     credits: 1000,
     accent: "#be185d",
     accentLight: "rgba(190,24,93,0.08)",
@@ -908,7 +910,8 @@ const PRICING_PLANS = [
   {
     id: "pro",
     name: "Pro",
-    price: 29.99,
+    price: 2499,
+    priceDisplay: "2,499",
     credits: 5000,
     accent: "#7c3aed",
     accentLight: "rgba(124,58,237,0.08)",
@@ -969,9 +972,14 @@ function PricingCard({ plan, i }) {
       </div>
 
       <div className="mb-1">
-        <span className="text-4xl font-bold tracking-tight text-slate-900" style={{ fontFamily: "Sora" }}>
-          {plan.price === 0 ? "$0" : `$${plan.price}`}
-        </span>
+        {plan.price === 0 ? (
+          <span className="text-4xl font-bold tracking-tight text-slate-900" style={{ fontFamily: "Sora" }}>Free</span>
+        ) : (
+          <>
+            <span className="text-sm text-slate-400 mr-0.5">Rs</span>
+            <span className="text-4xl font-bold tracking-tight text-slate-900" style={{ fontFamily: "Sora" }}>{plan.priceDisplay}</span>
+          </>
+        )}
         <span className="text-sm text-slate-400 ml-1">/month</span>
       </div>
       <p className="text-sm text-slate-500 mb-6">{plan.credits.toLocaleString()} credits/month</p>
