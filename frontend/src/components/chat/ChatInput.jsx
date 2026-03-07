@@ -1,6 +1,44 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Square, Send, Loader2, Info } from "lucide-react";
+import { Mic, Square, Send, Loader2, Info, Coins } from "lucide-react";
+import { getSubscription } from "@/lib/api";
+
+const CreditPill = () => {
+  const [sub, setSub] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetch = () => getSubscription().then(r => setSub(r.data)).catch(() => {});
+    fetch();
+    const iv = setInterval(fetch, 20000);
+    return () => clearInterval(iv);
+  }, []);
+
+  if (!sub) return null;
+
+  const maxCredits = sub.plan === "free" ? 100 : sub.plan === "plus" ? 1000 : 5000;
+  const pct = sub.credits / maxCredits;
+  const isLow = pct <= 0.1;
+  const color = isLow ? "#ef4444" : pct <= 0.3 ? "#f59e0b" : "#6366f1";
+
+  return (
+    <motion.button
+      onClick={() => navigate("/pricing")}
+      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-all hover:opacity-80"
+      style={{
+        background: isLow ? "rgba(239,68,68,0.08)" : "rgba(99,102,241,0.06)",
+        border: `1px solid ${isLow ? "rgba(239,68,68,0.15)" : "rgba(99,102,241,0.1)"}`,
+      }}
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.97 }}
+      data-testid="chat-credit-pill"
+    >
+      <Coins className="w-3 h-3 flex-shrink-0" style={{ color }} />
+      <span className="text-[11px] font-semibold tabular-nums" style={{ color }}>{sub.credits}</span>
+    </motion.button>
+  );
+};
 
 const VoiceVisualizer = ({ isRecording, audioLevel }) => (
   <div className="flex items-center justify-center gap-1 h-16" data-testid="voice-visualizer">
@@ -227,6 +265,7 @@ export const ChatInput = ({
                   />
                 )}
               </motion.button>
+              <CreditPill />
             </div>
             <p className="text-xs text-slate-400">{isRecording ? "Tap to stop & send" : "Tap to start speaking"}</p>
           </div>
@@ -254,6 +293,7 @@ export const ChatInput = ({
                 data-testid="chat-input"
               />
             </motion.div>
+            <CreditPill />
             <motion.button
               onClick={onSendText}
               disabled={!input.trim() || sending}
