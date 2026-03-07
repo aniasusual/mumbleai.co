@@ -143,27 +143,27 @@ function SoundWave({ barCount = 24, color = "#6366f1", height = 48 }) {
 /* ═══════════════════════════════════════════
    MORPHING HELLO TEXT
    ═══════════════════════════════════════════ */
-const HELLOS = ["Hello", "Bonjour", "Hola", "Ciao", "こんにちは", "Hallo", "Olá", "안녕", "مرحبا", "Привет"];
+const LANGUAGES_CYCLE = ["Spanish", "French", "Japanese", "German", "Italian", "Korean", "Arabic", "Portuguese", "Mandarin", "Hindi"];
+const LANG_COLORS = ["#4f46e5", "#be185d", "#059669", "#b45309", "#dc2626", "#7c3aed", "#0284c7", "#c2410c", "#059669", "#be185d"];
 
-function MorphingHello() {
+function LanguageCarousel() {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setIdx(p => (p + 1) % HELLOS.length), 2200);
+    const t = setInterval(() => setIdx(p => (p + 1) % LANGUAGES_CYCLE.length), 2400);
     return () => clearInterval(t);
   }, []);
 
   return (
-    <span className="inline-block relative h-[1.35em] overflow-hidden align-bottom">
-      {/* Invisible sizer — gives the container the exact width of the current word */}
-      <span className="invisible whitespace-nowrap">{HELLOS[idx]}</span>
+    <span className="inline-flex relative h-[1.2em] overflow-hidden align-bottom min-w-[3ch]">
       <AnimatePresence mode="wait">
         <motion.span key={idx}
-          className="absolute inset-0 whitespace-nowrap bg-gradient-to-r from-indigo-600 via-pink-500 to-emerald-500 bg-clip-text text-transparent"
-          initial={{ y: 40, opacity: 0, filter: "blur(4px)" }}
-          animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-          exit={{ y: -40, opacity: 0, filter: "blur(4px)" }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        >{HELLOS[idx]}</motion.span>
+          className="font-bold whitespace-nowrap"
+          style={{ color: LANG_COLORS[idx] }}
+          initial={{ y: "100%", opacity: 0, rotateX: -45 }}
+          animate={{ y: "0%", opacity: 1, rotateX: 0 }}
+          exit={{ y: "-100%", opacity: 0, rotateX: 45 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        >{LANGUAGES_CYCLE[idx]}</motion.span>
       </AnimatePresence>
     </span>
   );
@@ -267,9 +267,14 @@ function HeroSection() {
         </motion.span>
 
         <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-slate-900 mb-6" style={{ fontFamily: "Sora", lineHeight: 1.15 }}>
-          <WordReveal text="Your AI Tutor" as="span" className="block" />
-          <span className="block">That <MorphingHello /></span>
-          <WordReveal text="Back" as="span" className="block" />
+          <motion.span className="block"
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            Learn <LanguageCarousel />
+          </motion.span>
+          <motion.span className="block text-slate-400"
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.6 }}>
+            by actually speaking it
+          </motion.span>
         </h1>
 
         <motion.p className="text-base md:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto mb-4"
