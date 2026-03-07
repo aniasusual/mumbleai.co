@@ -469,6 +469,200 @@ function TimelineStep({ s, i }) {
 }
 
 /* ═══════════════════════════════════════════
+   AGENTS — Meet Your AI Team
+   ═══════════════════════════════════════════ */
+const AGENTS = [
+  {
+    name: "Tutor",
+    role: "Your conversation partner",
+    desc: "Teaches you through natural conversation. Corrects grammar in real-time, introduces new vocabulary in context, and adjusts difficulty based on how you're doing. Like having a native speaker friend who's also a teacher.",
+    icon: MessageSquare,
+    color: "#6366f1",
+    bg: "rgba(99,102,241,0.06)",
+    border: "rgba(99,102,241,0.12)",
+    features: ["Real-time grammar correction", "Vocabulary building in context", "Adaptive difficulty"],
+  },
+  {
+    name: "Planner",
+    role: "Your curriculum designer",
+    desc: "Asks about your goals, timeline, and interests — then builds a personalized lesson plan. Learning for a trip to Tokyo? It'll prioritize travel phrases. Preparing for a job interview? It'll focus on formal language.",
+    icon: Target,
+    color: "#059669",
+    bg: "rgba(5,150,105,0.06)",
+    border: "rgba(5,150,105,0.12)",
+    features: ["Goal-based curriculum", "Personalized lesson plans", "Adapts as you progress"],
+  },
+  {
+    name: "Tester",
+    role: "Your quiz master",
+    desc: "After your tutor session, the Tester steps in with quizzes based on exactly what you just learned. It scores your performance, identifies weak spots, and tells you what to focus on next.",
+    icon: Zap,
+    color: "#be185d",
+    bg: "rgba(190,24,93,0.06)",
+    border: "rgba(190,24,93,0.12)",
+    features: ["Context-aware quizzes", "Performance scoring", "Weakness identification"],
+  },
+  {
+    name: "Revision Coach",
+    role: "Your mistake fixer",
+    desc: "Takes your test results and drills the specific words and concepts you got wrong. Re-explains grammar rules, creates targeted exercises, and doesn't move on until you've genuinely improved.",
+    icon: BookOpen,
+    color: "#b45309",
+    bg: "rgba(180,67,9,0.06)",
+    border: "rgba(180,67,9,0.12)",
+    features: ["Targeted mistake drilling", "Concept re-teaching", "Confidence building"],
+  },
+];
+
+function AgentCard({ agent, index }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <motion.div ref={ref}
+      className="relative rounded-2xl p-6 md:p-7 overflow-hidden cursor-default"
+      style={{
+        background: hovered ? agent.bg : "rgba(255,255,255,0.6)",
+        border: `1px solid ${hovered ? agent.border : "rgba(0,0,0,0.04)"}`,
+        backdropFilter: "blur(12px)",
+      }}
+      initial={{ opacity: 0, y: 30 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ delay: index * 0.12, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      whileHover={{ y: -4, boxShadow: `0 12px 40px ${agent.bg}` }}
+      data-testid={`agent-card-${agent.name.toLowerCase()}`}
+    >
+      {/* Active indicator line */}
+      <motion.div className="absolute top-0 left-0 right-0 h-[3px] origin-left"
+        style={{ background: agent.color }}
+        initial={{ scaleX: 0 }}
+        animate={hovered ? { scaleX: 1 } : { scaleX: 0 }}
+        transition={{ duration: 0.35 }} />
+
+      <div className="flex items-start gap-4 mb-4">
+        <motion.div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: agent.bg, border: `1px solid ${agent.border}` }}
+          animate={hovered ? { scale: 1.1, rotate: 6 } : { scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+          <agent.icon className="w-5 h-5" style={{ color: agent.color }} />
+        </motion.div>
+        <div>
+          <h3 className="text-lg font-bold tracking-tight" style={{ fontFamily: "Sora", color: agent.color }}>{agent.name}</h3>
+          <p className="text-xs text-slate-500">{agent.role}</p>
+        </div>
+      </div>
+
+      <p className="text-sm leading-relaxed text-slate-600 mb-5">{agent.desc}</p>
+
+      <div className="space-y-2">
+        {agent.features.map((f, i) => (
+          <motion.div key={f} className="flex items-center gap-2"
+            initial={{ opacity: 0, x: -8 }}
+            animate={inView ? { opacity: 1, x: 0 } : {}}
+            transition={{ delay: index * 0.12 + 0.3 + i * 0.06 }}>
+            <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: agent.color }} />
+            <span className="text-xs text-slate-500">{f}</span>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Floating pulse on hover */}
+      <AnimatePresence>
+        {hovered && (
+          <motion.div className="absolute -bottom-8 -right-8 w-24 h-24 rounded-full"
+            style={{ background: agent.color, opacity: 0.04 }}
+            initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+            transition={{ duration: 0.3 }} />
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+function AgentFlowArrow() {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
+  return (
+    <motion.div ref={ref} className="hidden lg:flex items-center justify-center py-8"
+      initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}} transition={{ delay: 0.6, duration: 0.5 }}>
+      <div className="flex items-center gap-3">
+        {AGENTS.map((agent, i) => (
+          <div key={agent.name} className="flex items-center gap-3">
+            <motion.div className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ background: agent.bg, border: `1.5px solid ${agent.border}` }}
+              animate={{ scale: [1, 1.15, 1] }}
+              transition={{ delay: i * 0.4, duration: 1.5, repeat: Infinity, repeatDelay: 4 }}>
+              <agent.icon className="w-3.5 h-3.5" style={{ color: agent.color }} />
+            </motion.div>
+            {i < AGENTS.length - 1 && (
+              <motion.div className="flex items-center gap-0.5"
+                initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}} transition={{ delay: 0.8 + i * 0.2 }}>
+                {[0, 1, 2].map(d => (
+                  <motion.div key={d} className="w-1.5 h-1.5 rounded-full bg-slate-300"
+                    animate={{ opacity: [0.3, 1, 0.3] }}
+                    transition={{ delay: d * 0.15 + i * 0.3, duration: 1.2, repeat: Infinity }} />
+                ))}
+              </motion.div>
+            )}
+          </div>
+        ))}
+      </div>
+      <span className="text-[10px] text-slate-400 ml-4 tracking-wider uppercase">Learning cycle</span>
+    </motion.div>
+  );
+}
+
+function AgentsSection() {
+  return (
+    <section className="relative py-24 md:py-32" style={{ background: "linear-gradient(180deg, #eef2ff 0%, #f5f3ff 50%, #faf5ff 100%)" }} data-testid="agents-section">
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="text-center mb-6">
+          <Reveal>
+            <span className="text-[13px] font-semibold tracking-wider uppercase mb-3 block text-indigo-600">4 Specialized AI Agents</span>
+          </Reveal>
+          <WordReveal text="Meet your AI teaching team" as="h2"
+            className="text-3xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4" />
+          <Reveal delay={0.1}>
+            <p className="text-[15px] max-w-2xl mx-auto text-slate-500 leading-relaxed">
+              Not one generic chatbot — <span className="font-semibold text-slate-700">four specialized agents</span> that work together.
+              Each one handles a different part of your learning journey, seamlessly handing off to the next.
+            </p>
+          </Reveal>
+        </div>
+
+        <AgentFlowArrow />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {AGENTS.map((agent, i) => <AgentCard key={agent.name} agent={agent} index={i} />)}
+        </div>
+
+        {/* Bottom flow description */}
+        <Reveal delay={0.3}>
+          <div className="mt-10 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 backdrop-blur-sm border border-indigo-100">
+              <Globe className="w-3.5 h-3.5 text-indigo-500" />
+              <span className="text-xs text-slate-600">
+                <span className="font-semibold text-indigo-600">Learn</span> with the Tutor
+                <span className="mx-1.5 text-slate-300">&#8594;</span>
+                <span className="font-semibold text-emerald-600">Plan</span> your path
+                <span className="mx-1.5 text-slate-300">&#8594;</span>
+                <span className="font-semibold text-pink-600">Test</span> your knowledge
+                <span className="mx-1.5 text-slate-300">&#8594;</span>
+                <span className="font-semibold text-amber-600">Review</span> and improve
+              </span>
+              <Clock className="w-3.5 h-3.5 text-indigo-500" />
+            </div>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════
    DEMO — violet bg, chat messages
    ═══════════════════════════════════════════ */
 const DEMO_MSGS = [
@@ -929,6 +1123,7 @@ export default function LandingPage() {
       <HeroSection />
       <FeaturesSection />
       <HowItWorksSection />
+      <AgentsSection />
       <DemoSection />
       <ScenariosSection />
       <PricingSection />
