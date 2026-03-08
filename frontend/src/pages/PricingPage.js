@@ -20,22 +20,22 @@ const PLAN_FEATURES = [
 
 const PLANS = [
   {
-    id: "free", name: "Free", price: 0, priceDisplay: "Free", credits: 100,
+    id: "free", name: "Free", price: 0, priceDisplay: "Free", credits: 500,
     accent: "#6366f1", accentLight: "rgba(99,102,241,0.1)", borderColor: "rgba(99,102,241,0.2)",
     icon: Sparkles, highlight: false,
-    extras: ["Up to 3 active conversations", "~20 voice or ~50 text turns/month"],
+    extras: ["Up to 3 active conversations", "~5 full learning sessions"],
   },
   {
-    id: "plus", name: "Plus", price: 1199, priceDisplay: "1,199", credits: 1000,
+    id: "plus", name: "Plus", price: 1199, priceDisplay: "1,199", credits: 3000,
     accent: "#be185d", accentLight: "rgba(190,24,93,0.08)", borderColor: "rgba(190,24,93,0.25)",
     icon: Zap, highlight: true,
-    extras: ["Up to 10 active conversations", "~200 voice or ~500 text turns/month"],
+    extras: ["Up to 10 active conversations", "~500 text or ~200 voice turns/month"],
   },
   {
-    id: "pro", name: "Pro", price: 2499, priceDisplay: "2,499", credits: 5000,
+    id: "pro", name: "Pro", price: 2499, priceDisplay: "2,499", credits: 7000,
     accent: "#7c3aed", accentLight: "rgba(124,58,237,0.08)", borderColor: "rgba(124,58,237,0.25)",
     icon: Crown, highlight: false,
-    extras: ["Unlimited conversations", "~1,000 voice or ~2,500 text turns/month", "Priority response"],
+    extras: ["Unlimited conversations", "~1,200 text or ~500 voice turns/month", "Priority response"],
   },
 ];
 
@@ -170,7 +170,7 @@ export default function PricingPage() {
       const res = await getSubscription();
       setSubscription(res.data);
     } catch {
-      setSubscription({ plan: "free", credits: 100 });
+      setSubscription({ plan: "free", credits: 500 });
     }
     setPageLoading(false);
   }, []);

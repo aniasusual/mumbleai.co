@@ -26,7 +26,7 @@ async def get_user_credits(user_id: str) -> int:
         sub = {
             "user_id": user_id,
             "plan": "free",
-            "credits": 100,
+            "credits": 500,
             "max_conversations": 3,
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
