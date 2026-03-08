@@ -35,6 +35,8 @@ Build a conversational agent "mumble" that acts as a personal language tutor wit
 - Admin credit top-up endpoint
 - Landing page with agent showcase, pricing, scenarios, demo
 - Webhook for recurring charges and cancellation
+- Live Razorpay plans created (Plus: plan_SOcRQ3oCCMEKF2, Pro: plan_SOcRR1Vw5s36hF)
+- **Proficiency-aware teaching system** (Feb 2026): Detailed level-specific instructions for all 4 agents (Tutor, Planner, Testing, Revision) covering language mix, word introductions, pronunciation, scaffolding, grammar, encouragement. Error correction remains user-decided (strict/balanced/relaxed).
 
 ## Backlog
 - **P1**: Progress Journal — weekly learning summaries
