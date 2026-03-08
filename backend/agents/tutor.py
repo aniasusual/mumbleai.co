@@ -10,7 +10,7 @@ from typing import Optional
 from agents.llm import llm_call, llm_call_stream, consume_stream
 from agents.tools import MAIN_AGENT_TOOLS
 from agents.tool_executor import execute_tool, TOOL_LABELS
-from agents.prompts import build_tutor_system_prompt, build_curriculum_context
+from agents.prompts import build_tutor_system_prompt, build_curriculum_context, build_proficiency_block
 from languages import get_language_name
 
 logger = logging.getLogger(__name__)
@@ -35,8 +35,9 @@ class LanguageTutorAgent:
         self.curriculum = curriculum
 
         self.system_prompt = build_tutor_system_prompt(native_language, target_language)
+        same_language = native_language == target_language
         if proficiency_level:
-            self.system_prompt += f"\n\n## User's Proficiency: {proficiency_level.upper()}\nAdapt all content to {proficiency_level} level."
+            self.system_prompt += build_proficiency_block(proficiency_level, self.native_name, self.target_name, same_language)
         if curriculum and curriculum.get("lessons"):
             self.system_prompt += build_curriculum_context(curriculum)
             # Override the "curriculum required" guard — planning is DONE

@@ -1,0 +1,162 @@
+{
+  "summary": "Tested proficiency-aware teaching system across all 4 agents (Tutor, Planner, Testing, Revision). Backend: 40/41 tests passed (1 skip - no /api/health endpoint). Frontend: Landing, auth, and chat pages load correctly. All proficiency-specific prompts correctly built for beginner/intermediate/advanced levels.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/health", "issue": "Health check endpoint returns 404 - NOT part of proficiency changes, just missing endpoint"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend_tests": {
+      "status": "40 PASSED, 1 FAILED (non-critical)",
+      "test_file": "/app/backend/tests/test_proficiency_prompts.py",
+      "categories": {
+        "TestBuildProficiencyBlock (16 tests)": [
+          "test_build_proficiency_block_returns_empty_for_none_level: PASSED",
+          "test_build_proficiency_block_returns_empty_for_empty_level: PASSED",
+          "test_beginner_different_language_has_80_20_mix: PASSED",
+          "test_beginner_same_language_no_mix_ratio: PASSED",
+          "test_intermediate_different_language_has_50_50_mix: PASSED",
+          "test_intermediate_same_language_no_mix_ratio: PASSED",
+          "test_advanced_different_language_has_90_plus_target: PASSED",
+          "test_advanced_same_language_no_mix_ratio: PASSED",
+          "test_beginner_has_word_introductions_section: PASSED",
+          "test_beginner_has_pronunciation_section: PASSED",
+          "test_beginner_has_scaffolding_section: PASSED",
+          "test_beginner_has_grammar_section: PASSED",
+          "test_beginner_has_encouragement_section: PASSED",
+          "test_intermediate_has_open_ended_prompts: PASSED",
+          "test_advanced_has_peer_treatment: PASSED",
+          "test_unknown_level_returns_empty: PASSED"
+        ],
+        "TestTutorAgentProficiencyIntegration (5 tests)": [
+          "test_tutor_agent_includes_proficiency_block_for_beginner: PASSED",
+          "test_tutor_agent_includes_proficiency_block_for_intermediate: PASSED",
+          "test_tutor_agent_includes_proficiency_block_for_advanced: PASSED",
+          "test_tutor_agent_no_proficiency_block_when_none: PASSED",
+          "test_tutor_agent_same_language_beginner: PASSED"
+        ],
+        "TestPlannerAgentProficiencyCurriculumGuide (4 tests)": [
+          "test_planner_beginner_has_curriculum_guide: PASSED",
+          "test_planner_intermediate_has_curriculum_guide: PASSED",
+          "test_planner_advanced_has_curriculum_guide: PASSED",
+          "test_planner_unknown_level_no_curriculum_guide: PASSED"
+        ],
+        "TestTestingAgentProficiencyTestGuide (4 tests)": [
+          "test_testing_agent_beginner_has_test_guide: PASSED",
+          "test_testing_agent_intermediate_has_test_guide: PASSED",
+          "test_testing_agent_advanced_has_test_guide: PASSED",
+          "test_testing_agent_unknown_level_no_test_guide: PASSED"
+        ],
+        "TestRevisionAgentProficiencyRevisionGuide (4 tests)": [
+          "test_revision_agent_beginner_has_revision_guide: PASSED",
+          "test_revision_agent_intermediate_has_revision_guide: PASSED",
+          "test_revision_agent_advanced_has_revision_guide: PASSED",
+          "test_revision_agent_unknown_level_no_revision_guide: PASSED"
+        ],
+        "TestBackendAPIHealth (2 tests)": [
+          "test_backend_health_check: FAILED (404 - endpoint doesn't exist)",
+          "test_auth_login: PASSED"
+        ],
+        "TestConversationCreationAndProficiency (5 tests)": [
+          "test_create_conversation_success: PASSED",
+          "test_set_proficiency_level_beginner: PASSED",
+          "test_set_proficiency_level_intermediate: PASSED",
+          "test_set_proficiency_level_advanced: PASSED",
+          "test_set_proficiency_level_invalid_defaults_to_beginner: PASSED"
+        ],
+        "TestMessageStreamEndpoint (1 test)": [
+          "test_message_stream_returns_sse: PASSED"
+        ]
+      }
+    },
+    "frontend_tests": {
+      "landing_page": "PASSED - Loads with mumble branding, Get Started button, 50+ Languages badge",
+      "auth_page": "PASSED - Login form with email/password fields and Log In button",
+      "chat_page": "PASSED - Shows user greeting, language selectors, Start a Free Conversation, scenario buttons"
+    }
+  },
+  "features_verified": [
+    "build_proficiency_block() returns empty string for None/empty level",
+    "build_proficiency_block() returns 80% native / 20% target for BEGINNER (different languages)",
+    "build_proficiency_block() returns 50% native / 50% target for INTERMEDIATE (different languages)",
+    "build_proficiency_block() returns 90%+ target for ADVANCED (different languages)",
+    "build_proficiency_block() omits language mix ratio for same-language sessions",
+    "Beginner block includes: Word Introductions, Pronunciation, Scaffolding, Grammar, Encouragement sections",
+    "Intermediate block includes: open-ended prompts instruction",
+    "Advanced block includes: peer treatment instruction",
+    "LanguageTutorAgent.system_prompt includes proficiency block when level is set",
+    "LanguageTutorAgent.system_prompt excludes proficiency block when level is None",
+    "CurriculumPlannerAgent._build_system_prompt() includes 'Curriculum Design for BEGINNER/INTERMEDIATE/ADVANCED'",
+    "TestingAgent._build_system_prompt() includes 'Testing Style for BEGINNER/INTERMEDIATE/ADVANCED'",
+    "RevisionAgent._build_system_prompt() includes 'Revision Style for BEGINNER/INTERMEDIATE/ADVANCED'",
+    "POST /api/conversations creates conversation with proficiency_level=None initially",
+    "PATCH /api/conversations/{id}/proficiency saves proficiency level (beginner/intermediate/advanced)",
+    "Invalid proficiency level defaults to 'beginner'",
+    "POST /api/conversations/{id}/messages/stream returns SSE responses"
+  ],
+  "proficiency_blocks_content_verified": {
+    "beginner": {
+      "language_mix": "80% native / 20% target",
+      "word_introductions": "Every word needs meaning + phonetic breakdown",
+      "pronunciation": "Full phonetic breakdowns",
+      "scaffolding": "Templates, options when stuck",
+      "grammar": "Explicit explanations, one rule at a time",
+      "encouragement": "Celebrate every attempt"
+    },
+    "intermediate": {
+      "language_mix": "50% native / 50% target",
+      "word_introductions": "Only key/unusual words",
+      "pronunciation": "Only tricky words",
+      "scaffolding": "Open-ended prompts, no templates",
+      "grammar": "Point out patterns, brief corrections",
+      "encouragement": "Acknowledge good usage, honest feedback"
+    },
+    "advanced": {
+      "language_mix": "90%+ target",
+      "word_introductions": "Only rare/specialized vocabulary",
+      "pronunciation": "Only subtle distinctions",
+      "scaffolding": "Minimal, thought-provoking questions",
+      "grammar": "Focus on style, not rules",
+      "encouragement": "Peer treatment, direct feedback"
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_proficiency_prompts.py",
+    "/app/test_reports/pytest/proficiency_prompts_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "VERIFIED: build_proficiency_block() handles same_language flag correctly - no mix ratios for same-language sessions",
+    "VERIFIED: All 4 agents (Tutor, Planner, Testing, Revision) include proficiency-specific guides",
+    "VERIFIED: Tutor uses build_proficiency_block(proficiency_level, native_name, target_name, same_language)",
+    "VERIFIED: Planner includes proficiency_curriculum_guide for beginner/intermediate/advanced",
+    "VERIFIED: Testing agent includes proficiency_test_guide for beginner/intermediate/advanced",
+    "VERIFIED: Revision agent includes proficiency_revision_guide for beginner/intermediate/advanced",
+    "VERIFIED: agent_factory.py passes proficiency_level to all agent constructors",
+    "VERIFIED: proficiency_level starts as None and is set via set_proficiency_level tool"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_proficiency_prompts.py"
+  ],
+  "success_rate": {
+    "backend": "97.5% (40/41 passed, 1 failed non-critical)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "subtest2@test.com": "password123 - Main test user"
+  },
+  "seed_data_creation": "None - used existing test users",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Proficiency-aware teaching system fully tested. build_proficiency_block() is the key function that generates level-specific instructions for tutor. Planner/Testing/Revision agents build their guides inline in _build_system_prompt(). Error correction/tolerance is NOT part of this - it's user-decided and handled separately. The proficiency_level is stored per-conversation in MongoDB, starts as None, and gets set when tutor calls set_proficiency_level tool.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}

@@ -89,6 +89,36 @@ class RevisionAgent:
         level = self.proficiency_level or "unknown"
         same_language = self.native_language == self.target_language
 
+        # Build proficiency-specific revision instructions
+        proficiency_revision_guide = ""
+        if level == "beginner":
+            proficiency_revision_guide = """
+## Revision Style for BEGINNER
+- Re-teach from scratch using even simpler language and examples than before.
+- Break each concept into the smallest possible pieces.
+- Use lots of repetition: say it, practice it, repeat it in a new context.
+- For vocabulary: give the word, meaning, phonetic guide, one simple example, then ask them to say it.
+- If they still struggle with a word, try a mnemonic or a fun association.
+- Be extra patient and encouraging. Build their confidence back up after a rough test.
+- Never move to the next concept until they've gotten the current one right at least once."""
+        elif level == "intermediate":
+            proficiency_revision_guide = """
+## Revision Style for INTERMEDIATE
+- Re-teach using a different angle or context than the original lesson.
+- Contrast the correct form with the common mistake they made: "You said X, but it should be Y because..."
+- For vocabulary: give the word in a new sentence, explain the nuance, and ask them to use it in their own sentence.
+- For grammar: show the pattern clearly and give 2-3 quick practice examples.
+- Keep it efficient — they don't need hand-holding, just targeted practice on weak spots."""
+        elif level == "advanced":
+            proficiency_revision_guide = """
+## Revision Style for ADVANCED
+- Focus on WHY their answer was wrong or unnatural, not just what the correct answer is.
+- For vocabulary: discuss the subtle difference between what they said and the more natural alternative.
+- For grammar: explain the nuance — they probably know the rule but misapplied it in context.
+- Use real-world examples: "A native speaker would say it like this because..."
+- Challenge them to self-correct before giving the answer.
+- Keep it peer-to-peer. They don't need encouragement — they need precision."""
+
         # Build test results context
         test_info = ""
         if self.test_results:
@@ -163,6 +193,7 @@ This is a summary of the recent tutor-student conversation. Use this to understa
 {curriculum_info}
 {revision_ctx}
 {learning_ctx}
+{proficiency_revision_guide}
 
 ## Your Job
 Revisit and re-teach the areas where the user struggled. Focus on their test weaknesses and words they got wrong.
