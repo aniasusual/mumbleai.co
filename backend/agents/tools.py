@@ -189,11 +189,11 @@ MAIN_AGENT_TOOLS = [
         "type": "function",
         "function": {
             "name": "web_search",
-            "description": "Search the web for real-world information. Use this when you need external knowledge to help the user — e.g., interview formats, exam structures (JLPT, DELF, HSK), cultural context, popular media for listening practice, travel tips, current slang, specific vocabulary for a profession or topic, real-world conversation examples, or anything you're not fully sure about.",
+            "description": "Search the web for real-world information to help the user. You MUST use this when: (1) the user asks about exams, certifications, or test formats, (2) the user asks about cultural norms, customs, or etiquette, (3) the user mentions a specific profession or industry, (4) you need current slang, media recommendations, or real-world examples, (5) the user explicitly asks you to search or look something up, (6) you're not 100% certain about something. Do NOT guess — search first.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "query": {"type": "string", "description": "The search query. Be specific and include the target language name if relevant."}
+                    "query": {"type": "string", "description": "The search query. Be specific and include the target language name if relevant. E.g., 'French restaurant etiquette and common phrases' not just 'French restaurant'."}
                 },
                 "required": ["query"]
             }
@@ -207,11 +207,11 @@ PLANNER_TOOLS = [
         "type": "function",
         "function": {
             "name": "web_search",
-            "description": "Search the web for information to build a better curriculum. Use this when the user mentions specific exams (JLPT, DELF, HSK), interviews, professional needs, or any topic you need more info about to create an accurate study plan.",
+            "description": "Search the web for real-world information to build an accurate curriculum. You MUST call this when the user mentions: exams (JLPT, DELF, HSK, IELTS, TOEFL, DELE, etc.), professional/job needs, travel destinations, or specific domains. Also call this when the user explicitly asks you to search. Always search BEFORE proposing a curriculum for these topics — do not rely on training data alone.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "query": {"type": "string", "description": "The search query. Be specific."}
+                    "query": {"type": "string", "description": "The search query. Be specific — include exam name + level, profession, or destination. E.g., 'JLPT N3 exam structure sections scoring 2025' or 'business Japanese common meeting phrases'."}
                 },
                 "required": ["query"]
             }
