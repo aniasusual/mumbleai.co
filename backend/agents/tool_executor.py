@@ -164,7 +164,7 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
         if on_event:
             await on_event({"type": "substep", "parent": "web_search", "substep": "searching", "label": f"Searching: {query[:50]}"})
         try:
-            from duckduckgo_search import DDGS
+            from ddgs import DDGS
             with DDGS() as ddgs:
                 results = list(ddgs.text(query, max_results=5))
             if not results:
