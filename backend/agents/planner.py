@@ -127,7 +127,7 @@ This tag is invisible to the user. If you forget it, the voice system breaks."""
             if self.on_event:
                 await self.on_event({"type": "substep", "parent": "web_search", "substep": "searching", "label": f"Searching: {query[:50]}"})
             try:
-                from duckduckgo_search import DDGS
+                from ddgs import DDGS
                 with DDGS() as ddgs:
                     results = list(ddgs.text(query, max_results=5))
                 if not results:

@@ -16,6 +16,7 @@ Build a conversational agent "mumble" that acts as a personal language tutor wit
 - **Frontend**: React, TailwindCSS, Shadcn/UI, Framer Motion
 - **Payments**: Razorpay Subscriptions API (INR)
 - **Auth**: JWT + Google OAuth (@react-oauth/google)
+- **Web Search**: ddgs (DuckDuckGo search)
 
 ## Plans
 | Plan | Price | Credits/mo | Max Conversations |
@@ -37,6 +38,7 @@ Build a conversational agent "mumble" that acts as a personal language tutor wit
 - Webhook for recurring charges and cancellation
 - Live Razorpay plans created (Plus: plan_SOcRQ3oCCMEKF2, Pro: plan_SOcRR1Vw5s36hF)
 - **Proficiency-aware teaching system** (Feb 2026): Detailed level-specific instructions for all 4 agents (Tutor, Planner, Testing, Revision) covering language mix, word introductions, pronunciation, scaffolding, grammar, encouragement. Error correction remains user-decided (strict/balanced/relaxed).
+- **Aggressive web search triggers** (Feb 2026): Planner MUST search before proposing curriculum when user mentions exams, professions, travel, or specific domains. Tutor also searches when asked about exams, cultural norms, or when user explicitly requests. Fixed ddgs package (duckduckgo_search → ddgs).
 
 ## Backlog
 - **P1**: Progress Journal — weekly learning summaries

@@ -217,7 +217,7 @@ For {self.native_name} instructions: [EXPECT_LANG:{self.native_language}]"""
             if self.on_event:
                 await self.on_event({"type": "substep", "parent": "web_search", "substep": "searching", "label": f"Searching: {query}"})
             try:
-                from duckduckgo_search import DDGS
+                from ddgs import DDGS
                 with DDGS() as ddgs:
                     results = list(ddgs.text(query, max_results=3))
                 return json.dumps(results[:3]) if results else "No results found."
