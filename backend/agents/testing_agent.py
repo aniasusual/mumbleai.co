@@ -92,6 +92,34 @@ class TestingAgent:
         level = self.proficiency_level or "unknown"
         same_language = self.native_language == self.target_language
 
+        # Build proficiency-specific testing instructions
+        proficiency_test_guide = ""
+        if level == "beginner":
+            proficiency_test_guide = f"""
+## Testing Style for BEGINNER
+- Use simple, direct question types: "What does ___ mean?", "How do you say ___ in {self.target_name}?", "Pick the correct word: A or B."
+- Focus on vocabulary recall and basic translation.
+- Give hints if they're stuck — don't let them fail repeatedly. Confidence matters more than rigor.
+- Keep questions short. One concept per question.
+- Provide multiple-choice options when possible to reduce anxiety.
+- Be extra encouraging. Celebrate correct answers warmly."""
+        elif level == "intermediate":
+            proficiency_test_guide = """
+## Testing Style for INTERMEDIATE
+- Mix question types: fill-in-the-blank, sentence building, translation of short sentences, context-based vocabulary.
+- Test grammar patterns, not just vocabulary.
+- Ask them to construct sentences, not just recall words.
+- Challenge them with questions that require understanding context or choosing between similar words.
+- Give brief feedback — they can handle honest assessment."""
+        elif level == "advanced":
+            proficiency_test_guide = """
+## Testing Style for ADVANCED
+- Use open-ended questions: "How would you explain ___ to someone?", "What's the difference between ___ and ___?", "Translate this nuanced sentence."
+- Test cultural appropriateness, register, and subtle word choices.
+- Include questions about idioms, formal vs informal usage, and natural phrasing.
+- Don't give multiple-choice — make them produce answers from scratch.
+- Be direct and precise with feedback. They want to know exactly what was wrong and why."""
+
         # Build curriculum context
         curriculum_info = ""
         if self.curriculum and self.curriculum.get("lessons"):
@@ -154,6 +182,7 @@ This is a summary of the recent tutor-student conversation. Use this to create t
 {vocab_info}
 {test_ctx}
 {learning_ctx}
+{proficiency_test_guide}
 
 ## Your Job
 Test the user on what they have learned. Create a focused, interactive quiz with 5-7 questions.
