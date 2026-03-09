@@ -196,7 +196,7 @@ This is a summary of the recent tutor-student conversation. Use this to understa
 {proficiency_revision_guide}
 
 ## Your Job
-Revisit and re-teach the areas where the user struggled. Focus on their test weaknesses and words they got wrong.
+Revisit and re-teach the areas where the user struggled. The revision may cover weak areas accumulated across MULTIPLE lessons and tests. Focus on test weaknesses and words they got wrong.
 
 ## Revision Approach
 - Start by briefly telling the user what you'll review, based on their test results above.

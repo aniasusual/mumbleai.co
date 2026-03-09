@@ -185,7 +185,7 @@ This is a summary of the recent tutor-student conversation. Use this to create t
 {proficiency_test_guide}
 
 ## Your Job
-Test the user on what they have learned. Create a focused, interactive quiz with 5-7 questions.
+Test the user on what they have learned. The test may cover content from MULTIPLE lessons if previous tests were skipped. Create a focused, interactive quiz with 5-7 questions that covers all the material described in the test context and learning summary above.
 
 ## Test Design Rules
 - Mix question types: vocabulary recall, translation, fill-in-the-blank, sentence building, listening comprehension cues.

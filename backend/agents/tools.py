@@ -115,7 +115,7 @@ MAIN_AGENT_TOOLS = [
         "type": "function",
         "function": {
             "name": "advance_lesson",
-            "description": "Move to the next lesson in the curriculum. IMPORTANT: You MUST call start_test BEFORE calling this tool — never advance without testing the user on the current lesson first. Only call this AFTER the test is complete and the user is ready to move on. A lesson should feel like a full session with 15-20+ back-and-forth turns of teaching.",
+            "description": "Move to the next lesson in the curriculum. Before calling this, you should have suggested a test to the user. If they accepted, test first then advance. If they declined, you can call this directly. A lesson should be thoroughly covered with 15-20+ back-and-forth turns before advancing.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -144,7 +144,7 @@ MAIN_AGENT_TOOLS = [
         "type": "function",
         "function": {
             "name": "start_test",
-            "description": "Hand off to the Testing Agent to quiz the user on what they've learned. You MUST call this BEFORE calling advance_lesson — never advance without testing first. Also call when: the user asks to be tested/quizzed, you've covered a lesson's key topics thoroughly, or after 15-20+ teaching exchanges without a test. Provide context about what to test.",
+            "description": "Hand off to the Testing Agent to quiz the user. IMPORTANT: Always ASK the user before calling this — suggest a quiz and only call if they agree. Exception: if the user explicitly asks to be tested, call immediately. In the context field, include ALL lessons and topics covered since the last test (not just the current lesson) so the test covers everything untested.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -158,7 +158,7 @@ MAIN_AGENT_TOOLS = [
         "type": "function",
         "function": {
             "name": "start_revision",
-            "description": "Hand off to the Revision Agent to review and re-teach weak areas. Call this after a test where the user scored poorly (below ~60%), when the user asks to review or practice weak spots, or when you notice recurring mistakes. The Revision Coach will re-teach the weak areas using different approaches. After revision, continue with advance_lesson.",
+            "description": "Hand off to the Revision Agent to review and re-teach weak areas. IMPORTANT: Always ASK the user before calling this — suggest revision after a poor test and only call if they agree. Exception: if the user explicitly asks to review, call immediately. Include context about ALL accumulated weak areas across lessons.",
             "parameters": {
                 "type": "object",
                 "properties": {

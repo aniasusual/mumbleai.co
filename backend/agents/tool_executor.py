@@ -46,12 +46,30 @@ TOOL_LABELS = {
 }
 
 
-async def _build_learning_summary(db, conversation_id: str, max_messages: int = 30) -> str:
-    """Build a compact summary of recent learning-phase conversation for handoff to testing/revision agents."""
+async def _build_learning_summary(db, conversation_id: str, max_messages: int = 50) -> str:
+    """Build a summary of learning-phase conversation SINCE the last test for handoff to testing/revision agents.
+    This ensures that if the user skipped previous tests, all untested content is included."""
+    # Find the timestamp of the most recent test result
+    last_test = await db.test_results.find_one(
+        {"conversation_id": conversation_id},
+        {"_id": 0, "created_at": 1}
+    )
+
+    # Build query: learning-phase messages, optionally filtered to after the last test
+    query = {"conversation_id": conversation_id, "phase": "learning", "is_internal": {"$ne": True}}
+    if last_test and last_test.get("created_at"):
+        query["created_at"] = {"$gt": last_test["created_at"]}
+
     messages = await db.messages.find(
-        {"conversation_id": conversation_id, "phase": "learning", "is_internal": {"$ne": True}},
-        {"_id": 0, "role": 1, "content": 1}
+        query, {"_id": 0, "role": 1, "content": 1}
     ).sort("created_at", -1).to_list(max_messages)
+
+    if not messages:
+        # Fallback: if no messages since last test, grab recent ones
+        messages = await db.messages.find(
+            {"conversation_id": conversation_id, "phase": "learning", "is_internal": {"$ne": True}},
+            {"_id": 0, "role": 1, "content": 1}
+        ).sort("created_at", -1).to_list(30)
 
     if not messages:
         return ""
