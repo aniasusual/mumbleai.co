@@ -611,7 +611,7 @@ function AgentsSection() {
                     <agent.icon className="w-4 h-4" style={{ color: isActive ? "white" : agent.color }} />
                   </motion.div>
 
-                  {/* Name — only show on active on mobile, always on desktop */}
+                  {/* Active name label */}
                   <AnimatePresence mode="wait">
                     {isActive && (
                       <motion.span
@@ -626,18 +626,6 @@ function AgentsSection() {
                       </motion.span>
                     )}
                   </AnimatePresence>
-
-                  {/* Active line under */}
-                  {isActive && (
-                    <motion.div
-                      className="absolute -bottom-0.5 left-1/2 h-[2px] rounded-full"
-                      style={{ background: agent.color }}
-                      layoutId="agentUnderline"
-                      initial={{ width: 0, x: "-50%" }}
-                      animate={{ width: "60%", x: "-50%" }}
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    />
-                  )}
                 </motion.button>
 
                 {/* Connector arrow between agents */}
