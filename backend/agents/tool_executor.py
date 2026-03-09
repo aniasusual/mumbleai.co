@@ -469,7 +469,7 @@ async def execute_tool(api_key: str, tool_name: str, arguments: dict, conversati
                         "new_lesson": next_idx + 1,
                         "title": next_lesson.get("title", ""),
                         "topics": next_lesson.get("topics", []),
-                        "instruction": f"Great progress! Now start Lesson {next_idx + 1}: {next_lesson.get('title', '')}. Topics: {', '.join(next_lesson.get('topics', []))}. Begin with ONE topic."
+                        "instruction": f"Great progress! The user has moved to Lesson {next_idx + 1}: {next_lesson.get('title', '')}. Topics: {', '.join(next_lesson.get('topics', []))}. Begin teaching the first topic."
                     })
                 else:
                     await db.curricula.update_one(

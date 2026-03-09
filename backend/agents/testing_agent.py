@@ -235,12 +235,41 @@ For {self.native_name} instructions: [EXPECT_LANG:{self.native_language}]"""
                 await self.on_event({"type": "substep", "parent": "finish_test", "substep": "saving_results", "label": "Saving test results"})
 
             # Build feedback summary for the tutor
+            # Parse score to determine if revision is recommended
+            score_str = str(score)
+            needs_revision = False
+            try:
+                # Handle formats like "4/7", "60%", "3 out of 5"
+                if "/" in score_str:
+                    parts = score_str.split("/")
+                    score_pct = float(parts[0].strip()) / float(parts[1].strip()) * 100
+                elif "%" in score_str:
+                    score_pct = float(score_str.replace("%", "").strip())
+                else:
+                    score_pct = float(score_str)
+                needs_revision = score_pct < 60
+            except (ValueError, ZeroDivisionError):
+                needs_revision = False
+
+            revision_note = ""
+            if needs_revision:
+                revision_note = (
+                    " ACTION REQUIRED: The user scored below 60%. You SHOULD suggest starting a revision session "
+                    "by calling start_revision to review the weak areas before advancing to the next lesson. "
+                    "Say something like: 'Looks like a few things tripped you up — want to go over those before we move on?'"
+                )
+            else:
+                revision_note = (
+                    " The user did well! You can now call advance_lesson to move to the next lesson. "
+                    "Congratulate them and ask if they're ready to continue."
+                )
+
             feedback = (
                 f"[Test Results] Score: {score}. "
                 f"Strengths: {strengths}. "
                 f"Weaknesses: {weaknesses}. "
                 f"Words to review: {', '.join(words_to_review) if words_to_review else 'none'}. "
-                f"Recommendation: {recommendation}"
+                f"Recommendation: {recommendation}.{revision_note}"
             )
 
             if self.db is not None and self.conversation_id:
