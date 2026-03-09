@@ -532,14 +532,21 @@ function AgentsSection() {
   const sectionRef = useRef(null);
   const inView = useInView(sectionRef, { once: true, margin: "-100px" });
 
-  // Auto-rotate every 4 seconds
+  // Auto-rotate every 4 seconds, pause briefly on manual click then resume
   useEffect(() => {
-    if (!isAutoPlaying || !inView) return;
+    if (!inView) return;
     const timer = setInterval(() => {
       setActiveIdx(prev => (prev + 1) % AGENTS.length);
-    }, 4000);
+    }, isAutoPlaying ? 4000 : 8000);
     return () => clearInterval(timer);
   }, [isAutoPlaying, inView]);
+
+  // Resume auto-play after 8 seconds of no manual interaction
+  useEffect(() => {
+    if (isAutoPlaying) return;
+    const resume = setTimeout(() => setIsAutoPlaying(true), 8000);
+    return () => clearTimeout(resume);
+  }, [isAutoPlaying]);
 
   const active = AGENTS[activeIdx];
 
