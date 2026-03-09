@@ -475,171 +475,312 @@ const AGENTS = [
   {
     name: "Tutor",
     role: "Your conversation partner",
-    desc: "Teaches you through natural conversation. Corrects grammar in real-time, introduces new vocabulary in context, and adjusts difficulty based on how you're doing. Like having a native speaker friend who's also a teacher.",
+    desc: "Teaches you through natural conversation. Corrects grammar in real-time, introduces new vocabulary in context, and adjusts difficulty based on how you're doing.",
+    longDesc: "Like having a native speaker friend who's also a teacher. The Tutor adapts to your proficiency — beginners get word-by-word breakdowns, while advanced learners get nuanced cultural context.",
     icon: MessageSquare,
     color: "#6366f1",
-    bg: "rgba(99,102,241,0.06)",
-    border: "rgba(99,102,241,0.12)",
-    features: ["Real-time grammar correction", "Vocabulary building in context", "Adaptive difficulty"],
+    bg: "rgba(99,102,241,0.08)",
+    glow: "rgba(99,102,241,0.25)",
+    features: ["Real-time grammar correction", "Vocabulary building in context", "Adaptive difficulty", "Voice-first interaction"],
+    step: "01",
+    action: "You speak naturally",
   },
   {
     name: "Planner",
     role: "Your curriculum designer",
-    desc: "Asks about your goals, timeline, and interests — then builds a personalized lesson plan. Learning for a trip to Tokyo? It'll prioritize travel phrases. Preparing for a job interview? It'll focus on formal language.",
+    desc: "Builds a personalized lesson plan based on your goals, timeline, and interests. Uses web search for exam-specific and real-world content.",
+    longDesc: "Learning for a trip to Tokyo? It prioritizes travel phrases. Preparing for JLPT N5? It structures lessons around the actual exam format with up-to-date content.",
     icon: Target,
     color: "#059669",
-    bg: "rgba(5,150,105,0.06)",
-    border: "rgba(5,150,105,0.12)",
-    features: ["Goal-based curriculum", "Personalized lesson plans", "Adapts as you progress"],
+    bg: "rgba(5,150,105,0.08)",
+    glow: "rgba(5,150,105,0.25)",
+    features: ["Goal-based curriculum", "Exam-aware planning", "Web-powered research", "Adapts as you progress"],
+    step: "02",
+    action: "Your path is built",
   },
   {
     name: "Tester",
     role: "Your quiz master",
-    desc: "After your tutor session, the Tester steps in with quizzes based on exactly what you just learned. It scores your performance, identifies weak spots, and tells you what to focus on next.",
+    desc: "Steps in with quizzes based on exactly what you just learned. Scores your performance and identifies weak spots.",
+    longDesc: "Tests cover everything since your last quiz — skip a test, and the next one catches up. Multiple question types adapt to your proficiency level.",
     icon: Zap,
     color: "#be185d",
-    bg: "rgba(190,24,93,0.06)",
-    border: "rgba(190,24,93,0.12)",
-    features: ["Context-aware quizzes", "Performance scoring", "Weakness identification"],
+    bg: "rgba(190,24,93,0.08)",
+    glow: "rgba(190,24,93,0.25)",
+    features: ["Context-aware quizzes", "Cumulative coverage", "Performance scoring", "Weakness identification"],
+    step: "03",
+    action: "You prove it",
   },
   {
     name: "Revision Coach",
     role: "Your mistake fixer",
-    desc: "Takes your test results and drills the specific words and concepts you got wrong. Re-explains grammar rules, creates targeted exercises, and doesn't move on until you've genuinely improved.",
+    desc: "Takes your test results and drills the specific words and concepts you got wrong using fresh approaches.",
+    longDesc: "Re-explains grammar rules from different angles, creates targeted exercises, and doesn't move on until you've genuinely improved. Patient and encouraging.",
     icon: BookOpen,
     color: "#b45309",
-    bg: "rgba(180,67,9,0.06)",
-    border: "rgba(180,67,9,0.12)",
-    features: ["Targeted mistake drilling", "Concept re-teaching", "Confidence building"],
+    bg: "rgba(180,83,9,0.08)",
+    glow: "rgba(180,83,9,0.25)",
+    features: ["Targeted mistake drilling", "Alternative explanations", "Confidence building", "Progress tracking"],
+    step: "04",
+    action: "You master it",
   },
 ];
 
-function AgentCard({ agent, index }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <motion.div ref={ref}
-      className="relative rounded-2xl p-6 md:p-7 overflow-hidden cursor-default"
-      style={{
-        background: hovered ? agent.bg : "rgba(255,255,255,0.6)",
-        border: `1px solid ${hovered ? agent.border : "rgba(0,0,0,0.04)"}`,
-        backdropFilter: "blur(12px)",
-      }}
-      initial={{ opacity: 0, y: 30 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ delay: index * 0.12, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      whileHover={{ y: -4, boxShadow: `0 12px 40px ${agent.bg}` }}
-      data-testid={`agent-card-${agent.name.toLowerCase()}`}
-    >
-      {/* Active indicator line */}
-      <motion.div className="absolute top-0 left-0 right-0 h-[3px] origin-left"
-        style={{ background: agent.color }}
-        initial={{ scaleX: 0 }}
-        animate={hovered ? { scaleX: 1 } : { scaleX: 0 }}
-        transition={{ duration: 0.35 }} />
-
-      <div className="flex items-start gap-4 mb-4">
-        <motion.div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: agent.bg, border: `1px solid ${agent.border}` }}
-          animate={hovered ? { scale: 1.1, rotate: 6 } : { scale: 1, rotate: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}>
-          <agent.icon className="w-5 h-5" style={{ color: agent.color }} />
-        </motion.div>
-        <div>
-          <h3 className="text-lg font-bold tracking-tight" style={{ fontFamily: "Sora", color: agent.color }}>{agent.name}</h3>
-          <p className="text-xs text-slate-500">{agent.role}</p>
-        </div>
-      </div>
-
-      <p className="text-sm leading-relaxed text-slate-600 mb-5">{agent.desc}</p>
-
-      <div className="space-y-2">
-        {agent.features.map((f, i) => (
-          <motion.div key={f} className="flex items-center gap-2"
-            initial={{ opacity: 0, x: -8 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ delay: index * 0.12 + 0.3 + i * 0.06 }}>
-            <Check className="w-3.5 h-3.5 flex-shrink-0" style={{ color: agent.color }} />
-            <span className="text-xs text-slate-500">{f}</span>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Floating pulse on hover */}
-      <AnimatePresence>
-        {hovered && (
-          <motion.div className="absolute -bottom-8 -right-8 w-24 h-24 rounded-full"
-            style={{ background: agent.color, opacity: 0.04 }}
-            initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
-            transition={{ duration: 0.3 }} />
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
-function AgentFlowArrow() {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true });
-  return (
-    <motion.div ref={ref} className="hidden lg:flex items-center justify-center py-8"
-      initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}} transition={{ delay: 0.6, duration: 0.5 }}>
-      <div className="flex items-center gap-3">
-        {AGENTS.map((agent, i) => (
-          <div key={agent.name} className="flex items-center gap-3">
-            <motion.div className="w-8 h-8 rounded-full flex items-center justify-center"
-              style={{ background: agent.bg, border: `1.5px solid ${agent.border}` }}
-              animate={{ scale: [1, 1.15, 1] }}
-              transition={{ delay: i * 0.4, duration: 1.5, repeat: Infinity, repeatDelay: 4 }}>
-              <agent.icon className="w-3.5 h-3.5" style={{ color: agent.color }} />
-            </motion.div>
-            {i < AGENTS.length - 1 && (
-              <motion.div className="flex items-center gap-0.5"
-                initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}} transition={{ delay: 0.8 + i * 0.2 }}>
-                {[0, 1, 2].map(d => (
-                  <motion.div key={d} className="w-1.5 h-1.5 rounded-full bg-slate-300"
-                    animate={{ opacity: [0.3, 1, 0.3] }}
-                    transition={{ delay: d * 0.15 + i * 0.3, duration: 1.2, repeat: Infinity }} />
-                ))}
-              </motion.div>
-            )}
-          </div>
-        ))}
-      </div>
-      <span className="text-[10px] text-slate-400 ml-4 tracking-wider uppercase">Learning cycle</span>
-    </motion.div>
-  );
-}
-
 function AgentsSection() {
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const sectionRef = useRef(null);
+  const inView = useInView(sectionRef, { once: true, margin: "-100px" });
+
+  // Auto-rotate every 4 seconds
+  useEffect(() => {
+    if (!isAutoPlaying || !inView) return;
+    const timer = setInterval(() => {
+      setActiveIdx(prev => (prev + 1) % AGENTS.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [isAutoPlaying, inView]);
+
+  const active = AGENTS[activeIdx];
+
   return (
-    <section className="relative py-24 md:py-32" style={{ background: "linear-gradient(180deg, #eef2ff 0%, #f5f3ff 50%, #faf5ff 100%)" }} data-testid="agents-section">
-      <div className="max-w-5xl mx-auto px-6">
-        <div className="text-center mb-6">
+    <section
+      ref={sectionRef}
+      className="relative py-24 md:py-32 overflow-hidden"
+      style={{ background: "linear-gradient(180deg, #f8f7f4 0%, #eef2ff 40%, #f5f3ff 70%, #faf5ff 100%)" }}
+      data-testid="agents-section"
+    >
+      {/* Subtle background glow that follows active agent color */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none"
+        animate={{ background: `radial-gradient(ellipse 60% 50% at 50% 60%, ${active.glow}, transparent 70%)` }}
+        transition={{ duration: 1.2, ease: "easeInOut" }}
+      />
+
+      <div className="max-w-6xl mx-auto px-6 relative z-10">
+        {/* Header */}
+        <div className="text-center mb-16">
           <Reveal>
-            <span className="text-[13px] font-semibold tracking-wider uppercase mb-3 block text-indigo-600">4 Specialized AI Agents</span>
+            <span className="text-[13px] font-semibold tracking-wider uppercase mb-3 block text-indigo-600">
+              4 Specialized AI Agents
+            </span>
           </Reveal>
           <WordReveal text="Meet your AI teaching team" as="h2"
             className="text-3xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4" />
           <Reveal delay={0.1}>
-            <p className="text-[15px] max-w-2xl mx-auto text-slate-500 leading-relaxed">
-              Not one generic chatbot — <span className="font-semibold text-slate-700">four specialized agents</span> that work together.
-              Each one handles a different part of your learning journey, seamlessly handing off to the next.
+            <p className="text-[15px] max-w-xl mx-auto text-slate-500 leading-relaxed">
+              Four specialized agents work together in a learning cycle —
+              each one handles a different part of your journey.
             </p>
           </Reveal>
         </div>
 
-        <AgentFlowArrow />
+        {/* ── Agent Selector: Horizontal flow with step indicators ── */}
+        <motion.div
+          className="flex items-center justify-center gap-2 md:gap-0 mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.3, duration: 0.6 }}
+        >
+          {AGENTS.map((agent, i) => {
+            const isActive = i === activeIdx;
+            return (
+              <div key={agent.name} className="flex items-center">
+                <motion.button
+                  className="relative flex items-center gap-2 md:gap-3 px-3 md:px-5 py-2.5 md:py-3 rounded-full cursor-pointer transition-all"
+                  style={{
+                    background: isActive ? "white" : "transparent",
+                    boxShadow: isActive ? `0 4px 24px ${agent.glow}, 0 1px 3px rgba(0,0,0,0.06)` : "none",
+                  }}
+                  onClick={() => { setActiveIdx(i); setIsAutoPlaying(false); }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.97 }}
+                  layout
+                  data-testid={`agent-selector-${agent.name.toLowerCase()}`}
+                >
+                  {/* Step number with agent color */}
+                  <motion.div
+                    className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{
+                      background: isActive ? agent.color : agent.bg,
+                      border: `2px solid ${isActive ? agent.color : "transparent"}`,
+                    }}
+                    animate={isActive ? { scale: [1, 1.1, 1] } : { scale: 1 }}
+                    transition={isActive ? { duration: 2, repeat: Infinity, repeatDelay: 1 } : {}}
+                  >
+                    <agent.icon className="w-4 h-4" style={{ color: isActive ? "white" : agent.color }} />
+                  </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {AGENTS.map((agent, i) => <AgentCard key={agent.name} agent={agent} index={i} />)}
-        </div>
+                  {/* Name — only show on active on mobile, always on desktop */}
+                  <AnimatePresence mode="wait">
+                    {isActive && (
+                      <motion.span
+                        className="text-sm font-semibold tracking-tight hidden md:block"
+                        style={{ color: agent.color }}
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: "auto" }}
+                        exit={{ opacity: 0, width: 0 }}
+                        transition={{ duration: 0.25 }}
+                      >
+                        {agent.name}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
 
-        {/* Bottom flow description */}
+                  {/* Active line under */}
+                  {isActive && (
+                    <motion.div
+                      className="absolute -bottom-0.5 left-1/2 h-[2px] rounded-full"
+                      style={{ background: agent.color }}
+                      layoutId="agentUnderline"
+                      initial={{ width: 0, x: "-50%" }}
+                      animate={{ width: "60%", x: "-50%" }}
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                </motion.button>
+
+                {/* Connector arrow between agents */}
+                {i < AGENTS.length - 1 && (
+                  <div className="hidden md:flex items-center mx-1">
+                    <motion.div
+                      className="flex gap-0.5"
+                      animate={{
+                        opacity: i === activeIdx ? 1 : 0.3,
+                      }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {[0, 1, 2].map(d => (
+                        <motion.div
+                          key={d}
+                          className="w-1 h-1 rounded-full"
+                          style={{ background: i === activeIdx ? active.color : "#cbd5e1" }}
+                          animate={i === activeIdx ? { opacity: [0.3, 1, 0.3], x: [0, 3, 0] } : {}}
+                          transition={{ delay: d * 0.15, duration: 0.8, repeat: Infinity }}
+                        />
+                      ))}
+                    </motion.div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </motion.div>
+
+        {/* ── Agent Spotlight: Large featured card ── */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeIdx}
+            className="relative rounded-3xl overflow-hidden"
+            style={{
+              background: "rgba(255,255,255,0.85)",
+              backdropFilter: "blur(20px)",
+              border: `1px solid rgba(0,0,0,0.06)`,
+              boxShadow: `0 20px 60px ${active.glow}, 0 1px 3px rgba(0,0,0,0.04)`,
+            }}
+            initial={{ opacity: 0, y: 20, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.98 }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            data-testid={`agent-spotlight-${active.name.toLowerCase()}`}
+          >
+            {/* Top accent line */}
+            <motion.div
+              className="h-1 w-full"
+              style={{ background: `linear-gradient(90deg, ${active.color}, ${active.color}80, transparent)` }}
+              initial={{ scaleX: 0, transformOrigin: "left" }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-0">
+              {/* Left: Agent identity */}
+              <div className="lg:col-span-2 p-8 md:p-10 flex flex-col justify-center">
+                <div className="flex items-center gap-4 mb-5">
+                  <motion.div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                    style={{ background: active.bg, border: `2px solid ${active.color}20` }}
+                    animate={{ rotate: [0, 3, -3, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <active.icon className="w-7 h-7" style={{ color: active.color }} />
+                  </motion.div>
+                  <div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-[11px] font-bold tracking-widest uppercase" style={{ color: active.color }}>
+                        Step {active.step}
+                      </span>
+                    </div>
+                    <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900" style={{ fontFamily: "Sora" }}>
+                      {active.name}
+                    </h3>
+                    <p className="text-sm text-slate-500 mt-0.5">{active.role}</p>
+                  </div>
+                </div>
+
+                <p className="text-[15px] leading-relaxed text-slate-600 mb-2">
+                  {active.desc}
+                </p>
+                <p className="text-sm leading-relaxed text-slate-400">
+                  {active.longDesc}
+                </p>
+              </div>
+
+              {/* Right: Features + visual */}
+              <div className="lg:col-span-3 p-8 md:p-10 relative"
+                style={{ background: `linear-gradient(135deg, ${active.bg}40, transparent)` }}>
+                {/* Features grid */}
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  {active.features.map((f, i) => (
+                    <motion.div
+                      key={f}
+                      className="flex items-start gap-2.5 p-3 rounded-xl"
+                      style={{ background: "rgba(255,255,255,0.6)", border: `1px solid ${active.color}12` }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.15 + i * 0.08, duration: 0.35 }}
+                    >
+                      <div className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5"
+                        style={{ background: active.bg }}>
+                        <Check className="w-3 h-3" style={{ color: active.color }} />
+                      </div>
+                      <span className="text-sm text-slate-600 leading-snug">{f}</span>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Action label */}
+                <motion.div
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
+                  style={{ background: active.color, color: "white" }}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <active.icon className="w-3.5 h-3.5" />
+                  <span className="text-xs font-semibold tracking-wide">{active.action}</span>
+                  <ArrowRight className="w-3 h-3" />
+                </motion.div>
+
+                {/* Decorative floating orbs */}
+                <motion.div
+                  className="absolute top-6 right-6 w-20 h-20 rounded-full opacity-[0.07]"
+                  style={{ background: active.color }}
+                  animate={{ scale: [1, 1.3, 1], y: [0, -8, 0] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <motion.div
+                  className="absolute bottom-10 right-20 w-10 h-10 rounded-full opacity-[0.05]"
+                  style={{ background: active.color }}
+                  animate={{ scale: [1, 1.2, 1], x: [0, 5, 0] }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                />
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* ── Bottom: Learning cycle flow ── */}
         <Reveal delay={0.3}>
           <div className="mt-10 text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/70 backdrop-blur-sm border border-indigo-100">
