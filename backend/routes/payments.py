@@ -1,6 +1,6 @@
 """
 Payment routes — Razorpay subscription-based billing.
-Plans: Free (100 credits), Plus (1000 credits/mo), Pro (5000 credits/mo).
+Plans: Free (500 credits), Plus (3000 credits/mo), Pro (7000 credits/mo).
 Credits roll over. Downgrade/cancel takes effect at end of billing cycle.
 """
 
@@ -95,7 +95,7 @@ async def get_subscription(user: dict = Depends(get_current_user)):
         sub = {
             "user_id": user["id"],
             "plan": "free",
-            "credits": 100,
+            "credits": 500,
             "max_conversations": 3,
             "created_at": now,
         }
