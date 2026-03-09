@@ -21,9 +21,9 @@ Build a conversational agent "mumble" that acts as a personal language tutor wit
 ## Plans
 | Plan | Price | Credits/mo | Max Conversations |
 |------|-------|-----------|-------------------|
-| Free | Rs 0 | 100 | 3 |
-| Plus | Rs 1,199/mo | 1,000 | 10 |
-| Pro | Rs 2,499/mo | 5,000 | Unlimited |
+| Free | Rs 0 | 500 | 3 |
+| Plus | Rs 1,199/mo | 3,000 | 10 |
+| Pro | Rs 2,499/mo | 7,000 | Unlimited |
 
 ## What's Implemented
 - Full 4-agent system with isolated context windows and handoffs
@@ -37,8 +37,10 @@ Build a conversational agent "mumble" that acts as a personal language tutor wit
 - Landing page with agent showcase, pricing, scenarios, demo
 - Webhook for recurring charges and cancellation
 - Live Razorpay plans created (Plus: plan_SOcRQ3oCCMEKF2, Pro: plan_SOcRR1Vw5s36hF)
-- **Proficiency-aware teaching system** (Feb 2026): Detailed level-specific instructions for all 4 agents (Tutor, Planner, Testing, Revision) covering language mix, word introductions, pronunciation, scaffolding, grammar, encouragement. Error correction remains user-decided (strict/balanced/relaxed).
-- **Aggressive web search triggers** (Feb 2026): Planner MUST search before proposing curriculum when user mentions exams, professions, travel, or specific domains. Tutor also searches when asked about exams, cultural norms, or when user explicitly requests. Fixed ddgs package (duckduckgo_search → ddgs).
+- **Proficiency-aware teaching system** (Feb 2026): Detailed level-specific instructions for all 4 agents covering language mix, word introductions, pronunciation, scaffolding, grammar, encouragement. Error correction remains user-decided (strict/balanced/relaxed).
+- **Aggressive web search triggers** (Feb 2026): Planner MUST search before proposing curriculum when user mentions exams, professions, travel, or specific domains. Fixed ddgs package.
+- **Updated credit plans** (Feb 2026): Free=500, Plus=3000, Pro=7000. ~70% margin on Plus, ~62% on Pro.
+- **User-consent testing/revision flow** (Feb 2026): Tutor always asks user before triggering test or revision agents. If user declines, tutor continues/advances. Skipped content accumulates — next test covers ALL untested lessons. Learning summary builder fetches messages since last test for cumulative coverage. Poor test scores (<60%) trigger revision suggestion.
 
 ## Backlog
 - **P1**: Progress Journal — weekly learning summaries
