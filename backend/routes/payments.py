@@ -278,18 +278,33 @@ async def change_plan(
         # Upgrades create a new subscription — handled by create-subscription + verify
         raise HTTPException(status_code=400, detail="Use the subscription checkout flow to upgrade")
 
-    # Downgrade — schedule for end of cycle
+    # Downgrade — cancel current Razorpay subscription at cycle end, then switch plan
+    razorpay_sub_id = sub.get("razorpay_subscription_id")
+    if razorpay_sub_id:
+        try:
+            razorpay_client.subscription.cancel(razorpay_sub_id, {"cancel_at_cycle_end": 1})
+            logger.info(f"Downgrade: cancelled Razorpay sub {razorpay_sub_id} at cycle end for user {user['id']}")
+        except Exception as e:
+            logger.error(f"Razorpay cancel for downgrade failed: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to process plan change: {str(e)}")
+
     await db.subscriptions.update_one(
         {"user_id": user["id"]},
         {"$set": {
             "pending_plan": req.plan,
+            "subscription_status": "downgrading",
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }}
     )
 
+    if req.plan == "free":
+        msg = f"Your plan will change to Free at the end of your current billing cycle. You'll keep your {current_plan.title()} benefits until then."
+    else:
+        msg = f"Your plan will change to {new_plan['name']} at the end of your current billing cycle. You'll be prompted to activate your new plan then."
+
     return {
         "status": "success",
-        "message": f"Your plan will change to {new_plan['name']} at the end of your current billing cycle.",
+        "message": msg,
     }
 
 
@@ -328,14 +343,20 @@ async def razorpay_webhook(request: Request):
         if plan:
             sub = await db.subscriptions.find_one({"user_id": user_id})
             if sub:
+                # Guard: if a downgrade is pending, this is the last charge from the old plan.
+                # Still add credits (user paid for them) but don't override pending_plan.
                 new_credits = sub["credits"] + plan["credits"]
+                update_fields = {
+                    "credits": new_credits,
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                }
+                # Only set active status if not downgrading
+                if sub.get("subscription_status") != "downgrading":
+                    update_fields["subscription_status"] = "active"
+
                 await db.subscriptions.update_one(
                     {"user_id": user_id},
-                    {"$set": {
-                        "credits": new_credits,
-                        "subscription_status": "active",
-                        "updated_at": datetime.now(timezone.utc).isoformat(),
-                    }}
+                    {"$set": update_fields}
                 )
                 await db.credit_transactions.insert_one({
                     "user_id": user_id,
@@ -346,26 +367,37 @@ async def razorpay_webhook(request: Request):
                     "source": "recurring",
                     "created_at": datetime.now(timezone.utc).isoformat(),
                 })
-                logger.info(f"Recurring charge: +{plan['credits']} credits for user {user_id}")
+                logger.info(f"Recurring charge: +{plan['credits']} credits for user {user_id} (downgrading={sub.get('subscription_status') == 'downgrading'})")
 
     elif event == "subscription.cancelled" and user_id:
-        # Subscription ended — revert to free or pending plan
+        # Subscription ended — switch to pending plan
         sub = await db.subscriptions.find_one({"user_id": user_id})
         if sub:
             target = sub.get("pending_plan", "free")
             target_plan = PLANS.get(target, PLANS["free"])
+            is_paid_target = target != "free" and target_plan.get("razorpay_plan_id")
+
+            update_fields = {
+                "plan": target,
+                "max_conversations": target_plan["max_conversations"],
+                "razorpay_subscription_id": None,
+                "pending_plan": None,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+
+            if is_paid_target:
+                # Downgraded to a paid plan (e.g. Pro → Plus)
+                # User needs to go through checkout to activate the new subscription
+                update_fields["subscription_status"] = "pending_activation"
+            else:
+                # Downgraded to free
+                update_fields["subscription_status"] = None
+
             await db.subscriptions.update_one(
                 {"user_id": user_id},
-                {"$set": {
-                    "plan": target,
-                    "max_conversations": target_plan["max_conversations"],
-                    "subscription_status": None,
-                    "razorpay_subscription_id": None,
-                    "pending_plan": None,
-                    "updated_at": datetime.now(timezone.utc).isoformat(),
-                }}
+                {"$set": update_fields}
             )
-            logger.info(f"Subscription cancelled: user {user_id} reverted to {target}")
+            logger.info(f"Subscription cancelled: user {user_id} switched to {target} (activation_needed={is_paid_target})")
 
     elif event == "subscription.halted" and user_id:
         # Payment failed multiple times

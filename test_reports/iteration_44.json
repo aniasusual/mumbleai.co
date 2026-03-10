@@ -1,0 +1,101 @@
+{
+  "summary": "Tested subscription downgrade flow fix. Backend: 20/21 tests passed (1 skipped - user already on pro plan). Frontend: PricingPage renders correctly with all 3 plan cards, downgrading banner displayed correctly, button states show proper text for pending downgrade scenario.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend_tests": {
+      "status": "20/21 PASSED (1 SKIPPED)",
+      "test_file": "/app/backend/tests/test_subscription_downgrade_flow.py",
+      "categories": {
+        "TestPlansEndpoint (5 tests)": [
+          "test_plans_returns_3_plans: PASSED",
+          "test_plans_have_required_fields: PASSED",
+          "test_free_plan_correct_values: PASSED",
+          "test_plus_plan_correct_values: PASSED",
+          "test_pro_plan_correct_values: PASSED"
+        ],
+        "TestSubscriptionEndpoint (4 tests)": [
+          "test_subscription_returns_200: PASSED",
+          "test_subscription_has_required_fields: PASSED",
+          "test_subscription_returns_all_expected_fields: PASSED",
+          "test_subscription_requires_auth: PASSED"
+        ],
+        "TestChangePlanEndpoint (5 tests)": [
+          "test_change_plan_same_plan_returns_400: PASSED",
+          "test_change_plan_upgrade_returns_400: SKIPPED (user on pro)",
+          "test_change_plan_invalid_plan_returns_400: PASSED",
+          "test_change_plan_requires_auth: PASSED",
+          "test_change_plan_downgrade_to_free: PASSED"
+        ],
+        "TestWebhookEndpoint (5 tests)": [
+          "test_webhook_rejects_invalid_signature: PASSED",
+          "test_webhook_accepts_valid_signature: PASSED",
+          "test_webhook_subscription_charged_event: PASSED",
+          "test_webhook_subscription_cancelled_event: PASSED",
+          "test_webhook_subscription_halted_event: PASSED"
+        ],
+        "TestDowngradeFlowLogic (2 tests)": [
+          "test_subscription_status_field_values: PASSED",
+          "test_pending_plan_field_present: PASSED"
+        ]
+      }
+    },
+    "frontend_tests": {
+      "pricing_page_load": "PASSED - All 3 plan cards rendered correctly",
+      "downgrading_banner": "PASSED - Banner shows 'Plan change scheduled - You'll switch to Free at the end of your current billing cycle'",
+      "button_states": "PASSED - Free='Switching at cycle end', Plus='Downgrade to Plus', Pro='Downgrading at cycle end'",
+      "current_plan_badge": "PASSED - Shows 'Current Plan' badge on Pro card",
+      "pending_badge": "PASSED - Shows 'SWITCHING SOON' badge on Free card",
+      "credits_display": "PASSED - Shows '4987 credits remaining'"
+    }
+  },
+  "code_review_verification": {
+    "change_plan_cancels_razorpay": "VERIFIED - Line 285: razorpay_client.subscription.cancel(razorpay_sub_id, {'cancel_at_cycle_end': 1})",
+    "subscription_charged_guard": "VERIFIED - Lines 354-355: Only sets 'active' status if subscription_status != 'downgrading'",
+    "subscription_cancelled_pending_activation": "VERIFIED - Lines 388-391: Sets 'pending_activation' status if downgrading to paid plan (Pro→Plus)",
+    "subscription_cancelled_free": "VERIFIED - Lines 392-394: Sets status to None if downgrading to free",
+    "frontend_pending_activation_banner": "VERIFIED - PricingPage.js lines 296-310: Shows amber banner when subscription_status is 'pending_activation'",
+    "frontend_downgrading_banner": "VERIFIED - PricingPage.js lines 311-327: Shows indigo banner when subscription_status is 'downgrading'",
+    "frontend_activate_button": "VERIFIED - PricingPage.js lines 52, 56, 69: needsActivation condition enables Activate button"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_subscription_downgrade_flow.py",
+    "/app/test_reports/pytest/subscription_downgrade_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_subscription_downgrade_flow.py"
+  ],
+  "success_rate": {
+    "backend": "95% (20/21 passed, 1 skipped)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "email": "test@gmail.com",
+    "password": "1234567890"
+  },
+  "current_subscription_state": {
+    "user_id": "a7a5b27c-07b0-4e62-bdcc-d3862ac40752",
+    "plan": "pro",
+    "credits": 4987,
+    "subscription_status": "downgrading",
+    "pending_plan": "free",
+    "razorpay_subscription_id": "sub_SOcnvrD9k8xeDS"
+  },
+  "seed_data_creation": "None - used existing test@gmail.com user",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Subscription downgrade flow is working correctly. Test user (test@gmail.com) is on Pro plan with downgrading status and pending_plan=free. The Razorpay subscription has been cancelled at cycle end. When the subscription.cancelled webhook fires, the user will switch to free plan. To test the pending_activation flow (Pro→Plus), a different test user on Pro would need to downgrade to Plus. The webhook handler correctly sets pending_activation for paid plan downgrades.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
