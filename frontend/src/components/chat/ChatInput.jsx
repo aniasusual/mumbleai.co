@@ -270,46 +270,46 @@ export const ChatInput = ({
             <p className="text-xs text-slate-400">{isRecording ? "Tap to stop & send" : "Tap to start speaking"}</p>
           </div>
         ) : (
-          <div className="flex items-end gap-3">
-            <motion.div
-              className="flex-1 relative rounded-xl overflow-hidden"
-              animate={{
-                boxShadow: focused
-                  ? "0 0 0 2px rgba(99,102,241,0.3), 0 4px 12px rgba(99,102,241,0.08)"
-                  : "0 0 0 1px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)",
-              }}
-              transition={{ duration: 0.2 }}
-            >
-              <textarea
-                ref={inputRef} value={input}
-                onChange={(e) => onSetInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onFocus={() => setFocused(true)}
-                onBlur={() => setFocused(false)}
-                placeholder="Type your message..."
-                rows={1}
-                className="w-full resize-none bg-white border-0 focus:ring-0 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder:text-slate-300 outline-none"
-                style={{ minHeight: '44px', maxHeight: '120px' }}
-                data-testid="chat-input"
-              />
-            </motion.div>
-            <CreditPill />
-            <motion.button
-              onClick={onSendText}
-              disabled={!input.trim() || sending}
-              className="rounded-xl h-11 w-11 flex items-center justify-center text-white disabled:opacity-30 disabled:cursor-not-allowed"
-              style={{
-                background: input.trim() && !sending ? "linear-gradient(135deg, #4338ca, #6366f1)" : "#e2e8f0",
-                boxShadow: input.trim() && !sending ? "0 2px 12px rgba(99,102,241,0.3)" : "none",
-                color: input.trim() && !sending ? "white" : "#94a3b8",
-              }}
-              whileHover={input.trim() && !sending ? { scale: 1.05, boxShadow: "0 4px 20px rgba(99,102,241,0.4)" } : {}}
-              whileTap={input.trim() && !sending ? { scale: 0.92 } : {}}
-              data-testid="send-message-btn"
-            >
-              {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            </motion.button>
-          </div>
+          <motion.div
+            className="flex items-end rounded-2xl bg-white overflow-hidden"
+            animate={{
+              boxShadow: focused
+                ? "0 0 0 2px rgba(99,102,241,0.25), 0 4px 16px rgba(99,102,241,0.1)"
+                : "0 0 0 1px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)",
+            }}
+            transition={{ duration: 0.2 }}
+          >
+            <textarea
+              ref={inputRef} value={input}
+              onChange={(e) => onSetInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              placeholder="Type your message..."
+              rows={1}
+              className="flex-1 resize-none bg-transparent border-0 focus:ring-0 px-4 py-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none"
+              style={{ minHeight: '48px', maxHeight: '120px' }}
+              data-testid="chat-input"
+            />
+            <div className="flex items-center gap-1.5 pr-2 pb-2 flex-shrink-0">
+              <CreditPill />
+              <motion.button
+                onClick={onSendText}
+                disabled={!input.trim() || sending}
+                className="rounded-xl h-9 w-9 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
+                style={{
+                  background: input.trim() && !sending ? "linear-gradient(135deg, #4338ca, #6366f1)" : "rgba(0,0,0,0.06)",
+                  boxShadow: input.trim() && !sending ? "0 2px 8px rgba(99,102,241,0.3)" : "none",
+                  color: input.trim() && !sending ? "white" : "#94a3b8",
+                }}
+                whileHover={input.trim() && !sending ? { scale: 1.08 } : {}}
+                whileTap={input.trim() && !sending ? { scale: 0.92 } : {}}
+                data-testid="send-message-btn"
+              >
+                {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              </motion.button>
+            </div>
+          </motion.div>
         )}
       </div>
     </div>
