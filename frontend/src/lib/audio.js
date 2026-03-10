@@ -79,24 +79,27 @@ export const playAudioWithKaraoke = (base64Audio, words, onWordChange, onComplet
         return;
       }
 
-      // Weight word timings by character length for natural pacing
-      const totalChars = words.reduce((sum, w) => sum + Math.max(w.length, 1), 0);
-      let elapsed = 0;
-
-      for (let i = 0; i < words.length; i++) {
-        const wordWeight = Math.max(words[i].length, 1) / totalChars;
-        const wordMs = wordWeight * duration * 1000;
-        const t = setTimeout(() => {
-          if (!stopped) onWordChange(i);
-        }, elapsed);
-        timeouts.push(t);
-        elapsed += wordMs;
-      }
-
-      // Show text only when audio is ACTUALLY playing through speakers
+      // Schedule karaoke + show text ONLY when audio is ACTUALLY playing
       audio.addEventListener("playing", () => {
-        if (!stopped && onReady) {
-          if (fallbackTimer) clearTimeout(fallbackTimer);
+        if (stopped) return;
+        if (fallbackTimer) clearTimeout(fallbackTimer);
+
+        // Weight word timings by character length for natural pacing
+        const totalChars = words.reduce((sum, w) => sum + Math.max(w.length, 1), 0);
+        let elapsed = 0;
+
+        for (let i = 0; i < words.length; i++) {
+          const wordWeight = Math.max(words[i].length, 1) / totalChars;
+          const wordMs = wordWeight * duration * 1000;
+          const t = setTimeout(() => {
+            if (!stopped) onWordChange(i);
+          }, elapsed);
+          timeouts.push(t);
+          elapsed += wordMs;
+        }
+
+        // NOW render the message — audio is playing through speakers
+        if (onReady) {
           onReady();
           onReady = null;
         }

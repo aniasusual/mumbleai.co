@@ -216,7 +216,6 @@ export default function ChatPage() {
     if (!convId) return;
 
     const userText = input.trim();
-    const isVoiceMode = inputMode === "voice";
     setInput(""); setSending(true); setToolEvents([]); setStreamingText("");
     const tempId = `temp-${Date.now()}`;
     setMessages(prev => [...prev, { id: tempId, role: "user", content: userText, tools_used: [], created_at: new Date().toISOString() }]);
@@ -227,13 +226,8 @@ export default function ChatPage() {
         { content: userText, scenario_context: currentConv?.scenario },
         (event) => {
           if (event.type === "text_delta") {
-            // In voice mode: suppress streaming text — we'll reveal it synced with audio
-            // In text mode: stream text in real-time as the AI generates it
-            if (!isVoiceMode) {
-              setStreamingText(prev => prev + (event.content || ""));
-            }
+            // Always suppress streaming text — reveal synced with audio via onReady
           } else {
-            // Force immediate render so tool activity is visible before the response arrives
             flushSync(() => {
               setToolEvents(prev => [...prev, event]);
             });
@@ -243,26 +237,24 @@ export default function ChatPage() {
       // When audio is present: delay showing the AI message until audio is decoded and ready to play
       // This ensures text and audio appear simultaneously — no flash of text before audio
       if (result.ai_audio_base64 && result.ai_message) {
-        // Clear streaming text immediately so user sees typing indicator while audio loads
+        // Audio present: hold everything until audio is actually playing
         setStreamingText("");
         setToolEvents([]);
         if (result.expected_response_language) setSttLanguage(result.expected_response_language);
-        // Don't show the message yet — wait for audio to be ready
         playWithKaraoke(result.ai_audio_base64, result.ai_message.id, result.ai_message.content, () => {
-          // onReady fires right before audio.play() — NOW render the message
           setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
           setSending(false);
+          skipNextLoadRef.current = true;
           refreshConversations();
         });
       } else {
-        // No audio — show text immediately
+        // No audio — show text immediately (all state in one batch, no rAF)
+        setStreamingText("");
+        setToolEvents([]);
         setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
         if (result.expected_response_language) setSttLanguage(result.expected_response_language);
-        requestAnimationFrame(() => {
-          setToolEvents([]);
-          setStreamingText("");
-          setSending(false);
-        });
+        setSending(false);
+        skipNextLoadRef.current = true;
         refreshConversations();
       }
     } catch (e) {
@@ -308,7 +300,6 @@ export default function ChatPage() {
         },
         sttLanguage
       );
-      // When audio is present: delay showing AI message until audio is ready
       if (result.ai_audio_base64 && result.ai_message) {
         setStreamingText("");
         setToolEvents([]);
@@ -317,17 +308,17 @@ export default function ChatPage() {
           setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
           setSending(false);
           setProcessingVoice(false);
+          skipNextLoadRef.current = true;
           refreshConversations();
         });
       } else {
+        setStreamingText("");
+        setToolEvents([]);
         setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
         if (result.expected_response_language) setSttLanguage(result.expected_response_language);
-        requestAnimationFrame(() => {
-          setToolEvents([]);
-          setStreamingText("");
-          setSending(false);
-          setProcessingVoice(false);
-        });
+        setSending(false);
+        setProcessingVoice(false);
+        skipNextLoadRef.current = true;
         refreshConversations();
       }
     } catch (e) {
