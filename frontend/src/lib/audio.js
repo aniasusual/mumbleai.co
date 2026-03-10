@@ -33,7 +33,7 @@ export const playAudioBase64 = (base64Audio) => {
  * @param {function} onComplete - Called when playback finishes
  * @returns {{ stop: function }} - Controller to stop playback early
  */
-export const playAudioWithKaraoke = (base64Audio, words, onWordChange, onComplete) => {
+export const playAudioWithKaraoke = (base64Audio, words, onWordChange, onComplete, onReady) => {
   let stopped = false;
   let audio = null;
   let timeouts = [];
@@ -63,7 +63,7 @@ export const playAudioWithKaraoke = (base64Audio, words, onWordChange, onComplet
       if (stopped) return;
       const duration = audio.duration; // seconds
       if (!duration || !isFinite(duration) || words.length === 0) {
-        // Fallback: just play without karaoke
+        if (onReady) onReady();
         audio.play();
         return;
       }
@@ -82,6 +82,8 @@ export const playAudioWithKaraoke = (base64Audio, words, onWordChange, onComplet
         elapsed += wordMs;
       }
 
+      // Signal that audio is ready to play — caller can now show the message
+      if (onReady) onReady();
       audio.play();
     });
 
@@ -95,12 +97,15 @@ export const playAudioWithKaraoke = (base64Audio, words, onWordChange, onComplet
 
     audio.onerror = () => {
       URL.revokeObjectURL(url);
+      // On error, still signal ready so text shows
+      if (onReady) onReady();
       if (!stopped) onComplete();
     };
 
     // Trigger metadata load
     audio.load();
   } catch (e) {
+    if (onReady) onReady();
     onComplete();
   }
 

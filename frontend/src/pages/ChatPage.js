@@ -231,20 +231,31 @@ export default function ChatPage() {
           }
         }
       );
-      // First update messages so the AI bubble appears
-      setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
-      // Auto-update STT language toggle from LLM's expectation
-      if (result.expected_response_language) setSttLanguage(result.expected_response_language);
-      // Then clear sending state — use requestAnimationFrame to let the message render first
-      requestAnimationFrame(() => {
-        setToolEvents([]);
-        setStreamingText("");
-        setSending(false);
-      });
-      refreshConversations();
-      // Audio arrives with the SSE done event — play in sync with text
+      // If audio is present, wait for it to be decoded before showing the message
+      // so text and audio appear in sync (no flash of text before audio starts)
       if (result.ai_audio_base64 && result.ai_message) {
-        playWithKaraoke(result.ai_audio_base64, result.ai_message.id, result.ai_message.content);
+        // Auto-update STT language toggle
+        if (result.expected_response_language) setSttLanguage(result.expected_response_language);
+        playWithKaraoke(result.ai_audio_base64, result.ai_message.id, result.ai_message.content, () => {
+          // onReady: audio is decoded and about to play — NOW show the message
+          setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
+          requestAnimationFrame(() => {
+            setToolEvents([]);
+            setStreamingText("");
+            setSending(false);
+          });
+          refreshConversations();
+        });
+      } else {
+        // No audio — show text immediately as before
+        setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
+        if (result.expected_response_language) setSttLanguage(result.expected_response_language);
+        requestAnimationFrame(() => {
+          setToolEvents([]);
+          setStreamingText("");
+          setSending(false);
+        });
+        refreshConversations();
       }
     } catch (e) {
       const isCreditsError = e?.response?.status === 402 || e?.message?.includes("402") || e?.message?.toLowerCase()?.includes("insufficient credits");
@@ -290,18 +301,30 @@ export default function ChatPage() {
         },
         sttLanguage
       );
-      setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
-      // Auto-update STT language toggle from LLM's expectation
-      if (result.expected_response_language) setSttLanguage(result.expected_response_language);
-      requestAnimationFrame(() => {
-        setToolEvents([]);
-        setStreamingText("");
-        setSending(false);
-        setProcessingVoice(false);
-      });
-      refreshConversations();
+      // If audio is present, wait for it to be decoded before showing the message
       if (result.ai_audio_base64 && result.ai_message) {
-        playWithKaraoke(result.ai_audio_base64, result.ai_message.id, result.ai_message.content);
+        if (result.expected_response_language) setSttLanguage(result.expected_response_language);
+        playWithKaraoke(result.ai_audio_base64, result.ai_message.id, result.ai_message.content, () => {
+          // onReady: audio decoded and about to play — NOW show the message
+          setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
+          requestAnimationFrame(() => {
+            setToolEvents([]);
+            setStreamingText("");
+            setSending(false);
+            setProcessingVoice(false);
+          });
+          refreshConversations();
+        });
+      } else {
+        setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
+        if (result.expected_response_language) setSttLanguage(result.expected_response_language);
+        requestAnimationFrame(() => {
+          setToolEvents([]);
+          setStreamingText("");
+          setSending(false);
+          setProcessingVoice(false);
+        });
+        refreshConversations();
       }
     } catch (e) {
       const isCreditsError = e?.status === 402 || e?.response?.status === 402 || e?.message?.includes("402") || e?.message?.toLowerCase()?.includes("insufficient credits");
@@ -336,7 +359,7 @@ export default function ChatPage() {
     setSpeakingState(null);
   }, []);
 
-  const playWithKaraoke = useCallback((audioBase64, messageId, text) => {
+  const playWithKaraoke = useCallback((audioBase64, messageId, text, onReady) => {
     // Stop any currently playing audio
     stopAudio();
 
@@ -347,7 +370,8 @@ export default function ChatPage() {
       audioBase64,
       words,
       (wordIndex) => setSpeakingState(prev => prev ? { ...prev, wordIndex } : null),
-      () => { setSpeakingState(null); audioControllerRef.current = null; }
+      () => { setSpeakingState(null); audioControllerRef.current = null; },
+      onReady
     );
     audioControllerRef.current = controller;
   }, [stopAudio]);
