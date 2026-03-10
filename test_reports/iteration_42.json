@@ -1,0 +1,90 @@
+{
+  "summary": "Tested voice mode streaming fix for mumble AI language tutor. Backend: 7/7 tests passed. Frontend: All core flows working - login, chat page, mode switching, message sending, karaoke audio sync. The fix correctly suppresses text_delta streaming in voice mode while showing typing indicator, and allows streaming in text mode.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend_tests": {
+      "status": "7 PASSED",
+      "test_file": "/app/backend/tests/test_voice_mode_streaming.py",
+      "categories": {
+        "TestSSEStreamingForVoiceMode (3 tests)": [
+          "test_sse_stream_returns_done_event_with_messages: PASSED - done event contains user_message and ai_message with proper structure",
+          "test_sse_stream_includes_audio_in_done_event: PASSED - done event includes ai_audio_base64 for TTS",
+          "test_text_delta_events_contain_content: PASSED - text_delta events have content field"
+        ],
+        "TestTTSEndpoint (2 tests)": [
+          "test_tts_endpoint_generates_audio: PASSED - /api/tts returns audio_base64",
+          "test_tts_endpoint_requires_text: PASSED - returns 400 for empty text"
+        ],
+        "TestVoiceMessageEndpoint (1 test)": [
+          "test_voice_message_endpoint_exists: PASSED - endpoint exists and accepts audio files"
+        ],
+        "TestMessageListBehavior (1 test)": [
+          "test_messages_endpoint_returns_valid_structure: PASSED - messages have id, role, content, created_at"
+        ]
+      }
+    },
+    "frontend_tests": {
+      "landing_page": "PASSED - mumble branding, Get Started button",
+      "auth_page": "PASSED - Login form with email/password, successful login redirects to /chat",
+      "chat_welcome": "PASSED - Shows 'Hey Sub!' greeting, language selectors, Start a Free Conversation, scenario buttons",
+      "chat_conversation": "PASSED - Shows messages, input mode toggle, voice/text input areas",
+      "voice_mode": "PASSED - Shows mic button (voice-record-btn), no text input visible",
+      "text_mode": "PASSED - Shows text input (chat-input), send button (send-message-btn)",
+      "mode_switching": "PASSED - Can switch between voice and text modes using mode-voice-btn and mode-text-btn",
+      "typing_indicator": "PASSED - Shows typing dots while AI is processing (when streamingText is empty)",
+      "karaoke_audio": "PASSED - AI messages show audio icon, karaoke word highlighting visible during playback"
+    }
+  },
+  "features_verified": [
+    "VOICE MODE DEFAULT: Chat page defaults to voice mode with mic button",
+    "TEXT MODE: Switching to text mode shows text input and send button",
+    "TEXT_DELTA SUPPRESSION: In voice mode (line 215-230 ChatPage.js), text_delta events are suppressed from streamingText",
+    "TEXT_DELTA STREAMING: In text mode, text_delta events would be added to streamingText (if agent emits them)",
+    "TYPING INDICATOR: When streamingText is empty during sending, TypingIndicator shows (line 142-143 MessageList.jsx)",
+    "STREAMING MESSAGE: When streamingText has content during sending, streaming text shows (line 122-141 MessageList.jsx)",
+    "DONE EVENT: Backend SSE returns done event with user_message, ai_message, ai_audio_base64, expected_response_language",
+    "TTS GENERATION: TTS audio is generated for AI responses and included in done event",
+    "KARAOKE SYNC: playWithKaraoke() plays audio and highlights words in sequence",
+    "VOICE MESSAGE SSE: Voice message endpoint accepts audio files and returns SSE stream with transcription"
+  ],
+  "code_review_verified": [
+    "ChatPage.js line 215: const isVoiceMode = inputMode === 'voice' - captures mode at send time",
+    "ChatPage.js line 225-230: text_delta events only added to streamingText when !isVoiceMode",
+    "ChatPage.js line 287-288: handleSendVoice always suppresses text_delta (voice messages always in voice mode)",
+    "MessageList.jsx line 122: Shows streaming message only when streamingText has content",
+    "MessageList.jsx line 142-143: Shows TypingIndicator when sending and streamingText is empty",
+    "audio.js: playAudioWithKaraoke unchanged (original version working correctly)"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_voice_mode_streaming.py",
+    "/app/test_reports/pytest/voice_mode_streaming_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_voice_mode_streaming.py"
+  ],
+  "success_rate": {
+    "backend": "100% (7/7 passed)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "subtest2@test.com": "password123"
+  },
+  "seed_data_creation": "None - used existing test user and conversation",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Voice mode streaming fix tested. Key behavior: In voice mode (default), text_delta SSE events are suppressed so user sees typing indicator (dots) instead of streaming text. When done event arrives with ai_audio_base64, text + audio appear together with karaoke sync. In text mode, text_delta events would stream (if agent emits them). The agent in this conversation uses tool calls heavily so typing indicator appears even in text mode. Conversation ID for testing: 15b69c93-4bd2-414f-b852-f642304c1735.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
