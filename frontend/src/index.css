@@ -177,7 +177,7 @@
 
 /* Karaoke word highlight transition */
 .karaoke-word {
-  transition: color 0.15s ease, background-color 0.15s ease;
+  transition: color 0.2s ease, opacity 0.2s ease, background-color 0.15s ease;
   border-radius: 2px;
 }
 .karaoke-word-current {
@@ -185,10 +185,13 @@
   color: #4338ca;
   padding: 1px 3px;
   border-radius: 3px;
+  opacity: 1;
 }
 .karaoke-word-spoken {
   color: #1e293b;
+  opacity: 1;
 }
 .karaoke-word-upcoming {
   color: rgba(30, 41, 59, 0.3);
+  opacity: 0;
 }
