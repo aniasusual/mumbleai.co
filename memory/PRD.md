@@ -34,13 +34,14 @@ Build a conversational agent "mumble" that acts as a personal language tutor wit
 - Credit History page with transaction breakdowns
 - Google OAuth alongside email/password auth
 - Admin credit top-up endpoint
-- Landing page with agent showcase, pricing, scenarios, demo
+- Landing page with agent showcase (interactive spotlight carousel), pricing, scenarios, demo
 - Webhook for recurring charges and cancellation
 - Live Razorpay plans created (Plus: plan_SOcRQ3oCCMEKF2, Pro: plan_SOcRR1Vw5s36hF)
-- **Proficiency-aware teaching system** (Feb 2026): Detailed level-specific instructions for all 4 agents covering language mix, word introductions, pronunciation, scaffolding, grammar, encouragement. Error correction remains user-decided (strict/balanced/relaxed).
-- **Aggressive web search triggers** (Feb 2026): Planner MUST search before proposing curriculum when user mentions exams, professions, travel, or specific domains. Fixed ddgs package.
-- **Updated credit plans** (Feb 2026): Free=500, Plus=3000, Pro=7000. ~70% margin on Plus, ~62% on Pro.
-- **User-consent testing/revision flow** (Feb 2026): Tutor always asks user before triggering test or revision agents. If user declines, tutor continues/advances. Skipped content accumulates — next test covers ALL untested lessons. Learning summary builder fetches messages since last test for cumulative coverage. Poor test scores (<60%) trigger revision suggestion.
+- Proficiency-aware teaching system: Detailed level-specific instructions for all 4 agents
+- Aggressive web search triggers: Planner searches before curriculum when exams/professions/travel mentioned
+- Updated credit plans: Free=500, Plus=3000, Pro=7000
+- User-consent testing/revision flow: Tutor asks before triggering, skipped content accumulates
+- **Audio-text sync fix** (Feb 2026): In voice mode, streaming text is suppressed — user sees typing indicator while AI processes, then text + audio appear together with karaoke sync. In text mode, streaming works as before. Applied to ALL agents (tutor, planner, tester, revision).
 
 ## Backlog
 - **P1**: Progress Journal — weekly learning summaries
