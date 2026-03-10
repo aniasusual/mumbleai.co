@@ -174,15 +174,20 @@ export default function ChatPage() {
   const handleNewConversation = async (scenario = null) => {
     if (creatingChat) return;
     setCreatingChat(true);
+    // Immediately leave the current chat and show the loader
+    setMessages([]);
+    setLoading(true);
+    setCurrentConv(null);
+    setSidebarOpen(false);
+    navigate("/chat", { replace: true });
     try {
       const res = await createConversation({ title: scenario ? `${scenario} Practice` : null, scenario, native_language: nativeLang, target_language: targetLang });
       setConversations(prev => [res.data, ...prev]);
       setCurrentConv(res.data);
-      setMessages([]);
       pendingTtsRef.current = true;
-      navigate(`/chat/${res.data.id}`);
-      setSidebarOpen(false);
+      navigate(`/chat/${res.data.id}`, { replace: true });
     } catch (e) {
+      setLoading(false);
       const msg = e.response?.data?.detail || "Failed to create conversation";
       const isCredits = e.response?.status === 402;
       toast.error(msg, isCredits ? { action: { label: "Upgrade", onClick: () => navigate("/pricing") } } : {});
