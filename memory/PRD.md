@@ -24,8 +24,9 @@ A full-stack language learning application where users interact with specialized
 - Agent trigger logic with user consent
 - Landing page with animated AI Agents carousel
 
-### Bug Fixes (Latest — March 10, 2026)
-- **Audio-text sync fix (P0)**: Eliminated double render where AI response text appeared twice (once as streaming text, once as karaoke). Root cause: `text_delta` SSE events were rendering streaming text in text mode, then clearing it when audio arrived, causing a flash. Fix: always suppress `text_delta` from rendering, show TypingIndicator during processing, reveal message only when audio `playing` event fires. Also moved karaoke word timing from `loadedmetadata` to `playing` event for perfect sync. Added `skipNextLoadRef` to prevent `loadMessages` re-trigger after `refreshConversations`.
+### Bug Fixes (March 10, 2026)
+- **Audio-text sync fix (P0)**: Eliminated double render where AI response text appeared twice. Root cause: text_delta SSE events were rendering streaming text, then clearing it when audio arrived. Fix: always suppress text_delta, show TypingIndicator during processing, reveal message only when audio playing event fires. Karaoke timing moved from loadedmetadata to playing event. Added skipNextLoadRef to prevent loadMessages re-trigger.
+- **New chat loading state**: Added centered loader ("Setting up your session...") when navigating to a new conversation before the welcome message loads. Previously showed a blank screen.
 
 ## Backlog
 - **P1**: Progress Journal — weekly learning summaries

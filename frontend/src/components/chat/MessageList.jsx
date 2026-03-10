@@ -55,6 +55,26 @@ export const MessageList = ({ messages, loading, sending, toolEvents, streamingT
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamingText, toolEvents]);
 
+  if (messages.length === 0 && loading) {
+    return (
+      <div className="flex-1 overflow-y-auto relative flex items-center justify-center" data-testid="chat-loading-state">
+        <motion.div
+          className="flex flex-col items-center gap-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="flex gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-full bg-indigo-400 typing-dot" />
+            <div className="w-2.5 h-2.5 rounded-full bg-indigo-400 typing-dot" />
+            <div className="w-2.5 h-2.5 rounded-full bg-indigo-400 typing-dot" />
+          </div>
+          <p className="text-sm text-slate-400">Setting up your session...</p>
+        </motion.div>
+      </div>
+    );
+  }
+
   if (messages.length === 0 && !loading) {
     return (
       <div className="flex-1 overflow-y-auto relative">
