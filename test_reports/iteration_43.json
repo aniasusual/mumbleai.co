@@ -1,0 +1,87 @@
+{
+  "summary": "Tested Mumble language learning app bug fix for double-rendering of AI responses. The fix correctly suppresses text_delta events (shows TypingIndicator instead of streaming text) and renders AI messages as a single unit when audio is ready. Backend: 7/7 tests passed. Frontend: All key flows verified - login, chat, mode switching, message sending with proper typing indicator display.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/health", "issue": "Returns 404 - health endpoint not implemented", "priority": "LOW"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend_tests": {
+      "status": "7/7 PASSED",
+      "test_file": "/app/backend/tests/test_voice_mode_streaming.py",
+      "categories": {
+        "TestSSEStreamingForVoiceMode (3 tests)": [
+          "test_sse_stream_returns_done_event_with_messages: PASSED",
+          "test_sse_stream_includes_audio_in_done_event: PASSED",
+          "test_text_delta_events_contain_content: PASSED"
+        ],
+        "TestTTSEndpoint (2 tests)": [
+          "test_tts_endpoint_generates_audio: PASSED",
+          "test_tts_endpoint_requires_text: PASSED"
+        ],
+        "TestVoiceMessageEndpoint (1 test)": [
+          "test_voice_message_endpoint_exists: PASSED"
+        ],
+        "TestMessageListBehavior (1 test)": [
+          "test_messages_endpoint_returns_valid_structure: PASSED"
+        ]
+      }
+    },
+    "frontend_tests": {
+      "landing_page": "PASSED - mumble branding, Get Started button, 50+ languages display",
+      "login_page": "PASSED - Login form with email/password, successful login redirects to /chat",
+      "chat_welcome_screen": "PASSED - Shows user greeting, language selectors, Start a Free Conversation button, scenario options",
+      "mode_switching": "PASSED - Voice mode button and Text mode button work correctly",
+      "text_mode_input": "PASSED - Shows text input and send button when in text mode",
+      "voice_mode_input": "PASSED - Shows mic button with 'Tap to start speaking' when in voice mode",
+      "typing_indicator_behavior": "PASSED - Shows typing dots (• • •) during AI processing instead of streaming text",
+      "tool_activity_display": "PASSED - Shows 'Thinking...', 'Looking up vocabulary' etc. during AI processing",
+      "karaoke_highlighting": "PASSED - Words highlight in sequence during audio playback",
+      "message_rendering": "PASSED - AI response appears as single render without flicker/flash"
+    }
+  },
+  "bug_fix_verification": {
+    "text_delta_suppression": "VERIFIED - ChatPage.js lines 228-230 always suppress text_delta events",
+    "typing_indicator_shows": "VERIFIED - MessageList.jsx lines 142-144 show TypingIndicator when sending and no streamingText",
+    "single_render_with_audio": "VERIFIED - ChatPage.js lines 239-258 only show message when audio is ready via playWithKaraoke callback",
+    "karaoke_timing_fix": "VERIFIED - audio.js lines 82-106 schedule karaoke timeouts inside 'playing' event handler",
+    "skip_load_messages_after_refresh": "VERIFIED - ChatPage.js uses skipNextLoadRef to prevent loadMessages after refreshConversations"
+  },
+  "code_review_verified": [
+    "ChatPage.js line 228-230: text_delta events ALWAYS suppressed (not just voice mode)",
+    "ChatPage.js line 244-249: playWithKaraoke called with onReady callback to sync message display with audio",
+    "ChatPage.js line 247, 257, 311, 321: skipNextLoadRef.current = true before refreshConversations",
+    "MessageList.jsx line 122: Only shows streaming message when streamingText has content",
+    "MessageList.jsx line 142-144: Shows TypingIndicator when sending and streamingText is empty",
+    "audio.js line 83-106: Karaoke timeouts now scheduled inside 'playing' event, not 'loadedmetadata'"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_voice_mode_streaming.py",
+    "/app/test_reports/pytest/voice_mode_streaming_fix_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (7/7 passed)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "email": "test@gmail.com",
+    "password": "1234567890"
+  },
+  "seed_data_creation": "None - used test credentials from request",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Bug fix for double-rendering of AI messages verified. Key behavior: text_delta SSE events are ALWAYS suppressed (lines 228-230 in ChatPage.js), TypingIndicator shows during AI processing (dots), and AI message only renders when audio is ready to play (via onReady callback in playWithKaraoke). The karaoke word timing is now correct because timeouts are scheduled inside the 'playing' event handler instead of 'loadedmetadata'. Tool activity (Thinking, Looking up vocabulary, etc.) still displays correctly during processing.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
