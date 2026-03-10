@@ -106,10 +106,15 @@ export default function ChatPage() {
         // Keep loading visible while fetching TTS — don't reveal text yet
         try {
           const ttsRes = await textToSpeech(welcomeMsg.content);
-          setMessages(res.data);
-          setLoading(false);
           if (ttsRes.data.audio_base64) {
-            playWithKaraoke(ttsRes.data.audio_base64, welcomeMsg.id, welcomeMsg.content);
+            // Wait for audio to be ready, then show message + play simultaneously
+            playWithKaraoke(ttsRes.data.audio_base64, welcomeMsg.id, welcomeMsg.content, () => {
+              setMessages(res.data);
+              setLoading(false);
+            });
+          } else {
+            setMessages(res.data);
+            setLoading(false);
           }
         } catch (e) {
           console.error("Welcome TTS failed", e);
@@ -234,16 +239,15 @@ export default function ChatPage() {
       // If audio is present, wait for it to be decoded before showing the message
       // so text and audio appear in sync (no flash of text before audio starts)
       if (result.ai_audio_base64 && result.ai_message) {
+        // Immediately clear streaming text so the user doesn't see it while audio loads
+        setStreamingText("");
+        setToolEvents([]);
         // Auto-update STT language toggle
         if (result.expected_response_language) setSttLanguage(result.expected_response_language);
         playWithKaraoke(result.ai_audio_base64, result.ai_message.id, result.ai_message.content, () => {
           // onReady: audio is decoded and about to play — NOW show the message
           setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
-          requestAnimationFrame(() => {
-            setToolEvents([]);
-            setStreamingText("");
-            setSending(false);
-          });
+          setSending(false);
           refreshConversations();
         });
       } else {
@@ -303,16 +307,15 @@ export default function ChatPage() {
       );
       // If audio is present, wait for it to be decoded before showing the message
       if (result.ai_audio_base64 && result.ai_message) {
+        // Immediately clear streaming text so the user doesn't see it while audio loads
+        setStreamingText("");
+        setToolEvents([]);
         if (result.expected_response_language) setSttLanguage(result.expected_response_language);
         playWithKaraoke(result.ai_audio_base64, result.ai_message.id, result.ai_message.content, () => {
           // onReady: audio decoded and about to play — NOW show the message
           setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
-          requestAnimationFrame(() => {
-            setToolEvents([]);
-            setStreamingText("");
-            setSending(false);
-            setProcessingVoice(false);
-          });
+          setSending(false);
+          setProcessingVoice(false);
           refreshConversations();
         });
       } else {
