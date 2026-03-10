@@ -106,15 +106,11 @@ export default function ChatPage() {
         // Keep loading visible while fetching TTS — don't reveal text yet
         try {
           const ttsRes = await textToSpeech(welcomeMsg.content);
+          // Show message immediately, then play audio
+          setMessages(res.data);
+          setLoading(false);
           if (ttsRes.data.audio_base64) {
-            // Wait for audio to be ready, then show message + play simultaneously
-            playWithKaraoke(ttsRes.data.audio_base64, welcomeMsg.id, welcomeMsg.content, () => {
-              setMessages(res.data);
-              setLoading(false);
-            });
-          } else {
-            setMessages(res.data);
-            setLoading(false);
+            playWithKaraoke(ttsRes.data.audio_base64, welcomeMsg.id, welcomeMsg.content);
           }
         } catch (e) {
           console.error("Welcome TTS failed", e);
@@ -216,6 +212,7 @@ export default function ChatPage() {
     if (!convId) return;
 
     const userText = input.trim();
+    const isVoiceMode = inputMode === "voice";
     setInput(""); setSending(true); setToolEvents([]); setStreamingText("");
     const tempId = `temp-${Date.now()}`;
     setMessages(prev => [...prev, { id: tempId, role: "user", content: userText, tools_used: [], created_at: new Date().toISOString() }]);
@@ -226,8 +223,11 @@ export default function ChatPage() {
         { content: userText, scenario_context: currentConv?.scenario },
         (event) => {
           if (event.type === "text_delta") {
-            // Stream text in real-time as the AI generates it
-            setStreamingText(prev => prev + (event.content || ""));
+            // In voice mode: suppress streaming text — we'll reveal it synced with audio
+            // In text mode: stream text in real-time as the AI generates it
+            if (!isVoiceMode) {
+              setStreamingText(prev => prev + (event.content || ""));
+            }
           } else {
             // Force immediate render so tool activity is visible before the response arrives
             flushSync(() => {
@@ -236,30 +236,20 @@ export default function ChatPage() {
           }
         }
       );
-      // If audio is present, wait for it to be decoded before showing the message
-      // so text and audio appear in sync (no flash of text before audio starts)
-      if (result.ai_audio_base64 && result.ai_message) {
-        // Immediately clear streaming text so the user doesn't see it while audio loads
-        setStreamingText("");
+      // Update messages with final result
+      setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
+      // Auto-update STT language toggle from LLM's expectation
+      if (result.expected_response_language) setSttLanguage(result.expected_response_language);
+      // Clear sending state
+      requestAnimationFrame(() => {
         setToolEvents([]);
-        // Auto-update STT language toggle
-        if (result.expected_response_language) setSttLanguage(result.expected_response_language);
-        playWithKaraoke(result.ai_audio_base64, result.ai_message.id, result.ai_message.content, () => {
-          // onReady: audio is decoded and about to play — NOW show the message
-          setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
-          setSending(false);
-          refreshConversations();
-        });
-      } else {
-        // No audio — show text immediately as before
-        setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
-        if (result.expected_response_language) setSttLanguage(result.expected_response_language);
-        requestAnimationFrame(() => {
-          setToolEvents([]);
-          setStreamingText("");
-          setSending(false);
-        });
-        refreshConversations();
+        setStreamingText("");
+        setSending(false);
+      });
+      refreshConversations();
+      // Play audio synced with text if available
+      if (result.ai_audio_base64 && result.ai_message) {
+        playWithKaraoke(result.ai_audio_base64, result.ai_message.id, result.ai_message.content);
       }
     } catch (e) {
       const isCreditsError = e?.response?.status === 402 || e?.message?.includes("402") || e?.message?.toLowerCase()?.includes("insufficient credits");
@@ -294,8 +284,7 @@ export default function ChatPage() {
               m.id === tempId ? { ...m, content: event.text } : m
             ));
           } else if (event.type === "text_delta") {
-            // Stream text in real-time
-            setStreamingText(prev => prev + (event.content || ""));
+            // Voice mode: suppress streaming text — reveal synced with audio
           } else {
             // Tool events — force immediate render
             flushSync(() => {
@@ -305,29 +294,18 @@ export default function ChatPage() {
         },
         sttLanguage
       );
-      // If audio is present, wait for it to be decoded before showing the message
-      if (result.ai_audio_base64 && result.ai_message) {
-        // Immediately clear streaming text so the user doesn't see it while audio loads
-        setStreamingText("");
+      setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
+      // Auto-update STT language toggle from LLM's expectation
+      if (result.expected_response_language) setSttLanguage(result.expected_response_language);
+      requestAnimationFrame(() => {
         setToolEvents([]);
-        if (result.expected_response_language) setSttLanguage(result.expected_response_language);
-        playWithKaraoke(result.ai_audio_base64, result.ai_message.id, result.ai_message.content, () => {
-          // onReady: audio decoded and about to play — NOW show the message
-          setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
-          setSending(false);
-          setProcessingVoice(false);
-          refreshConversations();
-        });
-      } else {
-        setMessages(prev => [...prev.filter(m => m.id !== tempId), result.user_message, result.ai_message]);
-        if (result.expected_response_language) setSttLanguage(result.expected_response_language);
-        requestAnimationFrame(() => {
-          setToolEvents([]);
-          setStreamingText("");
-          setSending(false);
-          setProcessingVoice(false);
-        });
-        refreshConversations();
+        setStreamingText("");
+        setSending(false);
+        setProcessingVoice(false);
+      });
+      refreshConversations();
+      if (result.ai_audio_base64 && result.ai_message) {
+        playWithKaraoke(result.ai_audio_base64, result.ai_message.id, result.ai_message.content);
       }
     } catch (e) {
       const isCreditsError = e?.status === 402 || e?.response?.status === 402 || e?.message?.includes("402") || e?.message?.toLowerCase()?.includes("insufficient credits");
@@ -362,7 +340,7 @@ export default function ChatPage() {
     setSpeakingState(null);
   }, []);
 
-  const playWithKaraoke = useCallback((audioBase64, messageId, text, onReady) => {
+  const playWithKaraoke = useCallback((audioBase64, messageId, text) => {
     // Stop any currently playing audio
     stopAudio();
 
@@ -373,8 +351,7 @@ export default function ChatPage() {
       audioBase64,
       words,
       (wordIndex) => setSpeakingState(prev => prev ? { ...prev, wordIndex } : null),
-      () => { setSpeakingState(null); audioControllerRef.current = null; },
-      onReady
+      () => { setSpeakingState(null); audioControllerRef.current = null; }
     );
     audioControllerRef.current = controller;
   }, [stopAudio]);
