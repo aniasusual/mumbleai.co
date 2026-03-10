@@ -1,49 +1,33 @@
-# mumble — Personal AI Language Tutor
+# Mumble — Personal AI Language Tutor
 
 ## Problem Statement
-Build a conversational agent "mumble" that acts as a personal language tutor with voice-first interaction, multi-agent architecture, and subscription-based monetization.
+A full-stack language learning application where users interact with specialized AI agents (Tutor, Planner, Tester, Revisionist) via chat. Supports text and voice interactions with TTS, subscription model via Razorpay, powered by Emergent LLM Key.
 
-## Core Requirements
-- React frontend + FastAPI backend + MongoDB
-- Voice-first (STT/TTS) + text interaction, 50+ languages
-- 4 AI agents: Tutor, Planner, Tester, Revision Coach
-- Real-time UI via Server-Sent Events (SSE)
-- JWT auth + Google OAuth
-- Razorpay subscription-based billing with credit system
+## Architecture
+- **Frontend**: React + Tailwind + Framer Motion + Shadcn/UI
+- **Backend**: FastAPI + MongoDB
+- **AI**: emergentintegrations (GPT-5.2 text, tts-1, whisper-1)
+- **Payments**: Razorpay
+- **Search**: ddgs (DuckDuckGo)
 
-## Tech Stack
-- **Backend**: FastAPI, MongoDB (motor), LiteLLM (GPT-5.2), OpenAI Whisper/TTS
-- **Frontend**: React, TailwindCSS, Shadcn/UI, Framer Motion
-- **Payments**: Razorpay Subscriptions API (INR)
-- **Auth**: JWT + Google OAuth (@react-oauth/google)
-- **Web Search**: ddgs (DuckDuckGo search)
+## What's Been Implemented
 
-## Plans
-| Plan | Price | Credits/mo | Max Conversations |
-|------|-------|-----------|-------------------|
-| Free | Rs 0 | 500 | 3 |
-| Plus | Rs 1,199/mo | 3,000 | 10 |
-| Pro | Rs 2,499/mo | 7,000 | Unlimited |
+### Core Features
+- Multi-agent chat system (Tutor, Planner, Tester, Revision)
+- Voice input (STT) + Voice output (TTS) with karaoke word highlighting
+- Conversation management (create, delete, list)
+- JWT authentication (signup/login)
+- Razorpay subscription plans (Free/Plus/Pro)
+- Credit system (100/500/3000/7000 credits)
+- Proficiency-aware agent prompts (Beginner/Intermediate/Expert)
+- Web search tool for agents (ddgs)
+- Agent trigger logic with user consent
+- Landing page with animated AI Agents carousel
 
-## What's Implemented
-- Full 4-agent system with isolated context windows and handoffs
-- Voice + text conversation with real-time SSE streaming
-- Razorpay subscription billing (monthly, credits roll over, cancel at cycle end)
-- Credit deduction for LLM tokens, STT duration, TTS characters
-- Conversation limits + credit gating on all endpoints
-- Credit History page with transaction breakdowns
-- Google OAuth alongside email/password auth
-- Admin credit top-up endpoint
-- Landing page with agent showcase (interactive spotlight carousel), pricing, scenarios, demo
-- Webhook for recurring charges and cancellation
-- Live Razorpay plans created (Plus: plan_SOcRQ3oCCMEKF2, Pro: plan_SOcRR1Vw5s36hF)
-- Proficiency-aware teaching system: Detailed level-specific instructions for all 4 agents
-- Aggressive web search triggers: Planner searches before curriculum when exams/professions/travel mentioned
-- Updated credit plans: Free=500, Plus=3000, Pro=7000
-- User-consent testing/revision flow: Tutor asks before triggering, skipped content accumulates
-- **Audio-text sync fix** (Feb 2026): In voice mode, streaming text is suppressed — user sees typing indicator while AI processes, then text + audio appear together with karaoke sync. In text mode, streaming works as before. Applied to ALL agents (tutor, planner, tester, revision).
+### Bug Fixes (Latest — March 10, 2026)
+- **Audio-text sync fix (P0)**: Eliminated double render where AI response text appeared twice (once as streaming text, once as karaoke). Root cause: `text_delta` SSE events were rendering streaming text in text mode, then clearing it when audio arrived, causing a flash. Fix: always suppress `text_delta` from rendering, show TypingIndicator during processing, reveal message only when audio `playing` event fires. Also moved karaoke word timing from `loadedmetadata` to `playing` event for perfect sync. Added `skipNextLoadRef` to prevent `loadMessages` re-trigger after `refreshConversations`.
 
 ## Backlog
 - **P1**: Progress Journal — weekly learning summaries
 - **P2**: Gamification — streaks, points, leaderboards
-- **Future**: VAD, SpeechAce pronunciation
+- **Future**: VAD (Voice Activity Detection), SpeechAce pronunciation scoring
