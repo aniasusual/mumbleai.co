@@ -43,11 +43,14 @@ export const playAudioWithKaraoke = (base64Audio, words, onWordChange, onComplet
     stopped = true;
     timeouts.forEach(clearTimeout);
     timeouts = [];
+    if (fallbackTimer) clearTimeout(fallbackTimer);
     if (audio) {
       audio.pause();
       audio.src = "";
     }
   };
+
+  let fallbackTimer = null;
 
   try {
     const byteChars = atob(base64Audio);
@@ -64,8 +67,14 @@ export const playAudioWithKaraoke = (base64Audio, words, onWordChange, onComplet
       if (stopped) return;
       const duration = audio.duration; // seconds
       if (!duration || !isFinite(duration) || words.length === 0) {
-        // Fallback: signal ready and play without karaoke
-        if (onReady) onReady();
+        // Fallback: signal ready on actual playback start and play without karaoke
+        audio.addEventListener("playing", () => {
+          if (!stopped && onReady) {
+            if (fallbackTimer) clearTimeout(fallbackTimer);
+            onReady();
+            onReady = null;
+          }
+        }, { once: true });
         audio.play();
         return;
       }
@@ -84,8 +93,14 @@ export const playAudioWithKaraoke = (base64Audio, words, onWordChange, onComplet
         elapsed += wordMs;
       }
 
-      // Signal ready — caller should now render the message text
-      if (onReady) onReady();
+      // Show text only when audio is ACTUALLY playing through speakers
+      audio.addEventListener("playing", () => {
+        if (!stopped && onReady) {
+          if (fallbackTimer) clearTimeout(fallbackTimer);
+          onReady();
+          onReady = null;
+        }
+      }, { once: true });
       audio.play();
     });
 
@@ -99,10 +114,17 @@ export const playAudioWithKaraoke = (base64Audio, words, onWordChange, onComplet
 
     audio.onerror = () => {
       URL.revokeObjectURL(url);
-      // On error, still signal ready so text shows
       if (onReady) onReady();
       if (!stopped) onComplete();
     };
+
+    // Timeout fallback: if playing event never fires within 3s, show text anyway
+    fallbackTimer = setTimeout(() => {
+      if (!stopped && onReady) {
+        onReady();
+        onReady = null;
+      }
+    }, 3000);
 
     // Trigger metadata load
     audio.load();
