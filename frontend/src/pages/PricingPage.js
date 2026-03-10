@@ -48,11 +48,15 @@ function PricingCard({ plan, subscription, onSelect, onCancel, onDowngrade, load
   const isDowngrade = PLAN_ORDER[plan.id] < PLAN_ORDER[currentPlan];
   const isPendingCancel = subscription?.subscription_status === "cancelling";
   const isPendingDowngrade = subscription?.pending_plan === plan.id;
+  const isDowngrading = subscription?.subscription_status === "downgrading";
+  const needsActivation = isCurrent && subscription?.subscription_status === "pending_activation";
 
   const getButtonContent = () => {
     if (loading === plan.id) return <Loader2 className="w-4 h-4 animate-spin mx-auto" />;
+    if (needsActivation) return `Activate ${plan.name}`;
     if (isPendingDowngrade) return "Switching at cycle end";
     if (isCurrent && isPendingCancel) return "Cancelling at cycle end";
+    if (isCurrent && isDowngrading) return "Downgrading at cycle end";
     if (isCurrent) return "Current Plan";
     if (isUpgrade) return `Subscribe to ${plan.name}`;
     if (isDowngrade && plan.id === "free") return "Cancel Subscription";
@@ -61,13 +65,15 @@ function PricingCard({ plan, subscription, onSelect, onCancel, onDowngrade, load
   };
 
   const handleClick = () => {
-    if (isCurrent || isPendingDowngrade || loading) return;
+    if (loading) return;
+    if (needsActivation) { onSelect(plan.id); return; }
+    if (isCurrent || isPendingDowngrade) return;
     if (isUpgrade) onSelect(plan.id);
     else if (isDowngrade && plan.id === "free") onCancel();
     else if (isDowngrade) onDowngrade(plan.id);
   };
 
-  const isDisabled = isCurrent || isPendingDowngrade || !!loading;
+  const isDisabled = (isCurrent && !needsActivation) || isPendingDowngrade || (isCurrent && isDowngrading) || !!loading;
 
   return (
     <motion.div
@@ -139,9 +145,9 @@ function PricingCard({ plan, subscription, onSelect, onCancel, onDowngrade, load
         disabled={isDisabled}
         className="w-full rounded-full py-3 text-sm font-semibold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         style={{
-          background: isCurrent || isPendingDowngrade ? "#e2e8f0" : isDowngrade ? "transparent" : plan.highlight ? plan.accent : "transparent",
-          color: isCurrent || isPendingDowngrade ? "#64748b" : isDowngrade ? "#ef4444" : plan.highlight ? "white" : plan.accent,
-          border: isCurrent || isPendingDowngrade || plan.highlight ? "none" : isDowngrade ? "2px solid rgba(239,68,68,0.3)" : `2px solid ${plan.borderColor}`,
+          background: needsActivation ? plan.accent : isCurrent || isPendingDowngrade || (isCurrent && isDowngrading) ? "#e2e8f0" : isDowngrade ? "transparent" : plan.highlight ? plan.accent : "transparent",
+          color: needsActivation ? "white" : isCurrent || isPendingDowngrade || (isCurrent && isDowngrading) ? "#64748b" : isDowngrade ? "#ef4444" : plan.highlight ? "white" : plan.accent,
+          border: needsActivation || isCurrent || isPendingDowngrade || (isCurrent && isDowngrading) || plan.highlight ? "none" : isDowngrade ? "2px solid rgba(239,68,68,0.3)" : `2px solid ${plan.borderColor}`,
         }}
         whileHover={!isDisabled ? { scale: 1.02 } : {}}
         whileTap={!isDisabled ? { scale: 0.97 } : {}}
@@ -287,6 +293,38 @@ export default function PricingPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-6 py-12">
+        {subscription?.subscription_status === "pending_activation" && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-4xl mx-auto mb-8 rounded-xl px-5 py-4 flex items-center gap-3"
+            style={{ background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.25)" }}
+            data-testid="pending-activation-banner"
+          >
+            <Zap className="w-5 h-5 text-amber-600 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-amber-800">Activate your {subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)} plan</p>
+              <p className="text-xs text-amber-600 mt-0.5">Your previous subscription ended. Subscribe below to start your new plan and resume recurring billing.</p>
+            </div>
+          </motion.div>
+        )}
+        {subscription?.subscription_status === "downgrading" && subscription?.pending_plan && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-4xl mx-auto mb-8 rounded-xl px-5 py-4 flex items-center gap-3"
+            style={{ background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.15)" }}
+            data-testid="downgrading-banner"
+          >
+            <ArrowDown className="w-5 h-5 text-indigo-500 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-indigo-800">Plan change scheduled</p>
+              <p className="text-xs text-indigo-500 mt-0.5">
+                You'll switch to {subscription.pending_plan.charAt(0).toUpperCase() + subscription.pending_plan.slice(1)} at the end of your current billing cycle. Your current benefits remain active until then.
+              </p>
+            </div>
+          </motion.div>
+        )}
         <div className="text-center mb-14">
           <motion.span initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             className="text-[13px] font-semibold tracking-wider uppercase mb-3 block text-indigo-500">
