@@ -82,7 +82,7 @@ export default function DashboardPage() {
       <FloatingChars />
 
       {/* Header */}
-      <nav className="sticky top-0 z-50" style={{ background: "rgba(248,247,244,0.88)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+      <nav className="sticky top-0 z-50" style={{ background: "rgba(248,247,244,0.88)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(0,0,0,0.06)", paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">

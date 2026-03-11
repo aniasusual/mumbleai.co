@@ -187,6 +187,7 @@ function Navbar() {
         background: scrolled ? "rgba(248,247,244,0.9)" : "transparent",
         backdropFilter: scrolled ? "blur(16px)" : "none",
         borderBottom: scrolled ? "1px solid rgba(0,0,0,0.06)" : "1px solid transparent",
+        paddingTop: "env(safe-area-inset-top, 0px)",
       }}
       initial={{ y: -60, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.2, duration: 0.5 }}
