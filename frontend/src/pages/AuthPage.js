@@ -211,7 +211,7 @@ export default function AuthPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f1f5f9]">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -284,7 +284,7 @@ export default function AuthPage() {
       </div>
 
       {/* ── RIGHT PANEL — form ── */}
-      <div className="flex-1 flex items-center justify-center px-5 sm:px-8 py-10 bg-[#f1f5f9] relative overflow-hidden"
+      <div className="flex-1 flex items-center justify-center px-5 sm:px-8 py-10 bg-white relative overflow-hidden"
         style={{ paddingTop: "calc(2.5rem + env(safe-area-inset-top, 0px))", paddingBottom: "calc(2.5rem + env(safe-area-inset-bottom, 0px))" }}>
         {/* Mobile background decorations */}
         <DotGrid />
