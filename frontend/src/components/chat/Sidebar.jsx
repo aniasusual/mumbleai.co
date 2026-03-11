@@ -424,7 +424,9 @@ const MobileSidebar = ({
     }}
     data-testid="chat-sidebar">
     <SidebarMesh />
-    <div className="p-4 flex items-center justify-between relative z-10">
+    <motion.div className="p-4 flex items-center justify-between relative z-10"
+      initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.05, duration: 0.3 }}>
       <button onClick={() => navigate("/")} className="flex items-center gap-2" data-testid="sidebar-logo">
         <WaveformLogo size={28} className="text-indigo-600" />
         <span className="font-semibold text-sm text-slate-800 tracking-tight" style={{ fontFamily: 'Sora, sans-serif' }}>mumble</span>
@@ -432,8 +434,10 @@ const MobileSidebar = ({
       <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-white/50 transition-colors" data-testid="close-sidebar-btn">
         <X className="w-5 h-5 text-slate-500" />
       </button>
-    </div>
-    <div className="px-3 pb-3 relative z-10">
+    </motion.div>
+    <motion.div className="px-3 pb-3 relative z-10"
+      initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1, duration: 0.3 }}>
       <div className="space-y-1.5 mb-3">
         <LanguagePicker label="I speak" labelClass="text-slate-500" btnClass="bg-white hover:bg-slate-50 border border-indigo-100 text-slate-700 rounded-xl"
           value={nativeLang} languages={languages} onSelect={onSetNativeLang} testIdPrefix="native" />
@@ -465,7 +469,8 @@ const MobileSidebar = ({
           })}
         </DropdownMenuContent>
       </DropdownMenu>
-    </div>
+    </motion.div>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15, duration: 0.3 }}>
     <ScrollArea className="flex-1 px-3 relative z-10">
       {conversations.length > 0 && (
         <div className="flex items-center justify-between px-1 mb-2 pt-1">
@@ -494,7 +499,10 @@ const MobileSidebar = ({
         ))}
       </div>
     </ScrollArea>
-    <div className="p-3 space-y-0.5 relative z-10" style={{ borderTop: "1px solid rgba(99,102,241,0.08)" }}>
+    </motion.div>
+    <motion.div className="p-3 space-y-0.5 relative z-10" style={{ borderTop: "1px solid rgba(99,102,241,0.08)" }}
+      initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2, duration: 0.3 }}>
       <button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-500 hover:text-indigo-600 hover:bg-white/40 rounded-xl transition-all" data-testid="sidebar-dashboard-link">
         <BarChart3 className="w-4 h-4" /> Dashboard
       </button>
@@ -515,7 +523,7 @@ const MobileSidebar = ({
           <LogOut className="w-3.5 h-3.5" /> Logout
         </button>
       </div>
-    </div>
+    </motion.div>
   </aside>
 );
 
@@ -544,15 +552,24 @@ export const Sidebar = ({
       />
 
       {/* Mobile — overlay */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         {sidebarOpen && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 lg:hidden" onClick={onCloseSidebar} />
-            <motion.div initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
-              transition={{ type: "tween", duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-              className="fixed inset-y-0 left-0 z-40 lg:hidden">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="fixed inset-0 bg-black/25 backdrop-blur-sm z-30 lg:hidden"
+              onClick={onCloseSidebar}
+            />
+            <motion.div
+              initial={{ x: "-100%", opacity: 0.5 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: "-100%", opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.8 }}
+              className="fixed inset-y-0 left-0 z-40 lg:hidden"
+            >
               <MobileSidebar
                 conversations={conversations} conversationId={conversationId}
                 scenarios={scenarios} languages={languages}
