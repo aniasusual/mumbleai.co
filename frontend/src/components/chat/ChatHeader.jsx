@@ -64,6 +64,7 @@ export const ChatHeader = ({ currentConv, curriculum, languages, inputMode, onSe
         background: "rgba(248,247,244,0.88)",
         backdropFilter: "blur(16px)",
         borderBottom: "1px solid rgba(0,0,0,0.06)",
+        paddingTop: "calc(0.75rem + env(safe-area-inset-top, 0px))",
       }}
       data-testid="chat-header"
     >

@@ -76,7 +76,7 @@ export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targ
       <FloatingChars />
 
       {/* Minimal top bar for mobile sidebar toggle */}
-      <div className="px-4 py-3 flex items-center lg:hidden relative z-20">
+      <div className="px-4 py-3 flex items-center lg:hidden relative z-20" style={{ paddingTop: "calc(0.75rem + env(safe-area-inset-top, 0px))" }}>
         <button onClick={onOpenSidebar} className="p-1.5 rounded-lg hover:bg-indigo-50 transition-colors" data-testid="welcome-open-sidebar-btn">
           <Menu className="w-5 h-5 text-slate-500" />
         </button>

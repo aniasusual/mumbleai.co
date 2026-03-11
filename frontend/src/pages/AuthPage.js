@@ -201,7 +201,8 @@ export default function AuthPage() {
       </div>
 
       {/* ── RIGHT PANEL — form ── */}
-      <div className="flex-1 flex items-center justify-center px-5 sm:px-8 py-10 bg-[#f8f7f4] relative">
+      <div className="flex-1 flex items-center justify-center px-5 sm:px-8 py-10 bg-[#f8f7f4] relative"
+        style={{ paddingTop: "calc(2.5rem + env(safe-area-inset-top, 0px))", paddingBottom: "calc(2.5rem + env(safe-area-inset-bottom, 0px))" }}>
         {/* Mesh accent */}
         <motion.div className="absolute top-0 right-0 w-[300px] sm:w-[400px] h-[300px] sm:h-[400px] pointer-events-none rounded-full"
           style={{ background: "radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 65%)" }}
