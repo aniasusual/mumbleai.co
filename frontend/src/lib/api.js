@@ -8,6 +8,27 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" }
 });
 
+const AUDIO_EXTENSIONS = {
+  "audio/webm": "webm",
+  "audio/wav": "wav",
+  "audio/x-wav": "wav",
+  "audio/wave": "wav",
+  "audio/mp3": "mp3",
+  "audio/mpeg": "mp3",
+  "audio/ogg": "ogg",
+  "audio/mp4": "mp4",
+  "audio/m4a": "m4a",
+  "audio/x-m4a": "m4a",
+  "audio/aac": "aac",
+  "video/mp4": "mp4",
+};
+
+const getAudioUploadFilename = (audioBlob) => {
+  const normalizedType = (audioBlob?.type || "").split(";")[0].trim().toLowerCase();
+  const extension = AUDIO_EXTENSIONS[normalizedType] || "webm";
+  return `recording.${extension}`;
+};
+
 // Helper to get current token
 const getToken = () => localStorage.getItem("mumble_token");
 
@@ -74,7 +95,7 @@ export const sendVoiceMessageStream = (id, audioBlob, scenarioContext, onEvent, 
   return new Promise((resolve, reject) => {
     const token = getToken();
     const formData = new FormData();
-    formData.append("audio", audioBlob, "recording.webm");
+    formData.append("audio", audioBlob, getAudioUploadFilename(audioBlob));
     if (scenarioContext) formData.append("scenario_context", scenarioContext);
     if (languageHint) formData.append("language_hint", languageHint);
 
@@ -126,7 +147,7 @@ export const sendVoiceMessageStream = (id, audioBlob, scenarioContext, onEvent, 
 // Voice message — legacy non-streaming (kept for backward compatibility)
 export const sendVoiceMessage = (id, audioBlob, scenarioContext) => {
   const formData = new FormData();
-  formData.append("audio", audioBlob, "recording.webm");
+  formData.append("audio", audioBlob, getAudioUploadFilename(audioBlob));
   if (scenarioContext) formData.append("scenario_context", scenarioContext);
   return api.post(`/conversations/${id}/voice-message`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
