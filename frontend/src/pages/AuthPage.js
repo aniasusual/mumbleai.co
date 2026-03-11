@@ -291,10 +291,10 @@ export default function AuthPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.25 }}>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-slate-900 mb-1" style={{ fontFamily: "Sora" }}>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-slate-900 mb-1 text-center" style={{ fontFamily: "Sora" }}>
                 {mode === "login" ? "Welcome back" : "Create account"}
               </h1>
-              <p className="text-sm text-slate-400 mb-8">
+              <p className="text-sm text-slate-400 mb-8 text-center">
                 {mode === "login" ? "Log in to continue your lessons" : "Start your language learning journey"}
               </p>
             </motion.div>
