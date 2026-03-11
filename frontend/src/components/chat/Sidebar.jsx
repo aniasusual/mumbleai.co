@@ -414,7 +414,20 @@ const MobileSidebar = ({
   nativeLang, targetLang, userEmail, creatingChat,
   onSetNativeLang, onSetTargetLang, onNewConversation,
   onDeleteConv, onClearAll, onLogout, onClose, navigate,
-}) => (
+}) => {
+  const [longPressId, setLongPressId] = useState(null);
+  const timerRef = { current: null };
+
+  const handleTouchStart = (convId) => {
+    timerRef.current = setTimeout(() => {
+      setLongPressId(prev => prev === convId ? null : convId);
+    }, 500);
+  };
+  const handleTouchEnd = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+  };
+
+  return (
   <aside className="fixed inset-y-0 left-0 z-40 w-72 flex flex-col"
     style={{
       background: "linear-gradient(165deg, #f0f0ff 0%, #e8ecff 40%, #e0d8f8 100%)",
@@ -484,15 +497,32 @@ const MobileSidebar = ({
             className={`group flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 ${
               conv.id === conversationId ? "bg-white/70 shadow-sm border border-indigo-100/50" : "hover:bg-white/40 border border-transparent"
             }`}
-            onClick={() => { navigate(`/chat/${conv.id}`); onClose(); }}
+            onClick={() => { if (longPressId) { setLongPressId(null); return; } navigate(`/chat/${conv.id}`); onClose(); }}
+            onTouchStart={() => handleTouchStart(conv.id)}
+            onTouchEnd={handleTouchEnd}
+            onTouchMove={handleTouchEnd}
             data-testid={`conv-item-${conv.id}`}>
             <MessageCircle className={`w-4 h-4 flex-shrink-0 ${conv.id === conversationId ? "text-indigo-500" : "text-indigo-300"}`} />
             <div className="flex-1 min-w-0">
               <span className={`text-sm truncate block ${conv.id === conversationId ? "text-slate-800 font-medium" : "text-slate-600"}`}>{conv.title}</span>
             </div>
+            <AnimatePresence>
+              {longPressId === conv.id && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={(e) => { e.stopPropagation(); onDeleteConv(conv.id, e); setLongPressId(null); }}
+                  className="p-1.5 rounded-lg text-red-400 bg-red-50 flex-shrink-0"
+                  data-testid={`delete-conv-${conv.id}`}>
+                  <Trash2 className="w-3.5 h-3.5" />
+                </motion.button>
+              )}
+            </AnimatePresence>
             <button onClick={(e) => onDeleteConv(conv.id, e)}
-              className="p-1.5 rounded-lg text-slate-300 hover:text-red-400 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 flex-shrink-0"
-              data-testid={`delete-conv-${conv.id}`}>
+              className="p-1.5 rounded-lg text-slate-300 hover:text-red-400 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 flex-shrink-0 hidden sm:block"
+              data-testid={`delete-conv-hover-${conv.id}`}>
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -525,7 +555,8 @@ const MobileSidebar = ({
       </div>
     </motion.div>
   </aside>
-);
+  );
+};
 
 /* ─── Main Sidebar Controller ─── */
 export const Sidebar = ({
