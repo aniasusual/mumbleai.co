@@ -470,8 +470,8 @@ const MobileSidebar = ({
         </DropdownMenuContent>
       </DropdownMenu>
     </motion.div>
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15, duration: 0.3 }}>
-    <ScrollArea className="flex-1 px-3 relative z-10">
+    <motion.div className="flex-1 min-h-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15, duration: 0.3 }}>
+    <ScrollArea className="h-full px-3 relative z-10">
       {conversations.length > 0 && (
         <div className="flex items-center justify-between px-1 mb-2 pt-1">
           <span className="text-[10px] uppercase tracking-wider text-indigo-400 font-medium">Conversations</span>
