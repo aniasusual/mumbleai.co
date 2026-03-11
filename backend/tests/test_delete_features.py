@@ -15,7 +15,7 @@ import requests
 import os
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://voice-master-19.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://project-scanner-30.preview.emergentagent.com').rstrip('/')
 
 class TestConversationCRUD:
     """Test conversation create and list operations"""
