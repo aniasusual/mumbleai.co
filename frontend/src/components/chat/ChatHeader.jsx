@@ -1,7 +1,6 @@
-import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Menu, Globe, Mic, Keyboard, FlaskConical, RefreshCw, Sparkles } from "lucide-react";
+import { Menu, Globe, Mic, Keyboard, FlaskConical, RefreshCw, Sparkles } from "lucide-react";
 
 const PhaseBadge = ({ phase }) => {
   if (phase === "planning") {
@@ -53,7 +52,6 @@ const PhaseBadge = ({ phase }) => {
 };
 
 export const ChatHeader = ({ currentConv, curriculum, languages, inputMode, onSetInputMode, onOpenSidebar, sidebarVisible }) => {
-  const navigate = useNavigate();
   const allLangs = [...(languages.popular || []), ...(languages.others || [])];
   const getLangName = (code) => allLangs.find(l => l.code === code)?.name || "English";
 
@@ -73,9 +71,6 @@ export const ChatHeader = ({ currentConv, curriculum, languages, inputMode, onSe
           <Menu className="w-5 h-5 text-slate-500" />
         </button>
       )}
-      <button onClick={() => navigate("/")} className="p-1.5 hover:bg-indigo-50 rounded-lg transition-colors duration-200" data-testid="back-home-btn">
-        <ArrowLeft className="w-4 h-4 text-slate-400" />
-      </button>
 
       <div className="flex-1 min-w-0">
         <h2 className="text-sm font-semibold text-slate-800 truncate" style={{ fontFamily: 'Sora, sans-serif' }}>
