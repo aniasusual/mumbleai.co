@@ -346,7 +346,12 @@ export default function ChatPage() {
       if (!audioBlob || audioBlob.size < 1000) { toast.error("Recording too short."); return; }
       await handleSendVoice(audioBlob);
     } else {
-      try { await startRecording(); } catch (e) { toast.error("Microphone access denied."); }
+      try {
+        await startRecording();
+      } catch (e) {
+        const message = e?.message || "Microphone access denied.";
+        toast.error(message);
+      }
     }
   };
 
