@@ -406,7 +406,7 @@ export default function ChatPage() {
         creatingChat={creatingChat}
       />
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden" data-testid="chat-main">
+      <main className="flex-1 flex flex-col min-w-0" data-testid="chat-main">
         {!conversationId ? (
           <WelcomeScreen
             userName={user?.name}
