@@ -75,16 +75,16 @@ function WordReveal({ text, className, as: Tag = "h1" }) {
    ═══════════════════════════════════════════ */
 function MeshBackground() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <motion.div className="absolute w-[600px] h-[600px] rounded-full"
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ maxWidth: "100vw" }}>
+      <motion.div className="absolute w-[min(600px,80vw)] h-[min(600px,80vw)] rounded-full"
         style={{ top: "-10%", left: "-5%", background: "radial-gradient(circle, rgba(99,102,241,0.25) 0%, transparent 65%)" }}
         animate={{ x: [0, 40, 0], y: [0, 30, 0] }}
         transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }} />
-      <motion.div className="absolute w-[500px] h-[500px] rounded-full"
+      <motion.div className="absolute w-[min(500px,70vw)] h-[min(500px,70vw)] rounded-full"
         style={{ top: "20%", right: "-5%", background: "radial-gradient(circle, rgba(236,72,153,0.2) 0%, transparent 65%)" }}
         animate={{ x: [0, -30, 0], y: [0, 40, 0] }}
         transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }} />
-      <motion.div className="absolute w-[450px] h-[450px] rounded-full"
+      <motion.div className="absolute w-[min(450px,65vw)] h-[min(450px,65vw)] rounded-full"
         style={{ bottom: "5%", left: "30%", background: "radial-gradient(circle, rgba(16,185,129,0.18) 0%, transparent 65%)" }}
         animate={{ x: [0, 35, 0], y: [0, -25, 0] }}
         transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }} />

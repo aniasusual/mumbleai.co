@@ -30,7 +30,7 @@ A full-stack language learning application where users interact with specialized
 - **Sidebar new chat instant nav**: handleNewConversation now clears current view immediately and navigates before API call.
 - **Chat input UI redesign**: Merged input box, credit pill, and send button into one unified container.
 - **Subscription downgrade flow fix (P0)**: change-plan now cancels Razorpay subscription at cycle end, webhooks handle pending_activation status.
-- **PWA safe area support**: Added viewport-fit=cover, env(safe-area-inset-*) padding to ChatHeader, ChatInput, WelcomeScreen, MobileSidebar, and AuthPage. Added manifest.json with standalone display. Fixes hamburger button being untappable under status bar in mobile PWA.
+- **Landing page responsive overhaul**: Fixed all sections for mobile/tablet/desktop. Added mobile hamburger menu to navbar, scaled headings (text-2xl→text-5xl), reduced section padding (py-16→py-32), tightened container px (px-4→px-6), responsive mesh background circles (min(600px,80vw)), agent features grid (1-col→2-col), scenario tags smaller on mobile. Testing: 95% → 100% after mesh overflow fix.
 
 ## Backlog
 - **P1**: Progress Journal — weekly learning summaries
