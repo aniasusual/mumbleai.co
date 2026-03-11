@@ -155,7 +155,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ fontFamily: "DM Sans, sans-serif" }}>
+    <div className="min-h-screen flex overflow-x-hidden" style={{ fontFamily: "DM Sans, sans-serif" }}>
 
       {/* ── LEFT PANEL — branded, animated ── */}
       <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden flex-col justify-between p-10"
@@ -201,14 +201,14 @@ export default function AuthPage() {
       </div>
 
       {/* ── RIGHT PANEL — form ── */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12 bg-[#f8f7f4] relative">
+      <div className="flex-1 flex items-center justify-center px-5 sm:px-8 py-10 bg-[#f8f7f4] relative">
         {/* Mesh accent */}
-        <motion.div className="absolute top-0 right-0 w-[400px] h-[400px] pointer-events-none rounded-full"
+        <motion.div className="absolute top-0 right-0 w-[300px] sm:w-[400px] h-[300px] sm:h-[400px] pointer-events-none rounded-full"
           style={{ background: "radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 65%)" }}
           animate={{ x: [0, 20, 0], y: [0, 15, 0] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }} />
 
-        <motion.div className="relative w-full max-w-[400px] z-10"
+        <motion.div className="relative w-full max-w-[400px] z-10 mx-auto"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}>
@@ -233,7 +233,7 @@ export default function AuthPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.25 }}>
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 mb-1" style={{ fontFamily: "Sora" }}>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-slate-900 mb-1" style={{ fontFamily: "Sora" }}>
                 {mode === "login" ? "Welcome back" : "Create account"}
               </h1>
               <p className="text-sm text-slate-400 mb-8">
@@ -260,7 +260,6 @@ export default function AuthPage() {
               }}
               onError={() => setError("Google sign-in failed. Please try again.")}
               size="large"
-              width="400"
               text={mode === "login" ? "signin_with" : "signup_with"}
               shape="pill"
               theme="outline"
@@ -305,7 +304,7 @@ export default function AuthPage() {
             <motion.button
               type="submit"
               disabled={submitting}
-              className="relative w-full py-3.5 rounded-xl text-sm font-semibold text-white overflow-hidden group mt-2 disabled:opacity-60"
+              className="relative w-full py-3 sm:py-3.5 rounded-xl text-sm font-semibold text-white overflow-hidden group mt-2 disabled:opacity-60"
               style={{ background: "linear-gradient(135deg, #4338ca, #6366f1)" }}
               whileHover={{ scale: 1.01, boxShadow: "0 6px 24px rgba(99,102,241,0.35)" }}
               whileTap={{ scale: 0.98 }}
