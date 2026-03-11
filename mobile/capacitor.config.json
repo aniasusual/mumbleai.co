@@ -1,0 +1,10 @@
+{
+  "appId": "com.mumbleai.app",
+  "appName": "MumbleAI",
+  "webDir": "www",
+  "server": {
+    "url": "https://mumbleai.co/auth",
+    "cleartext": false,
+    "allowNavigation": ["mumbleai.co", "*.mumbleai.co"]
+  }
+}
