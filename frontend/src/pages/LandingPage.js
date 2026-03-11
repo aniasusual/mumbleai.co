@@ -298,7 +298,7 @@ function HeroSection() {
           <SoundWave barCount={32} color="#6366f1" height={40} />
         </motion.div>
 
-        <motion.div className="flex flex-col sm:flex-row gap-4 justify-center mb-14"
+        <motion.div className="flex flex-col sm:flex-row gap-3 items-center justify-center mb-14"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1 }}>
           <motion.button onClick={() => navigate("/chat")}
             className="relative rounded-full px-6 py-3 text-sm font-semibold bg-indigo-600 text-white overflow-hidden group shadow-[0_4px_24px_rgba(99,102,241,0.35)]"
