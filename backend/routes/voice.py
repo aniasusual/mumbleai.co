@@ -14,6 +14,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from config import db, EMERGENT_LLM_KEY
 from emergentintegrations.llm.openai import OpenAISpeechToText, OpenAITextToSpeech
 from services.agent_factory import create_agent_for_conversation
+from services.audio_utils import estimate_audio_duration_seconds, get_audio_suffix
 from routes.conversations import _track_activity, _strip_expect_lang
 from auth import get_current_user
 
@@ -83,14 +84,9 @@ async def send_voice_message(
     # Step 1: Single Whisper call with the expected language
     stt = OpenAISpeechToText(api_key=EMERGENT_LLM_KEY)
     audio_bytes = await audio.read()
-    # Estimate audio duration for credit tracking (webm ~16kbps for speech)
-    audio_duration_sec = max(1.0, len(audio_bytes) / 16000 * 8)
+    audio_duration_sec = estimate_audio_duration_seconds(audio_bytes, audio.content_type)
 
-    suffix = ".webm"
-    if audio.content_type:
-        ext_map = {"audio/webm": ".webm", "audio/wav": ".wav", "audio/mp3": ".mp3",
-                    "audio/mpeg": ".mp3", "audio/ogg": ".ogg", "audio/mp4": ".mp4"}
-        suffix = ext_map.get(audio.content_type, ".webm")
+    suffix = get_audio_suffix(audio.content_type)
 
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
         tmp.write(audio_bytes)
