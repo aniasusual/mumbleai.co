@@ -131,17 +131,29 @@ function MobileFloatingChars() {
 }
 
 /* ═══════════════════════════════════════════
-   MOBILE SOUND WAVE (bottom decoration)
+   RIPPLE RINGS (mobile background decoration)
    ═══════════════════════════════════════════ */
-function MobileSoundWave() {
+function RippleRings() {
   return (
-    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 pointer-events-none lg:hidden" aria-hidden>
-      <div className="flex items-end gap-[2px]" style={{ height: 24, opacity: 0.12 }}>
-        {Array.from({ length: 32 }).map((_, i) => (
-          <motion.div key={i} className="rounded-full bg-indigo-500"
-            style={{ width: 2 }}
-            animate={{ height: [2, 24 * (0.2 + Math.sin(i * 0.45) * 0.35 + 0.3), 2] }}
-            transition={{ duration: 0.8 + (i % 6) * 0.1, repeat: Infinity, ease: "easeInOut", delay: i * 0.04 }}
+    <div className="absolute inset-0 overflow-hidden pointer-events-none lg:hidden" aria-hidden>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+        {[0, 1, 2, 3].map((i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full border"
+            style={{
+              borderColor: "rgba(99,102,241,0.08)",
+              top: "50%", left: "50%",
+              transform: "translate(-50%, -50%)",
+            }}
+            initial={{ width: 40, height: 40, opacity: 0.6 }}
+            animate={{ width: 400, height: 400, opacity: 0 }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: "easeOut",
+              delay: i * 1.25,
+            }}
           />
         ))}
       </div>
@@ -199,7 +211,7 @@ export default function AuthPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8f7f4]">
+      <div className="min-h-screen flex items-center justify-center bg-[#f1f5f9]">
         <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -272,12 +284,12 @@ export default function AuthPage() {
       </div>
 
       {/* ── RIGHT PANEL — form ── */}
-      <div className="flex-1 flex items-center justify-center px-5 sm:px-8 py-10 bg-[#f8f7f4] relative overflow-hidden"
+      <div className="flex-1 flex items-center justify-center px-5 sm:px-8 py-10 bg-[#f1f5f9] relative overflow-hidden"
         style={{ paddingTop: "calc(2.5rem + env(safe-area-inset-top, 0px))", paddingBottom: "calc(2.5rem + env(safe-area-inset-bottom, 0px))" }}>
         {/* Mobile background decorations */}
         <DotGrid />
         <MobileFloatingChars />
-        <MobileSoundWave />
+        <RippleRings />
 
         {/* Mesh accent (desktop) */}
         <motion.div className="absolute top-0 right-0 w-[300px] sm:w-[400px] h-[300px] sm:h-[400px] pointer-events-none rounded-full hidden lg:block"
