@@ -99,7 +99,7 @@ export default function VocabularyPage() {
   );
 
   return (
-    <div className="min-h-screen relative" style={{ background: "#f8f7f4" }} data-testid="vocabulary-page">
+    <div className="min-h-screen relative overflow-x-hidden" style={{ background: "#f8f7f4" }} data-testid="vocabulary-page">
       <MeshGradient />
       <FloatingChars />
 
