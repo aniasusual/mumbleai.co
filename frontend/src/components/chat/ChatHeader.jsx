@@ -52,7 +52,7 @@ const PhaseBadge = ({ phase }) => {
   return null;
 };
 
-export const ChatHeader = ({ currentConv, curriculum, languages, inputMode, onSetInputMode, onOpenSidebar }) => {
+export const ChatHeader = ({ currentConv, curriculum, languages, inputMode, onSetInputMode, onOpenSidebar, sidebarVisible }) => {
   const navigate = useNavigate();
   const allLangs = [...(languages.popular || []), ...(languages.others || [])];
   const getLangName = (code) => allLangs.find(l => l.code === code)?.name || "English";
@@ -68,9 +68,11 @@ export const ChatHeader = ({ currentConv, curriculum, languages, inputMode, onSe
       }}
       data-testid="chat-header"
     >
-      <button className="lg:hidden p-1.5 rounded-lg hover:bg-indigo-50 transition-colors" onClick={onOpenSidebar} data-testid="open-sidebar-btn">
-        <Menu className="w-5 h-5 text-slate-500" />
-      </button>
+      {!sidebarVisible && (
+        <button className="p-1.5 rounded-lg hover:bg-indigo-50 transition-colors" onClick={onOpenSidebar} data-testid="open-sidebar-btn">
+          <Menu className="w-5 h-5 text-slate-500" />
+        </button>
+      )}
       <button onClick={() => navigate("/")} className="p-1.5 hover:bg-indigo-50 rounded-lg transition-colors duration-200" data-testid="back-home-btn">
         <ArrowLeft className="w-4 h-4 text-slate-400" />
       </button>
