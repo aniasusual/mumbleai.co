@@ -235,7 +235,7 @@ export default function CreditHistoryPage() {
   return (
     <div className="min-h-screen" style={{ background: "#f8f7f4" }} data-testid="credit-history-page">
       {/* Header */}
-      <header className="px-6 py-4 flex items-center justify-between max-w-3xl mx-auto">
+      <header className="px-6 py-4 flex items-center justify-between max-w-3xl mx-auto" style={{ paddingTop: "calc(1rem + env(safe-area-inset-top, 0px))" }}>
         <button
           onClick={() => navigate("/chat")}
           className="flex items-center gap-2 group"

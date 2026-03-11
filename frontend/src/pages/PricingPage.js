@@ -276,7 +276,7 @@ export default function PricingPage() {
           #f0eeea
         `
       }} />
-      <header className="px-6 py-4 flex items-center justify-between max-w-6xl mx-auto">
+      <header className="px-6 py-4 flex items-center justify-between max-w-6xl mx-auto" style={{ paddingTop: "calc(1rem + env(safe-area-inset-top, 0px))" }}>
         <button onClick={() => navigate("/chat")} className="flex items-center gap-2 group" data-testid="pricing-back-btn">
           <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" />
           <WaveformLogo size={24} className="text-indigo-600" />

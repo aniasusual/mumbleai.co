@@ -21,10 +21,22 @@ import {
   getScenarios, getLanguages, textToSpeech, getCurriculum
 } from "@/lib/api";
 
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia("(min-width: 1024px)").matches);
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 1024px)");
+    const handler = (e) => setIsDesktop(e.matches);
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
+  }, []);
+  return isDesktop;
+}
+
 export default function ChatPage() {
   const navigate = useNavigate();
   const { conversationId } = useParams();
   const { user, logout } = useAuth();
+  const isDesktop = useIsDesktop();
 
   // Core state
   const [conversations, setConversations] = useState([]);
@@ -419,6 +431,7 @@ export default function ChatPage() {
             onNewConversation={handleNewConversation}
             onOpenSidebar={() => setSidebarOpen(true)}
             creatingChat={creatingChat}
+            sidebarVisible={isDesktop}
           />
         ) : (
           <>
@@ -426,6 +439,7 @@ export default function ChatPage() {
               currentConv={currentConv} curriculum={curriculum} languages={languages}
               inputMode={inputMode} onSetInputMode={setInputMode}
               onOpenSidebar={() => setSidebarOpen(true)}
+              sidebarVisible={isDesktop}
             />
 
             <MessageList
