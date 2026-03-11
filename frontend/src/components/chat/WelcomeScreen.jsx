@@ -60,7 +60,7 @@ function SoundWave() {
 }
 
 
-export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targetLang, onSetNativeLang, onSetTargetLang, onNewConversation, onOpenSidebar, creatingChat }) => {
+export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targetLang, onSetNativeLang, onSetTargetLang, onNewConversation, onOpenSidebar, creatingChat, sidebarVisible }) => {
   const firstName = userName?.split(" ")[0] || "there";
   const [clickedId, setClickedId] = useState(null); // tracks which button was clicked
 
@@ -75,12 +75,14 @@ export const WelcomeScreen = ({ userName, scenarios, languages, nativeLang, targ
       <MeshBlobs />
       <FloatingChars />
 
-      {/* Minimal top bar for mobile sidebar toggle */}
-      <div className="px-4 py-3 flex items-center lg:hidden relative z-20" style={{ paddingTop: "calc(0.75rem + env(safe-area-inset-top, 0px))" }}>
-        <button onClick={onOpenSidebar} className="p-1.5 rounded-lg hover:bg-indigo-50 transition-colors" data-testid="welcome-open-sidebar-btn">
-          <Menu className="w-5 h-5 text-slate-500" />
-        </button>
-      </div>
+      {/* Minimal top bar for mobile sidebar toggle — hidden when desktop sidebar is visible */}
+      {!sidebarVisible && (
+        <div className="px-4 py-3 flex items-center relative z-20" style={{ paddingTop: "calc(0.75rem + env(safe-area-inset-top, 0px))" }}>
+          <button onClick={onOpenSidebar} className="p-1.5 rounded-lg hover:bg-indigo-50 transition-colors" data-testid="welcome-open-sidebar-btn">
+            <Menu className="w-5 h-5 text-slate-500" />
+          </button>
+        </div>
+      )}
 
       <div className="flex flex-col items-center px-6 relative z-10 py-6 md:py-12 min-h-full justify-center">
         {/* Logo + Greeting */}
