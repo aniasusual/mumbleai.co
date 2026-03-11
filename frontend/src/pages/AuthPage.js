@@ -82,12 +82,48 @@ function MobileMeshBg() {
     <div className="absolute inset-0 pointer-events-none lg:hidden" aria-hidden
       style={{
         background: `
-          radial-gradient(ellipse 60% 50% at 20% 20%, rgba(99,102,241,0.12) 0%, transparent 50%),
-          radial-gradient(ellipse 50% 60% at 80% 30%, rgba(139,92,246,0.1) 0%, transparent 50%),
-          radial-gradient(ellipse 50% 40% at 50% 80%, rgba(245,158,11,0.06) 0%, transparent 50%)
+          radial-gradient(ellipse 80% 70% at 15% 20%, rgba(99,102,241,0.28) 0%, transparent 60%),
+          radial-gradient(ellipse 70% 60% at 85% 15%, rgba(190,24,93,0.2) 0%, transparent 55%),
+          radial-gradient(ellipse 75% 65% at 30% 85%, rgba(124,58,237,0.24) 0%, transparent 55%),
+          radial-gradient(ellipse 60% 50% at 75% 75%, rgba(16,185,129,0.18) 0%, transparent 55%),
+          radial-gradient(ellipse 50% 40% at 50% 50%, rgba(245,158,11,0.1) 0%, transparent 50%)
         `,
       }}
     />
+  );
+}
+
+/* ═══════════════════════════════════════════
+   MOBILE FLOATING LANGUAGE CHARACTERS
+   ═══════════════════════════════════════════ */
+const MOBILE_CHARS = ["あ", "ñ", "한", "ç", "你", "ê", "ш", "ø", "ü", "б"];
+
+function MobileFloatingChars() {
+  const items = useMemo(() => MOBILE_CHARS.map((c, i) => ({
+    char: c,
+    x: 5 + (i * 11) % 85,
+    y: 6 + (i * 14) % 82,
+    size: 20 + (i % 3) * 12,
+    dur: 8 + (i % 5) * 4,
+    color: [
+      "rgba(99,102,241,0.18)",
+      "rgba(124,58,237,0.15)",
+      "rgba(190,24,93,0.12)",
+      "rgba(16,185,129,0.14)",
+      "rgba(245,158,11,0.13)",
+    ][i % 5],
+  })), []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none lg:hidden" aria-hidden>
+      {items.map((item, i) => (
+        <motion.span key={i} className="absolute font-bold select-none"
+          style={{ left: `${item.x}%`, top: `${item.y}%`, fontSize: item.size, color: item.color }}
+          animate={{ y: [-8, 8, -8], x: [-4, 4, -4], rotate: [-5, 5, -5] }}
+          transition={{ duration: item.dur, repeat: Infinity, ease: "easeInOut", delay: i * 0.6 }}
+        >{item.char}</motion.span>
+      ))}
+    </div>
   );
 }
 
@@ -220,8 +256,9 @@ export default function AuthPage() {
       {/* ── RIGHT PANEL — form ── */}
       <div className="flex-1 flex items-center justify-center px-5 sm:px-8 py-10 bg-[#f0eeea] relative overflow-hidden"
         style={{ paddingTop: "calc(2.5rem + env(safe-area-inset-top, 0px))", paddingBottom: "calc(2.5rem + env(safe-area-inset-bottom, 0px))" }}>
-        {/* Mobile background mesh */}
+        {/* Mobile background mesh + floating chars */}
         <MobileMeshBg />
+        <MobileFloatingChars />
 
         {/* Mesh accent (desktop) */}
         <motion.div className="absolute top-0 right-0 w-[300px] sm:w-[400px] h-[300px] sm:h-[400px] pointer-events-none rounded-full hidden lg:block"
