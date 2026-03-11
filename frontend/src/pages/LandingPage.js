@@ -10,7 +10,7 @@ import {
   Mic, ArrowRight, Brain, AudioLines, Target, Volume2,
   Briefcase, Plane, UtensilsCrossed, MessageSquare, GraduationCap,
   Sparkles, BookOpen, ChevronDown, Check, Zap, Crown,
-  Globe, Shield, Users, Clock,
+  Globe, Shield, Users, Clock, Menu, X,
 } from "lucide-react";
 
 /* ═══════════════════════════════════════════
@@ -75,16 +75,16 @@ function WordReveal({ text, className, as: Tag = "h1" }) {
    ═══════════════════════════════════════════ */
 function MeshBackground() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <motion.div className="absolute w-[600px] h-[600px] rounded-full"
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" style={{ maxWidth: "100vw" }}>
+      <motion.div className="absolute w-[min(600px,80vw)] h-[min(600px,80vw)] rounded-full"
         style={{ top: "-10%", left: "-5%", background: "radial-gradient(circle, rgba(99,102,241,0.25) 0%, transparent 65%)" }}
         animate={{ x: [0, 40, 0], y: [0, 30, 0] }}
         transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }} />
-      <motion.div className="absolute w-[500px] h-[500px] rounded-full"
+      <motion.div className="absolute w-[min(500px,70vw)] h-[min(500px,70vw)] rounded-full"
         style={{ top: "20%", right: "-5%", background: "radial-gradient(circle, rgba(236,72,153,0.2) 0%, transparent 65%)" }}
         animate={{ x: [0, -30, 0], y: [0, 40, 0] }}
         transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }} />
-      <motion.div className="absolute w-[450px] h-[450px] rounded-full"
+      <motion.div className="absolute w-[min(450px,65vw)] h-[min(450px,65vw)] rounded-full"
         style={{ bottom: "5%", left: "30%", background: "radial-gradient(circle, rgba(16,185,129,0.18) 0%, transparent 65%)" }}
         animate={{ x: [0, 35, 0], y: [0, -25, 0] }}
         transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }} />
@@ -175,6 +175,7 @@ function LanguageCarousel() {
 function Navbar() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", h, { passive: true });
@@ -182,17 +183,19 @@ function Navbar() {
   }, []);
 
   return (
+    <>
     <motion.nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
       style={{
-        background: scrolled ? "rgba(248,247,244,0.9)" : "transparent",
-        backdropFilter: scrolled ? "blur(16px)" : "none",
-        borderBottom: scrolled ? "1px solid rgba(0,0,0,0.06)" : "1px solid transparent",
+        background: scrolled || mobileMenuOpen ? "rgba(248,247,244,0.9)" : "transparent",
+        backdropFilter: scrolled || mobileMenuOpen ? "blur(16px)" : "none",
+        borderBottom: scrolled || mobileMenuOpen ? "1px solid rgba(0,0,0,0.06)" : "1px solid transparent",
+        paddingTop: "env(safe-area-inset-top, 0px)",
       }}
       initial={{ y: -60, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.2, duration: 0.5 }}
       data-testid="navbar"
     >
-      <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-14">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
         <button onClick={() => navigate("/")} className="flex items-center gap-1.5 group" data-testid="logo-button">
           <WaveformLogo size={28} className="text-indigo-600 transition-transform duration-300 group-hover:scale-105" />
           <span className="text-[15px] font-semibold tracking-tight text-slate-900" style={{ fontFamily: "Sora" }}>mumble</span>
@@ -203,14 +206,42 @@ function Navbar() {
               className="text-[13px] font-medium text-slate-500 transition-colors duration-200 hover:text-indigo-600">{l}</a>
           ))}
         </div>
-        <button onClick={() => navigate("/chat")}
-          className="relative text-[13px] font-semibold px-5 py-2.5 rounded-full bg-indigo-600 text-white overflow-hidden group transition-all duration-300 hover:-translate-y-px shadow-[0_2px_12px_rgba(99,102,241,0.3)] hover:shadow-[0_4px_20px_rgba(99,102,241,0.5)]"
-          data-testid="nav-start-btn">
-          <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-          <span className="relative flex items-center gap-1.5">Get Started <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5" /></span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => navigate("/chat")}
+            className="relative text-[13px] font-semibold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full bg-indigo-600 text-white overflow-hidden group transition-all duration-300 hover:-translate-y-px shadow-[0_2px_12px_rgba(99,102,241,0.3)] hover:shadow-[0_4px_20px_rgba(99,102,241,0.5)]"
+            data-testid="nav-start-btn">
+            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+            <span className="relative flex items-center gap-1.5">Get Started <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5" /></span>
+          </button>
+          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 rounded-lg hover:bg-black/5 transition-colors"
+            data-testid="mobile-menu-btn">
+            {mobileMenuOpen
+              ? <X className="w-5 h-5 text-slate-600" />
+              : <Menu className="w-5 h-5 text-slate-600" />}
+          </button>
+        </div>
       </div>
     </motion.nav>
+    <AnimatePresence>
+      {mobileMenuOpen && (
+        <motion.div
+          className="fixed inset-x-0 z-40 md:hidden"
+          style={{ top: "calc(3.5rem + env(safe-area-inset-top, 0px))", background: "rgba(248,247,244,0.97)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}
+          initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+          data-testid="mobile-menu">
+          <div className="flex flex-col px-6 py-3 gap-0.5">
+            {["Features", "How it works", "Scenarios", "Pricing"].map(l => (
+              <a key={l} href={`#${l.toLowerCase().replace(/ /g, "-")}`}
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-sm font-medium text-slate-600 py-2.5 hover:text-indigo-600 transition-colors">{l}</a>
+            ))}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   );
 }
 
@@ -254,19 +285,19 @@ function HeroSection() {
   const opacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
   return (
-    <section ref={ref} className="relative min-h-screen flex flex-col justify-center pt-16 pb-8 overflow-hidden"
+    <section ref={ref} className="relative min-h-screen flex flex-col justify-center pt-16 pb-8 overflow-hidden px-4"
       style={{ background: BG.hero }} data-testid="hero-section">
       <MeshBackground />
       <FloatingChars />
 
-      <motion.div className="relative max-w-5xl mx-auto px-6 w-full text-center z-10" style={{ y, opacity }}>
+      <motion.div className="relative max-w-5xl mx-auto px-4 sm:px-6 w-full text-center z-10" style={{ y, opacity }}>
         <motion.span
           className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-[11px] font-medium tracking-wider uppercase mb-8 border border-indigo-200 text-indigo-600 bg-indigo-50"
           initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
           <Sparkles className="w-3 h-3" /> AI-Powered Language Tutor
         </motion.span>
 
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-slate-900 mb-6" style={{ fontFamily: "Sora", lineHeight: 1.15 }}>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tighter text-slate-900 mb-6" style={{ fontFamily: "Sora", lineHeight: 1.15 }}>
           <motion.span className="block"
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             Learn <LanguageCarousel />
@@ -277,7 +308,7 @@ function HeroSection() {
           </motion.span>
         </h1>
 
-        <motion.p className="text-base md:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto mb-4"
+        <motion.p className="text-sm sm:text-base md:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto mb-4"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>
           Have real voice conversations with an AI that corrects your grammar, builds your vocabulary,
           and adapts to your level.{" "}
@@ -297,26 +328,26 @@ function HeroSection() {
           <SoundWave barCount={32} color="#6366f1" height={40} />
         </motion.div>
 
-        <motion.div className="flex flex-col sm:flex-row gap-4 justify-center mb-14"
+        <motion.div className="flex flex-col sm:flex-row gap-3 items-center justify-center mb-14"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1 }}>
           <motion.button onClick={() => navigate("/chat")}
-            className="relative rounded-full px-9 py-4 text-sm font-semibold bg-indigo-600 text-white overflow-hidden group shadow-[0_4px_24px_rgba(99,102,241,0.35)]"
+            className="relative rounded-full px-6 py-3 text-sm font-semibold bg-indigo-600 text-white overflow-hidden group shadow-[0_4px_24px_rgba(99,102,241,0.35)] w-56 text-center"
             whileHover={{ scale: 1.04, boxShadow: "0 6px 32px rgba(99,102,241,0.5)" }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
             data-testid="hero-start-btn">
             <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-            <span className="relative flex items-center gap-2">
+            <span className="relative flex items-center justify-center gap-2">
               Start a conversation <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
             </span>
           </motion.button>
           <motion.button onClick={() => navigate("/dashboard")}
-            className="rounded-full px-9 py-4 text-sm font-medium text-slate-600 border-2 border-slate-200 bg-white/70 backdrop-blur-sm group overflow-hidden relative"
+            className="rounded-full px-6 py-3 text-sm font-medium text-slate-600 border-2 border-slate-200 bg-white/70 backdrop-blur-sm group overflow-hidden relative w-56 text-center"
             whileHover={{ scale: 1.04, borderColor: "#818cf8" }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
             data-testid="hero-dashboard-btn">
-            <span className="relative flex items-center gap-2 transition-colors duration-300 group-hover:text-indigo-600">
+            <span className="relative flex items-center justify-center gap-2 transition-colors duration-300 group-hover:text-indigo-600">
               View Dashboard <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
             </span>
           </motion.button>
@@ -353,13 +384,13 @@ const FEATURES = [
 
 function FeaturesSection() {
   return (
-    <section id="features" className="relative py-24 md:py-32" style={{ background: BG.features }} data-testid="features-section">
-      <div className="max-w-5xl mx-auto px-6">
+    <section id="features" className="relative py-16 md:py-32" style={{ background: BG.features }} data-testid="features-section">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 text-left">
         <Reveal>
           <span className="text-[13px] font-semibold tracking-wider uppercase mb-3 block text-emerald-700">Core Features</span>
         </Reveal>
         <WordReveal text="Everything you need to speak confidently" as="h2"
-          className="text-3xl md:text-5xl font-bold tracking-tight text-emerald-950 mb-14" />
+          className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-emerald-950 mb-14" />
         <div>
           {FEATURES.map((f, i) => (
             <FeatureStrip key={f.label} f={f} i={i} isLast={i === FEATURES.length - 1} />
@@ -417,14 +448,14 @@ const STEPS = [
 
 function HowItWorksSection() {
   return (
-    <section id="how-it-works" className="relative py-24 md:py-32" style={{ background: BG.tools }} data-testid="tools-section">
-      <div className="max-w-4xl mx-auto px-6">
+    <section id="how-it-works" className="relative py-16 md:py-32" style={{ background: BG.tools }} data-testid="tools-section">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-16">
           <Reveal>
             <span className="text-[13px] font-semibold tracking-wider uppercase mb-3 block text-blue-700">How it works</span>
           </Reveal>
           <WordReveal text="Four steps to fluency" as="h2"
-            className="text-3xl md:text-5xl font-bold tracking-tight text-blue-950" />
+            className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-blue-950" />
         </div>
         <div className="relative">
           <div className="absolute left-6 md:left-7 top-0 bottom-0 w-px bg-gradient-to-b from-blue-400 via-blue-300 to-transparent" />
@@ -553,7 +584,7 @@ function AgentsSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative py-24 md:py-32 overflow-hidden"
+      className="relative py-16 md:py-32 overflow-hidden"
       style={{ background: "linear-gradient(180deg, #f8f7f4 0%, #eef2ff 40%, #f5f3ff 70%, #faf5ff 100%)" }}
       data-testid="agents-section"
     >
@@ -564,18 +595,18 @@ function AgentsSection() {
         transition={{ duration: 1.2, ease: "easeInOut" }}
       />
 
-      <div className="max-w-6xl mx-auto px-6 relative z-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 sm:mb-16">
           <Reveal>
             <span className="text-[13px] font-semibold tracking-wider uppercase mb-3 block text-indigo-600">
               4 Specialized AI Agents
             </span>
           </Reveal>
           <WordReveal text="Meet your AI teaching team" as="h2"
-            className="text-3xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4" />
+            className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4" />
           <Reveal delay={0.1}>
-            <p className="text-[15px] max-w-xl mx-auto text-slate-500 leading-relaxed">
+            <p className="text-sm sm:text-[15px] max-w-xl mx-auto text-slate-500 leading-relaxed px-2 sm:px-0">
               Four specialized agents work together in a learning cycle —
               each one handles a different part of your journey.
             </p>
@@ -690,7 +721,7 @@ function AgentsSection() {
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-0">
               {/* Left: Agent identity */}
-              <div className="lg:col-span-2 p-8 md:p-10 flex flex-col justify-center">
+              <div className="lg:col-span-2 p-5 sm:p-8 md:p-10 flex flex-col justify-center">
                 <div className="flex items-center gap-4 mb-5">
                   <motion.div
                     className="w-14 h-14 rounded-2xl flex items-center justify-center"
@@ -722,10 +753,10 @@ function AgentsSection() {
               </div>
 
               {/* Right: Features + visual */}
-              <div className="lg:col-span-3 p-8 md:p-10 relative"
+              <div className="lg:col-span-3 p-5 sm:p-8 md:p-10 relative"
                 style={{ background: `linear-gradient(135deg, ${active.bg}40, transparent)` }}>
                 {/* Features grid */}
-                <div className="grid grid-cols-2 gap-3 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                   {active.features.map((f, i) => (
                     <motion.div
                       key={f}
@@ -888,15 +919,15 @@ function DemoChat() {
 function DemoSection() {
   const navigate = useNavigate();
   return (
-    <section className="relative py-24 md:py-32" style={{ background: BG.demo }} data-testid="demo-section">
-      <div className="max-w-5xl mx-auto px-6">
+    <section className="relative py-16 md:py-32" style={{ background: BG.demo }} data-testid="demo-section">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
           <div>
             <Reveal>
               <span className="text-[13px] font-semibold tracking-wider uppercase mb-3 block text-violet-700">See it in action</span>
             </Reveal>
             <WordReveal text="A conversation, not a classroom" as="h2"
-              className="text-3xl md:text-5xl font-bold tracking-tight text-violet-950 mb-5" />
+              className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-violet-950 mb-5" />
             <Reveal delay={0.15}>
               <p className="text-[15px] leading-relaxed mb-5 text-violet-800/60">
                 Ask anything. mumble responds with context-aware corrections, vocabulary insights, and pronunciation guides — all streamed in real-time.
@@ -961,19 +992,19 @@ function ScenariosSection() {
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start end", "end start"] });
   return (
-    <section id="scenarios" ref={containerRef} className="relative py-24 md:py-32 overflow-hidden"
+    <section id="scenarios" ref={containerRef} className="relative py-16 md:py-32 overflow-hidden"
       style={{ background: BG.scenarios }} data-testid="scenarios-section">
       <div className="max-w-5xl mx-auto px-6 mb-14">
         <Reveal>
           <span className="text-[13px] font-semibold tracking-wider uppercase mb-3 block text-amber-700">Practice Scenarios</span>
         </Reveal>
         <WordReveal text="Real conversations for real life" as="h2"
-          className="text-3xl md:text-5xl font-bold tracking-tight text-amber-950 mb-4" />
+          className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-amber-950 mb-4" />
         <Reveal delay={0.1}>
           <p className="text-[15px] max-w-xl text-amber-800/60">Pick a scenario and mumble drops you into a realistic role-play. Practice ordering coffee in Paris or nailing a job interview in Tokyo.</p>
         </Reveal>
       </div>
-      <div className="max-w-4xl mx-auto px-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6">
         <div className="flex flex-wrap gap-3 md:gap-4 justify-center">
           {SCENARIOS.map((s, i) => (
             <ScenarioTag key={s.label} s={s} i={i} scrollProgress={scrollYProgress} />
@@ -994,9 +1025,9 @@ function ScenarioTag({ s, i, scrollProgress }) {
       animate={inView ? { opacity: 1, scale: 1 } : {}}
       transition={{ delay: i * 0.07, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ scale: 1.08, y: -3 }} className="cursor-default">
-      <div className="flex items-center gap-2.5 px-5 py-3 rounded-full bg-white border border-amber-200 shadow-sm hover:shadow transition-shadow duration-200 group">
+      <div className="flex items-center gap-2.5 px-3 sm:px-5 py-2.5 sm:py-3 rounded-full bg-white border border-amber-200 shadow-sm hover:shadow transition-shadow duration-200 group">
         <s.icon className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" style={{ color: s.color }} />
-        <span className="text-sm font-medium text-amber-900">{s.label}</span>
+        <span className="text-xs sm:text-sm font-medium text-amber-900">{s.label}</span>
       </div>
     </motion.div>
   );
@@ -1166,14 +1197,14 @@ function PricingCard({ plan, i }) {
 
 function PricingSection() {
   return (
-    <section id="pricing" className="relative py-24 md:py-32" style={{ background: BG.pricing }} data-testid="pricing-section">
-      <div className="max-w-5xl mx-auto px-6">
+    <section id="pricing" className="relative py-16 md:py-32" style={{ background: BG.pricing }} data-testid="pricing-section">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-14">
           <Reveal>
             <span className="text-[13px] font-semibold tracking-wider uppercase mb-3 block text-rose-600">Pricing</span>
           </Reveal>
           <WordReveal text="Simple plans, full access" as="h2"
-            className="text-3xl md:text-5xl font-bold tracking-tight text-rose-950 mb-4" />
+            className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-rose-950 mb-4" />
           <Reveal delay={0.1}>
             <p className="text-[15px] max-w-lg mx-auto text-rose-800/60">
               Every plan includes all features. Pick the volume that fits your practice routine.
@@ -1196,9 +1227,9 @@ function PricingSection() {
 function CTASection() {
   const navigate = useNavigate();
   return (
-    <section className="relative py-32 md:py-44 overflow-hidden" style={{ background: BG.cta }} data-testid="cta-section">
+    <section className="relative py-20 md:py-44 overflow-hidden" style={{ background: BG.cta }} data-testid="cta-section">
       <MeshBackground />
-      <div className="relative max-w-3xl mx-auto px-6 text-center z-10">
+      <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center z-10">
         <Reveal>
           <motion.div className="inline-block mb-7"
             animate={{ scale: [1, 1.06, 1] }}
@@ -1207,16 +1238,16 @@ function CTASection() {
           </motion.div>
         </Reveal>
         <WordReveal text="Stop studying. Start speaking." as="h2"
-          className="text-4xl md:text-6xl font-bold tracking-tighter text-slate-900 mb-5" />
+          className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold tracking-tighter text-slate-900 mb-5" />
         <Reveal delay={0.15}>
-          <p className="text-lg text-slate-600 leading-relaxed max-w-xl mx-auto mb-10">
+          <p className="text-sm sm:text-base md:text-lg text-slate-600 leading-relaxed max-w-xl mx-auto mb-10">
             Language apps teach you to tap buttons. mumble teaches you to <span className="text-emerald-600 font-semibold">actually talk</span>.
             500 free credits. 4 AI agents. Start in 10 seconds.
           </p>
         </Reveal>
         <Reveal delay={0.25}>
           <motion.button onClick={() => navigate("/chat")}
-            className="relative rounded-full px-11 py-5 text-[15px] font-semibold bg-indigo-600 text-white overflow-hidden group shadow-[0_6px_32px_rgba(99,102,241,0.35)]"
+            className="relative rounded-full px-8 py-4 text-[15px] font-semibold bg-indigo-600 text-white overflow-hidden group shadow-[0_6px_32px_rgba(99,102,241,0.35)]"
             whileHover={{ scale: 1.05, boxShadow: "0 8px 40px rgba(99,102,241,0.5)" }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
@@ -1239,7 +1270,7 @@ function Footer() {
   const navigate = useNavigate();
   return (
     <footer className="py-8" style={{ background: BG.footer }} data-testid="footer">
-      <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-1.5">
           <WaveformLogo size={18} className="text-indigo-300" />
           <span className="text-xs font-medium text-indigo-200" style={{ fontFamily: "Sora" }}>mumble</span>
