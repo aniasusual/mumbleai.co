@@ -197,7 +197,7 @@ export const ChatInput = ({
 
   return (
     <div
-      className="px-4 py-4 overflow-visible"
+      className="px-4 py-4 overflow-visible flex-shrink-0"
       style={{
         background: "rgba(248,247,244,0.88)",
         backdropFilter: "blur(16px)",

@@ -59,7 +59,7 @@ export const ChatHeader = ({ currentConv, curriculum, languages, inputMode, onSe
 
   return (
     <div
-      className="px-4 py-3 flex items-center gap-3 z-20 sticky top-0"
+      className="px-4 py-3 flex items-center gap-3 z-20 flex-shrink-0"
       style={{
         background: "rgba(248,247,244,0.88)",
         backdropFilter: "blur(16px)",
