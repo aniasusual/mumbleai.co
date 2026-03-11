@@ -385,7 +385,7 @@ const FEATURES = [
 function FeaturesSection() {
   return (
     <section id="features" className="relative py-16 md:py-32" style={{ background: BG.features }} data-testid="features-section">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 text-left">
         <Reveal>
           <span className="text-[13px] font-semibold tracking-wider uppercase mb-3 block text-emerald-700">Core Features</span>
         </Reveal>
