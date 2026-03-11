@@ -301,7 +301,7 @@ function HeroSection() {
         <motion.div className="flex flex-col sm:flex-row gap-4 justify-center mb-14"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1 }}>
           <motion.button onClick={() => navigate("/chat")}
-            className="relative rounded-full px-9 py-4 text-sm font-semibold bg-indigo-600 text-white overflow-hidden group shadow-[0_4px_24px_rgba(99,102,241,0.35)]"
+            className="relative rounded-full px-6 py-3 text-sm font-semibold bg-indigo-600 text-white overflow-hidden group shadow-[0_4px_24px_rgba(99,102,241,0.35)]"
             whileHover={{ scale: 1.04, boxShadow: "0 6px 32px rgba(99,102,241,0.5)" }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
@@ -312,7 +312,7 @@ function HeroSection() {
             </span>
           </motion.button>
           <motion.button onClick={() => navigate("/dashboard")}
-            className="rounded-full px-9 py-4 text-sm font-medium text-slate-600 border-2 border-slate-200 bg-white/70 backdrop-blur-sm group overflow-hidden relative"
+            className="rounded-full px-6 py-3 text-sm font-medium text-slate-600 border-2 border-slate-200 bg-white/70 backdrop-blur-sm group overflow-hidden relative"
             whileHover={{ scale: 1.04, borderColor: "#818cf8" }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
@@ -1217,7 +1217,7 @@ function CTASection() {
         </Reveal>
         <Reveal delay={0.25}>
           <motion.button onClick={() => navigate("/chat")}
-            className="relative rounded-full px-11 py-5 text-[15px] font-semibold bg-indigo-600 text-white overflow-hidden group shadow-[0_6px_32px_rgba(99,102,241,0.35)]"
+            className="relative rounded-full px-8 py-4 text-[15px] font-semibold bg-indigo-600 text-white overflow-hidden group shadow-[0_6px_32px_rgba(99,102,241,0.35)]"
             whileHover={{ scale: 1.05, boxShadow: "0 8px 40px rgba(99,102,241,0.5)" }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
