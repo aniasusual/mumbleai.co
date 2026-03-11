@@ -416,7 +416,12 @@ const MobileSidebar = ({
   onDeleteConv, onClearAll, onLogout, onClose, navigate,
 }) => (
   <aside className="fixed inset-y-0 left-0 z-40 w-72 flex flex-col"
-    style={{ background: "linear-gradient(165deg, #f0f0ff 0%, #e8ecff 40%, #e0d8f8 100%)", boxShadow: "4px 0 24px rgba(0,0,0,0.08)" }}
+    style={{
+      background: "linear-gradient(165deg, #f0f0ff 0%, #e8ecff 40%, #e0d8f8 100%)",
+      boxShadow: "4px 0 24px rgba(0,0,0,0.08)",
+      paddingTop: "env(safe-area-inset-top, 0px)",
+      paddingBottom: "env(safe-area-inset-bottom, 0px)",
+    }}
     data-testid="chat-sidebar">
     <SidebarMesh />
     <div className="p-4 flex items-center justify-between relative z-10">

@@ -202,6 +202,7 @@ export const ChatInput = ({
         background: "rgba(248,247,244,0.88)",
         backdropFilter: "blur(16px)",
         borderTop: "1px solid rgba(0,0,0,0.06)",
+        paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))",
       }}
       data-testid="chat-input-area"
     >

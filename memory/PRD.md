@@ -24,12 +24,13 @@ A full-stack language learning application where users interact with specialized
 - Agent trigger logic with user consent
 - Landing page with animated AI Agents carousel
 
-### Bug Fixes (March 10, 2026)
+### Bug Fixes (March 10-11, 2026)
 - **Audio-text sync fix (P0)**: Eliminated double render where AI response text appeared twice. Root cause: text_delta SSE events were rendering streaming text, then clearing it when audio arrived. Fix: always suppress text_delta, show TypingIndicator during processing, reveal message only when audio playing event fires. Karaoke timing moved from loadedmetadata to playing event. Added skipNextLoadRef to prevent loadMessages re-trigger.
-- **New chat loading state**: Added centered loader ("Setting up your session...") when navigating to a new conversation before the welcome message loads. Previously showed a blank screen.
-- **Sidebar new chat instant nav**: handleNewConversation now clears the current view immediately and navigates before the API call, so users see the loader instead of staring at the old chat.
-- **Chat input UI redesign**: Merged input box, credit pill, and send button into one unified white rounded container.
-- **Subscription downgrade flow fix (P0)**: The change-plan endpoint was only setting a DB flag but NOT cancelling the Razorpay subscription. This meant the old plan kept charging indefinitely. Fix: change-plan now cancels the Razorpay subscription at cycle end, subscription.cancelled webhook handles paid pending plans (sets `pending_activation` status), subscription.charged webhook guards against overriding downgrade status. Frontend shows banners for downgrading and pending_activation states on PricingPage.
+- **New chat loading state**: Added centered loader ("Setting up your session...") when navigating to a new conversation before the welcome message loads.
+- **Sidebar new chat instant nav**: handleNewConversation now clears current view immediately and navigates before API call.
+- **Chat input UI redesign**: Merged input box, credit pill, and send button into one unified container.
+- **Subscription downgrade flow fix (P0)**: change-plan now cancels Razorpay subscription at cycle end, webhooks handle pending_activation status.
+- **PWA safe area support**: Added viewport-fit=cover, env(safe-area-inset-*) padding to ChatHeader, ChatInput, WelcomeScreen, MobileSidebar, and AuthPage. Added manifest.json with standalone display. Fixes hamburger button being untappable under status bar in mobile PWA.
 
 ## Backlog
 - **P1**: Progress Journal — weekly learning summaries
