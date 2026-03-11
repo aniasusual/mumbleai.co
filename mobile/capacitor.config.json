@@ -1,6 +1,6 @@
 {
   "appId": "com.mumbleai.app",
-  "appName": "MumbleAI",
+  "appName": "Mumble",
   "webDir": "www",
   "server": {
     "url": "https://mumbleai.co/auth",
