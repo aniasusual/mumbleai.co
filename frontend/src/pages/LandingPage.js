@@ -331,23 +331,23 @@ function HeroSection() {
         <motion.div className="flex flex-col sm:flex-row gap-3 items-center justify-center mb-14"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1 }}>
           <motion.button onClick={() => navigate("/chat")}
-            className="relative rounded-full px-6 py-3 text-sm font-semibold bg-indigo-600 text-white overflow-hidden group shadow-[0_4px_24px_rgba(99,102,241,0.35)]"
+            className="relative rounded-full px-6 py-3 text-sm font-semibold bg-indigo-600 text-white overflow-hidden group shadow-[0_4px_24px_rgba(99,102,241,0.35)] w-56 text-center"
             whileHover={{ scale: 1.04, boxShadow: "0 6px 32px rgba(99,102,241,0.5)" }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
             data-testid="hero-start-btn">
             <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-            <span className="relative flex items-center gap-2">
+            <span className="relative flex items-center justify-center gap-2">
               Start a conversation <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
             </span>
           </motion.button>
           <motion.button onClick={() => navigate("/dashboard")}
-            className="rounded-full px-6 py-3 text-sm font-medium text-slate-600 border-2 border-slate-200 bg-white/70 backdrop-blur-sm group overflow-hidden relative"
+            className="rounded-full px-6 py-3 text-sm font-medium text-slate-600 border-2 border-slate-200 bg-white/70 backdrop-blur-sm group overflow-hidden relative w-56 text-center"
             whileHover={{ scale: 1.04, borderColor: "#818cf8" }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
             data-testid="hero-dashboard-btn">
-            <span className="relative flex items-center gap-2 transition-colors duration-300 group-hover:text-indigo-600">
+            <span className="relative flex items-center justify-center gap-2 transition-colors duration-300 group-hover:text-indigo-600">
               View Dashboard <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
             </span>
           </motion.button>
