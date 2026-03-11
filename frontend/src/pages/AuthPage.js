@@ -75,8 +75,79 @@ function SoundWave({ barCount = 20, height = 32 }) {
 }
 
 /* ═══════════════════════════════════════════
-   CUSTOM INPUT with animated focus ring
+   DOT GRID PATTERN (mobile background)
    ═══════════════════════════════════════════ */
+function DotGrid() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none lg:hidden" aria-hidden>
+      <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="auth-dots" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
+            <circle cx="1.5" cy="1.5" r="1" fill="rgba(99,102,241,0.07)" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#auth-dots)" />
+      </svg>
+      {/* Soft indigo glow behind the form area */}
+      <motion.div
+        className="absolute rounded-full"
+        style={{
+          width: 320, height: 320,
+          top: "30%", left: "50%", transform: "translate(-50%, -50%)",
+          background: "radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%)",
+        }}
+        animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      />
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   MOBILE FLOATING CHARS (faint, atmospheric)
+   ═══════════════════════════════════════════ */
+const MOBILE_CHARS = ["あ", "ñ", "한", "ç", "你", "ê", "ш", "ø"];
+
+function MobileFloatingChars() {
+  const items = useMemo(() => MOBILE_CHARS.map((c, i) => ({
+    char: c,
+    x: 5 + (i * 13) % 90,
+    y: 8 + (i * 17) % 80,
+    size: 18 + (i % 3) * 10,
+    dur: 10 + (i % 4) * 5,
+  })), []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none lg:hidden" aria-hidden>
+      {items.map((item, i) => (
+        <motion.span key={i} className="absolute font-bold select-none"
+          style={{ left: `${item.x}%`, top: `${item.y}%`, fontSize: item.size, color: "rgba(99,102,241,0.05)" }}
+          animate={{ y: [-6, 6, -6], x: [-3, 3, -3], rotate: [-3, 3, -3] }}
+          transition={{ duration: item.dur, repeat: Infinity, ease: "easeInOut", delay: i * 0.7 }}
+        >{item.char}</motion.span>
+      ))}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════
+   MOBILE SOUND WAVE (bottom decoration)
+   ═══════════════════════════════════════════ */
+function MobileSoundWave() {
+  return (
+    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 pointer-events-none lg:hidden" aria-hidden>
+      <div className="flex items-end gap-[2px]" style={{ height: 24, opacity: 0.12 }}>
+        {Array.from({ length: 32 }).map((_, i) => (
+          <motion.div key={i} className="rounded-full bg-indigo-500"
+            style={{ width: 2 }}
+            animate={{ height: [2, 24 * (0.2 + Math.sin(i * 0.45) * 0.35 + 0.3), 2] }}
+            transition={{ duration: 0.8 + (i % 6) * 0.1, repeat: Infinity, ease: "easeInOut", delay: i * 0.04 }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 function AuthInput({ icon: Icon, type, placeholder, value, onChange, required, testId, minLength }) {
   const [focused, setFocused] = useState(false);
   return (
@@ -201,10 +272,15 @@ export default function AuthPage() {
       </div>
 
       {/* ── RIGHT PANEL — form ── */}
-      <div className="flex-1 flex items-center justify-center px-5 sm:px-8 py-10 bg-[#f8f7f4] relative"
+      <div className="flex-1 flex items-center justify-center px-5 sm:px-8 py-10 bg-[#f8f7f4] relative overflow-hidden"
         style={{ paddingTop: "calc(2.5rem + env(safe-area-inset-top, 0px))", paddingBottom: "calc(2.5rem + env(safe-area-inset-bottom, 0px))" }}>
-        {/* Mesh accent */}
-        <motion.div className="absolute top-0 right-0 w-[300px] sm:w-[400px] h-[300px] sm:h-[400px] pointer-events-none rounded-full"
+        {/* Mobile background decorations */}
+        <DotGrid />
+        <MobileFloatingChars />
+        <MobileSoundWave />
+
+        {/* Mesh accent (desktop) */}
+        <motion.div className="absolute top-0 right-0 w-[300px] sm:w-[400px] h-[300px] sm:h-[400px] pointer-events-none rounded-full hidden lg:block"
           style={{ background: "radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 65%)" }}
           animate={{ x: [0, 20, 0], y: [0, 15, 0] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }} />
