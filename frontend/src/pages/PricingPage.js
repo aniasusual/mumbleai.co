@@ -265,7 +265,7 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden" data-testid="pricing-page">
+    <div className="min-h-screen relative overflow-x-hidden" data-testid="pricing-page">
       <div className="absolute inset-0 -z-10 overflow-hidden" style={{
         background: `
           radial-gradient(ellipse 80% 70% at 15% 20%, rgba(99,102,241,0.28) 0%, transparent 60%),

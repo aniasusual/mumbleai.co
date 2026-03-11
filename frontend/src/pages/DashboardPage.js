@@ -77,7 +77,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen relative" style={{ background: "#f8f7f4" }} data-testid="dashboard-page">
+    <div className="min-h-screen relative overflow-x-hidden" style={{ background: "#f8f7f4" }} data-testid="dashboard-page">
       <MeshGradient />
       <FloatingChars />
 
