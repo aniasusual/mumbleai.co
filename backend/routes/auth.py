@@ -72,21 +72,42 @@ async def login(data: LoginRequest):
 
 
 class GoogleAuthRequest(BaseModel):
-    credential: str
+    credential: str | None = None
+    access_token: str | None = None
+
+
+async def _resolve_google_identity(data: GoogleAuthRequest) -> dict:
+    """Return user info from either a Google ID-token or an access-token."""
+    if data.credential:
+        try:
+            idinfo = id_token.verify_oauth2_token(
+                data.credential, google_requests.Request(), GOOGLE_CLIENT_ID
+            )
+        except ValueError:
+            raise HTTPException(status_code=401, detail="Invalid Google token")
+        return idinfo
+
+    if data.access_token:
+        import httpx
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {data.access_token}"},
+            )
+        if resp.status_code != 200:
+            raise HTTPException(status_code=401, detail="Invalid Google access token")
+        return resp.json()
+
+    raise HTTPException(status_code=400, detail="Provide credential or access_token")
 
 
 @router.post("/auth/google", response_model=AuthResponse)
 async def google_auth(data: GoogleAuthRequest):
-    """Verify Google ID token and login or create user."""
+    """Verify Google ID token or access token and login or create user."""
     if not GOOGLE_CLIENT_ID:
         raise HTTPException(status_code=500, detail="Google OAuth not configured")
 
-    try:
-        idinfo = id_token.verify_oauth2_token(
-            data.credential, google_requests.Request(), GOOGLE_CLIENT_ID
-        )
-    except ValueError:
-        raise HTTPException(status_code=401, detail="Invalid Google token")
+    idinfo = await _resolve_google_identity(data)
 
     email = idinfo.get("email", "").lower().strip()
     name = idinfo.get("name", email.split("@")[0])
