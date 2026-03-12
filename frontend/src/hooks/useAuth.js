@@ -67,10 +67,15 @@ export function AuthProvider({ children }) {
   }, []);
 
   const googleLogin = useCallback(async (googleData) => {
-    // Support both credential (ID token from iframe) and access_token (from useGoogleLogin hook)
-    const payload = typeof googleData === "string"
-      ? { credential: googleData }
-      : { access_token: googleData.access_token };
+    // Support: credential (ID token string), access_token (popup flow), code (redirect flow)
+    let payload;
+    if (typeof googleData === "string") {
+      payload = { credential: googleData };
+    } else if (googleData.code) {
+      payload = { code: googleData.code, redirect_uri: googleData.redirect_uri };
+    } else {
+      payload = { access_token: googleData.access_token };
+    }
     const res = await api.post("/auth/google", payload);
     const { token: t, user: u } = res.data;
     localStorage.setItem(TOKEN_KEY, t);

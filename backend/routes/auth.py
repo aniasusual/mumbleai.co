@@ -74,10 +74,12 @@ async def login(data: LoginRequest):
 class GoogleAuthRequest(BaseModel):
     credential: str | None = None
     access_token: str | None = None
+    code: str | None = None
+    redirect_uri: str | None = None
 
 
 async def _resolve_google_identity(data: GoogleAuthRequest) -> dict:
-    """Return user info from either a Google ID-token or an access-token."""
+    """Return user info from a Google ID-token, access-token, or auth code."""
     if data.credential:
         try:
             idinfo = id_token.verify_oauth2_token(
@@ -98,7 +100,38 @@ async def _resolve_google_identity(data: GoogleAuthRequest) -> dict:
             raise HTTPException(status_code=401, detail="Invalid Google access token")
         return resp.json()
 
-    raise HTTPException(status_code=400, detail="Provide credential or access_token")
+    if data.code:
+        import httpx
+        google_client_secret = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+        async with httpx.AsyncClient() as client:
+            # Exchange auth code for tokens
+            token_resp = await client.post(
+                "https://oauth2.googleapis.com/token",
+                data={
+                    "client_id": GOOGLE_CLIENT_ID,
+                    "client_secret": google_client_secret,
+                    "code": data.code,
+                    "grant_type": "authorization_code",
+                    "redirect_uri": data.redirect_uri or "",
+                },
+            )
+        if token_resp.status_code != 200:
+            raise HTTPException(status_code=401, detail="Failed to exchange Google auth code")
+        tokens = token_resp.json()
+        # Use the access_token from exchange to get user info
+        at = tokens.get("access_token")
+        if not at:
+            raise HTTPException(status_code=401, detail="No access token in exchange response")
+        async with httpx.AsyncClient() as client:
+            info_resp = await client.get(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {at}"},
+            )
+        if info_resp.status_code != 200:
+            raise HTTPException(status_code=401, detail="Failed to fetch Google user info")
+        return info_resp.json()
+
+    raise HTTPException(status_code=400, detail="Provide credential, access_token, or code")
 
 
 @router.post("/auth/google", response_model=AuthResponse)
