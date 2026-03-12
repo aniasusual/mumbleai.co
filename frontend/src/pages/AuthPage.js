@@ -166,7 +166,7 @@ function AuthInput({ icon: Icon, type, placeholder, value, onChange, required, t
 export default function AuthPage() {
   const { user, loading, login, signup, googleLogin } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const redirectPath = searchParams.get("redirect");
   const redirectPlan = searchParams.get("plan");
   const afterAuthPath = redirectPath
@@ -180,8 +180,12 @@ export default function AuthPage() {
   const [submitting, setSubmitting] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  // Custom Google login using popup flow (works in PWA standalone mode)
-  const initiateGoogleLogin = useGoogleLogin({
+  // Detect PWA standalone mode
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches
+    || window.navigator.standalone === true;
+
+  // Popup flow — for regular browser
+  const initiatePopupLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       setError("");
       setGoogleLoading(true);
@@ -199,6 +203,50 @@ export default function AuthPage() {
       setGoogleLoading(false);
     },
   });
+
+  // Redirect flow — for PWA standalone mode
+  const initiateRedirectLogin = useGoogleLogin({
+    flow: "auth-code",
+    ux_mode: "redirect",
+    redirect_uri: window.location.origin + "/auth",
+  });
+
+  // Handle redirect callback: Google sends ?code=... back to /auth
+  useEffect(() => {
+    const code = searchParams.get("code");
+    if (!code) return;
+    // Clean the code from URL immediately to avoid re-processing
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("code");
+      next.delete("scope");
+      next.delete("authuser");
+      next.delete("prompt");
+      return next;
+    }, { replace: true });
+
+    (async () => {
+      setGoogleLoading(true);
+      setError("");
+      try {
+        await googleLogin({ code, redirect_uri: window.location.origin + "/auth" });
+        navigate(afterAuthPath);
+      } catch (err) {
+        const msg = err.response?.data?.detail || "Google sign-in failed";
+        setError(typeof msg === "string" ? msg : JSON.stringify(msg));
+      }
+      setGoogleLoading(false);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleGoogleClick = useCallback(() => {
+    if (isStandalone) {
+      initiateRedirectLogin();
+    } else {
+      initiatePopupLogin();
+    }
+  }, [isStandalone, initiateRedirectLogin, initiatePopupLogin]);
 
   if (loading) {
     return (
@@ -325,7 +373,7 @@ export default function AuthPage() {
           <div className="flex justify-center mb-4" data-testid="auth-google-btn">
             <button
               type="button"
-              onClick={() => initiateGoogleLogin()}
+              onClick={handleGoogleClick}
               disabled={googleLoading || submitting}
               className="flex items-center justify-center gap-3 w-full py-3 px-5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 active:bg-slate-100 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-60 disabled:cursor-not-allowed"
               data-testid="google-signin-btn"
