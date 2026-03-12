@@ -1,10 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, Navigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { WaveformLogo } from "@/components/WaveformLogo";
 import { Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react";
-import { GoogleLogin } from "@react-oauth/google";
+import { useGoogleLogin } from "@react-oauth/google";
 
 /* ═══════════════════════════════════════════
    FLOATING SCRIPT CHARS on left panel
@@ -178,6 +178,27 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  // Custom Google login using popup flow (works in PWA standalone mode)
+  const initiateGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setError("");
+      setGoogleLoading(true);
+      try {
+        await googleLogin(tokenResponse);
+        navigate(afterAuthPath);
+      } catch (err) {
+        const msg = err.response?.data?.detail || "Google sign-in failed";
+        setError(typeof msg === "string" ? msg : JSON.stringify(msg));
+      }
+      setGoogleLoading(false);
+    },
+    onError: () => {
+      setError("Google sign-in failed. Please try again.");
+      setGoogleLoading(false);
+    },
+  });
 
   if (loading) {
     return (
@@ -300,28 +321,29 @@ export default function AuthPage() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Google button */}
-          {/* REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH */}
+          {/* Google button — custom button using useGoogleLogin (PWA-safe, no iframe) */}
           <div className="flex justify-center mb-4" data-testid="auth-google-btn">
-            <GoogleLogin
-              onSuccess={async (credentialResponse) => {
-                setError("");
-                setSubmitting(true);
-                try {
-                  await googleLogin(credentialResponse.credential);
-                  navigate(afterAuthPath);
-                } catch (err) {
-                  const msg = err.response?.data?.detail || "Google sign-in failed";
-                  setError(typeof msg === "string" ? msg : JSON.stringify(msg));
-                }
-                setSubmitting(false);
-              }}
-              onError={() => setError("Google sign-in failed. Please try again.")}
-              size="large"
-              text={mode === "login" ? "signin_with" : "signup_with"}
-              shape="pill"
-              theme="outline"
-            />
+            <button
+              type="button"
+              onClick={() => initiateGoogleLogin()}
+              disabled={googleLoading || submitting}
+              className="flex items-center justify-center gap-3 w-full py-3 px-5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 active:bg-slate-100 transition-all duration-200 shadow-sm hover:shadow disabled:opacity-60 disabled:cursor-not-allowed"
+              data-testid="google-signin-btn"
+            >
+              {googleLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+              ) : (
+                <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+              )}
+              <span className="text-sm font-medium text-slate-700">
+                {mode === "login" ? "Sign in with Google" : "Sign up with Google"}
+              </span>
+            </button>
           </div>
 
           {/* Divider */}
