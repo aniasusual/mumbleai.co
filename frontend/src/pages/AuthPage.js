@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, Navigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,6 +8,8 @@ import { useGoogleLogin } from "@react-oauth/google";
 
 const GOOGLE_AUTH_PATH = "/auth";
 const APP_URL_SCHEME = "com.mumbleai.app";
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+const GOOGLE_OAUTH_SCOPES = ["openid", "email", "profile"].join(" ");
 
 const isNativeCapacitorApp = () => {
   if (typeof window === "undefined") return false;
@@ -36,17 +38,21 @@ const decodeMobileGoogleState = (value) => {
   }
 };
 
-const buildMobileBrowserAuthUrl = (redirectPath) => {
-  const url = new URL(`${window.location.origin}${GOOGLE_AUTH_PATH}`);
-  url.searchParams.set("mobile_google", "1");
-  url.searchParams.set("app_redirect", redirectPath);
-  return url.toString();
-};
-
 const buildAppCallbackUrl = (code, state) => {
   const url = new URL(`${APP_URL_SCHEME}://auth`);
   url.searchParams.set("google_code", code);
   if (state) url.searchParams.set("google_state", state);
+  return url.toString();
+};
+
+const buildNativeGoogleAuthUrl = (redirectUri, state) => {
+  const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+  url.searchParams.set("client_id", GOOGLE_CLIENT_ID);
+  url.searchParams.set("redirect_uri", redirectUri);
+  url.searchParams.set("response_type", "code");
+  url.searchParams.set("scope", GOOGLE_OAUTH_SCOPES);
+  url.searchParams.set("prompt", "select_account");
+  if (state) url.searchParams.set("state", state);
   return url.toString();
 };
 
@@ -211,7 +217,6 @@ export default function AuthPage() {
   const { user, loading, login, signup, googleLogin } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const mobileGoogleStartRef = useRef(false);
   const redirectPath = searchParams.get("redirect");
   const redirectPlan = searchParams.get("plan");
   const afterAuthPath = redirectPath
@@ -226,11 +231,9 @@ export default function AuthPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const isNativeApp = isNativeCapacitorApp();
   const googleRedirectUri = getGoogleRedirectUri();
-  const isMobileBrowserBridge = !isNativeApp && searchParams.get("mobile_google") === "1";
-  const mobileBrowserRedirect = searchParams.get("app_redirect") || afterAuthPath;
   const mobileGoogleState = useMemo(
-    () => encodeMobileGoogleState({ mobileGoogle: true, redirect: mobileBrowserRedirect }),
-    [mobileBrowserRedirect],
+    () => encodeMobileGoogleState({ mobileGoogle: true, redirect: afterAuthPath }),
+    [afterAuthPath],
   );
   const returnedGoogleState = searchParams.get("state");
   const decodedGoogleState = useMemo(
@@ -272,16 +275,7 @@ export default function AuthPage() {
     flow: "auth-code",
     ux_mode: "redirect",
     redirect_uri: googleRedirectUri,
-    ...(isMobileBrowserBridge ? { state: mobileGoogleState } : {}),
   });
-
-  useEffect(() => {
-    if (!isMobileBrowserBridge || searchParams.get("code") || mobileGoogleStartRef.current) return;
-    mobileGoogleStartRef.current = true;
-    setGoogleLoading(true);
-    setError("");
-    initiateRedirectLogin();
-  }, [initiateRedirectLogin, isMobileBrowserBridge, searchParams]);
 
   useEffect(() => {
     if (!isNativeApp || !mobileGoogleCode) return;
@@ -344,7 +338,7 @@ export default function AuthPage() {
   }, [afterAuthPath, decodedGoogleState, googleLogin, googleRedirectUri, isNativeApp, navigate, returnedGoogleState, searchParams, setSearchParams]);
 
   const handleNativeGoogleClick = useCallback(async () => {
-    const mobileAuthUrl = buildMobileBrowserAuthUrl(afterAuthPath);
+    const mobileAuthUrl = buildNativeGoogleAuthUrl(googleRedirectUri, mobileGoogleState);
     setError("");
     setGoogleLoading(true);
     try {
@@ -360,7 +354,7 @@ export default function AuthPage() {
       setError("Could not open Google sign-in.");
     }
     setGoogleLoading(false);
-  }, [afterAuthPath]);
+  }, [googleRedirectUri, mobileGoogleState]);
 
   const handleGoogleClick = useCallback(() => {
     if (isNativeApp) {
