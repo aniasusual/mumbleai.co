@@ -5,6 +5,6 @@
   "server": {
     "url": "https://mumbleai.co/auth",
     "cleartext": false,
-    "allowNavigation": ["mumbleai.co", "*.mumbleai.co"]
+    "allowNavigation": ["mumbleai.co", "*.mumbleai.co", "payment-auth-hub.emergent.host", "*.emergent.host"]
   }
 }
