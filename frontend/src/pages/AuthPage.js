@@ -326,6 +326,7 @@ export default function AuthPage() {
       next.delete("scope");
       next.delete("authuser");
       next.delete("prompt");
+      next.delete("state");
       return next;
     }, { replace: true });
 
@@ -365,12 +366,11 @@ export default function AuthPage() {
   const handleGoogleClick = useCallback(() => {
     if (isNativeApp) {
       handleNativeGoogleClick();
-    } else if (isStandalone) {
-      initiateRedirectLogin();
     } else {
-      initiatePopupLogin();
+      // Always use redirect flow for web — popup flow is blocked by COOP headers
+      initiateRedirectLogin();
     }
-  }, [handleNativeGoogleClick, initiatePopupLogin, initiateRedirectLogin, isNativeApp, isStandalone]);
+  }, [handleNativeGoogleClick, initiateRedirectLogin, isNativeApp]);
 
   if (loading) {
     return (
