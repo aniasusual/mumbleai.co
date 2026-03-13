@@ -1,10 +1,54 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate, Navigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { WaveformLogo } from "@/components/WaveformLogo";
 import { Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react";
 import { useGoogleLogin } from "@react-oauth/google";
+
+const GOOGLE_AUTH_PATH = "/auth";
+const APP_URL_SCHEME = "com.mumbleai.app";
+
+const isNativeCapacitorApp = () => {
+  if (typeof window === "undefined") return false;
+  const capacitor = window.Capacitor;
+  if (!capacitor) return false;
+  if (typeof capacitor.isNativePlatform === "function") return capacitor.isNativePlatform();
+  if (typeof capacitor.getPlatform === "function") return capacitor.getPlatform() !== "web";
+  return false;
+};
+
+const getGoogleRedirectUri = () => `${window.location.origin}${GOOGLE_AUTH_PATH}`;
+
+const encodeMobileGoogleState = (payload) => {
+  const json = JSON.stringify(payload);
+  return btoa(json).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+};
+
+const decodeMobileGoogleState = (value) => {
+  if (!value) return null;
+  try {
+    const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
+    return JSON.parse(atob(padded));
+  } catch (_) {
+    return null;
+  }
+};
+
+const buildMobileBrowserAuthUrl = (redirectPath) => {
+  const url = new URL(`${window.location.origin}${GOOGLE_AUTH_PATH}`);
+  url.searchParams.set("mobile_google", "1");
+  url.searchParams.set("app_redirect", redirectPath);
+  return url.toString();
+};
+
+const buildAppCallbackUrl = (code, state) => {
+  const url = new URL(`${APP_URL_SCHEME}://auth`);
+  url.searchParams.set("google_code", code);
+  if (state) url.searchParams.set("google_state", state);
+  return url.toString();
+};
 
 /* ═══════════════════════════════════════════
    FLOATING SCRIPT CHARS on left panel
@@ -167,6 +211,7 @@ export default function AuthPage() {
   const { user, loading, login, signup, googleLogin } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const mobileGoogleStartRef = useRef(false);
   const redirectPath = searchParams.get("redirect");
   const redirectPlan = searchParams.get("plan");
   const afterAuthPath = redirectPath
@@ -179,6 +224,24 @@ export default function AuthPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const isNativeApp = isNativeCapacitorApp();
+  const googleRedirectUri = getGoogleRedirectUri();
+  const isMobileBrowserBridge = !isNativeApp && searchParams.get("mobile_google") === "1";
+  const mobileBrowserRedirect = searchParams.get("app_redirect") || afterAuthPath;
+  const mobileGoogleState = useMemo(
+    () => encodeMobileGoogleState({ mobileGoogle: true, redirect: mobileBrowserRedirect }),
+    [mobileBrowserRedirect],
+  );
+  const returnedGoogleState = searchParams.get("state");
+  const decodedGoogleState = useMemo(
+    () => decodeMobileGoogleState(returnedGoogleState),
+    [returnedGoogleState],
+  );
+  const mobileGoogleCode = searchParams.get("google_code");
+  const mobileCallbackState = useMemo(
+    () => decodeMobileGoogleState(searchParams.get("google_state")),
+    [searchParams],
+  );
 
   // Detect PWA standalone mode
   const isStandalone = window.matchMedia("(display-mode: standalone)").matches
@@ -208,13 +271,54 @@ export default function AuthPage() {
   const initiateRedirectLogin = useGoogleLogin({
     flow: "auth-code",
     ux_mode: "redirect",
-    redirect_uri: window.location.origin + "/auth",
+    redirect_uri: googleRedirectUri,
+    ...(isMobileBrowserBridge ? { state: mobileGoogleState } : {}),
   });
+
+  useEffect(() => {
+    if (!isMobileBrowserBridge || searchParams.get("code") || mobileGoogleStartRef.current) return;
+    mobileGoogleStartRef.current = true;
+    setGoogleLoading(true);
+    setError("");
+    initiateRedirectLogin();
+  }, [initiateRedirectLogin, isMobileBrowserBridge, searchParams]);
+
+  useEffect(() => {
+    if (!isNativeApp || !mobileGoogleCode) return;
+
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("google_code");
+      next.delete("google_state");
+      return next;
+    }, { replace: true });
+
+    (async () => {
+      setGoogleLoading(true);
+      setError("");
+      try {
+        await googleLogin({ code: mobileGoogleCode, redirect_uri: googleRedirectUri });
+        await window.Capacitor?.Plugins?.Browser?.close?.().catch(() => {});
+        navigate(mobileCallbackState?.redirect || afterAuthPath, { replace: true });
+      } catch (err) {
+        const msg = err.response?.data?.detail || "Google sign-in failed";
+        setError(typeof msg === "string" ? msg : JSON.stringify(msg));
+      }
+      setGoogleLoading(false);
+    })();
+  }, [afterAuthPath, googleLogin, googleRedirectUri, isNativeApp, mobileCallbackState, mobileGoogleCode, navigate, setSearchParams]);
 
   // Handle redirect callback: Google sends ?code=... back to /auth
   useEffect(() => {
     const code = searchParams.get("code");
     if (!code) return;
+
+    if (decodedGoogleState?.mobileGoogle && !isNativeApp) {
+      setGoogleLoading(true);
+      window.location.replace(buildAppCallbackUrl(code, returnedGoogleState));
+      return;
+    }
+
     // Clean the code from URL immediately to avoid re-processing
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
@@ -229,7 +333,7 @@ export default function AuthPage() {
       setGoogleLoading(true);
       setError("");
       try {
-        await googleLogin({ code, redirect_uri: window.location.origin + "/auth" });
+        await googleLogin({ code, redirect_uri: googleRedirectUri });
         navigate(afterAuthPath);
       } catch (err) {
         const msg = err.response?.data?.detail || "Google sign-in failed";
@@ -237,16 +341,36 @@ export default function AuthPage() {
       }
       setGoogleLoading(false);
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [afterAuthPath, decodedGoogleState, googleLogin, googleRedirectUri, isNativeApp, navigate, returnedGoogleState, searchParams, setSearchParams]);
+
+  const handleNativeGoogleClick = useCallback(async () => {
+    const mobileAuthUrl = buildMobileBrowserAuthUrl(afterAuthPath);
+    setError("");
+    setGoogleLoading(true);
+    try {
+      if (window.Capacitor?.Plugins?.Browser?.open) {
+        await window.Capacitor.Plugins.Browser.open({
+          url: mobileAuthUrl,
+          toolbarColor: "#4338ca",
+        });
+      } else {
+        window.open(mobileAuthUrl, "_blank", "noopener,noreferrer");
+      }
+    } catch (_) {
+      setError("Could not open Google sign-in.");
+    }
+    setGoogleLoading(false);
+  }, [afterAuthPath]);
 
   const handleGoogleClick = useCallback(() => {
-    if (isStandalone) {
+    if (isNativeApp) {
+      handleNativeGoogleClick();
+    } else if (isStandalone) {
       initiateRedirectLogin();
     } else {
       initiatePopupLogin();
     }
-  }, [isStandalone, initiateRedirectLogin, initiatePopupLogin]);
+  }, [handleNativeGoogleClick, initiatePopupLogin, initiateRedirectLogin, isNativeApp, isStandalone]);
 
   if (loading) {
     return (
