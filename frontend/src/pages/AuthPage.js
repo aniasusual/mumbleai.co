@@ -229,8 +229,8 @@ export default function AuthPage() {
   const isMobileBrowserBridge = !isNativeApp && searchParams.get("mobile_google") === "1";
   const mobileBrowserRedirect = searchParams.get("app_redirect") || afterAuthPath;
   const mobileGoogleState = useMemo(
-    () => encodeMobileGoogleState({ mobileGoogle: true, redirect: mobileBrowserRedirect }),
-    [mobileBrowserRedirect],
+    () => encodeMobileGoogleState({ mobileGoogle: true, redirect: mobileBrowserRedirect, redirect_uri: googleRedirectUri }),
+    [mobileBrowserRedirect, googleRedirectUri],
   );
   const returnedGoogleState = searchParams.get("state");
   const decodedGoogleState = useMemo(
@@ -297,7 +297,7 @@ export default function AuthPage() {
       setGoogleLoading(true);
       setError("");
       try {
-        await googleLogin({ code: mobileGoogleCode, redirect_uri: googleRedirectUri });
+        await googleLogin({ code: mobileGoogleCode, redirect_uri: mobileCallbackState?.redirect_uri || googleRedirectUri });
         await window.Capacitor?.Plugins?.Browser?.close?.().catch(() => {});
         navigate(mobileCallbackState?.redirect || afterAuthPath, { replace: true });
       } catch (err) {
