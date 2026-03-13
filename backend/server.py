@@ -23,6 +23,13 @@ api_router.include_router(resources.router)
 api_router.include_router(payments.router)
 app.include_router(api_router)
 
+
+# Health check endpoint (root-level, outside /api prefix for K8s probes)
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
+
 # CORS
 app.add_middleware(
     CORSMiddleware,
