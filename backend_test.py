@@ -19,7 +19,7 @@ import time
 from datetime import datetime
 
 class FirstLessonOnboardingTester:
-    def __init__(self, base_url="https://project-scanner-30.preview.emergentagent.com"):
+    def __init__(self, base_url="https://payment-auth-hub.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.tests_run = 0
