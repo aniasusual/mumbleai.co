@@ -8,6 +8,24 @@ import { useGoogleLogin } from "@react-oauth/google";
 
 const GOOGLE_AUTH_PATH = "/auth";
 const APP_URL_SCHEME = "com.mumbleai.app";
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+
+/**
+ * Build a direct Google OAuth 2.0 authorization URL.
+ * Used for mobile browser bridge where we can't rely on the GIS client library loading in time.
+ */
+const buildDirectGoogleOAuthUrl = (redirectUri, state) => {
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: redirectUri,
+    response_type: "code",
+    scope: "openid email profile",
+    access_type: "offline",
+    prompt: "consent",
+  });
+  if (state) params.set("state", state);
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+};
 
 const isNativeCapacitorApp = () => {
   if (typeof window === "undefined") return false;
@@ -280,8 +298,12 @@ export default function AuthPage() {
     mobileGoogleStartRef.current = true;
     setGoogleLoading(true);
     setError("");
-    initiateRedirectLogin();
-  }, [initiateRedirectLogin, isMobileBrowserBridge, searchParams]);
+    // Bypass @react-oauth/google — redirect directly to Google OAuth.
+    // The GIS client library may not be loaded yet in SFSafariViewController,
+    // so we construct the URL manually for reliable redirect.
+    const directUrl = buildDirectGoogleOAuthUrl(googleRedirectUri, mobileGoogleState);
+    window.location.href = directUrl;
+  }, [googleRedirectUri, mobileGoogleState, isMobileBrowserBridge, searchParams]);
 
   useEffect(() => {
     if (!isNativeApp || !mobileGoogleCode) return;
